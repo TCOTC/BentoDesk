@@ -362,7 +362,7 @@ public sealed partial class WidgetWindow
             slot.Margin = ViewModel.IconTileMargin;
         }
 
-        // 高亮面铺满固定格子槽，避免因文件名长短/换行导致选中矩形宽高不一致。
+        // 高亮面铺满固定槽位，避免因文件名长短/换行导致选中矩形宽高不一致。
         border.Width = double.NaN;
         border.Height = double.NaN;
         border.ClearValue(FrameworkElement.MaxWidthProperty);

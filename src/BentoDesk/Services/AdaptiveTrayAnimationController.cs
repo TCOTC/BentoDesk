@@ -324,7 +324,7 @@ public sealed class AdaptiveTrayAnimationController
             ElementCompositionPreview.SetIsTranslationEnabled(_rootElement, true);
             
             // 创建 Translation Animation：从 OFFSCREEN → 当前屏幕位置
-            // 这样视觉效果是：格子从屏幕外滑入到当前位置
+            // 这样视觉效果是：盒子从屏幕外滑入到当前位置
             _translationAnimation = GetCachedCompositor(visual).CreateVector3KeyFrameAnimation();
             _translationAnimation.Duration = TimeSpan.FromMilliseconds(durationMs);
             

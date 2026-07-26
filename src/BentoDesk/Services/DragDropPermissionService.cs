@@ -108,7 +108,7 @@ public static class DragDropPermissionService
         {
             issue = DragDropDiagnosticIssue.UacDisabled;
             summary = "Windows 安全通知已设为“从不通知”";
-            detail = "这不一定会导致拖拽失败；如果 BentoDesk 和资源管理器权限一致，拖拽仍可能正常。若其他电脑出现拖不进格子的情况，请打开 Windows 安全通知设置，把左侧滑块调到默认档位，点击确定并重启电脑后再测试。";
+            detail = "这不一定会导致拖拽失败；如果 BentoDesk 和资源管理器权限一致，拖拽仍可能正常。若其他电脑出现拖不进盒子的情况，请打开 Windows 安全通知设置，把左侧滑块调到默认档位，点击确定并重启电脑后再测试。";
         }
         else if (permissionMismatch)
         {

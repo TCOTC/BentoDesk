@@ -1538,7 +1538,7 @@ settings.FocusClickedWidgetOnRaise = false;
                 continue;
             }
 
-            // 桌面归属收纳格：不再拥有托管根下的私有文件夹。
+            // 桌面归属收纳盒：不再拥有托管根下的私有文件夹。
             if (!string.IsNullOrWhiteSpace(widget.ManagedFolderName))
             {
                 widget.ManagedFolderName = null;

@@ -445,7 +445,7 @@ public sealed partial class WidgetWindow
         _reorderCommitHandled = false;
         BeginReorderPlaceholder(dragItems);
 
-        // Link 用于同格子内排序；必须包含在 AllowedOperations，否则目标 Accept Link 会被判无效。
+        // Link 用于同盒子内排序；必须包含在 AllowedOperations，否则目标 Accept Link 会被判无效。
         args.AllowedOperations = DataPackageOperation.Copy | DataPackageOperation.Move | DataPackageOperation.Link;
     }
 
@@ -461,7 +461,7 @@ public sealed partial class WidgetWindow
         // Fallback: RootGrid_Drop 未触发时，用最后一次指示线位置提交排序。
         if (!_reorderCommitHandled && _isReorderDragActive)
         {
-            // Link = 同格子排序成功；None 时若光标仍在本窗口，多半是 WinUI 未送达 Drop。
+            // Link = 同盒子排序成功；None 时若光标仍在本窗口，多半是 WinUI 未送达 Drop。
             if (args.DropResult == DataPackageOperation.Link ||
                 (IsCursorOverThisWindow() && args.DropResult != DataPackageOperation.Move))
             {

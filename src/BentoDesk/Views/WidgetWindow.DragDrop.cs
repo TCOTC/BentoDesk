@@ -77,7 +77,7 @@ public sealed partial class WidgetWindow
         bool isLeftButtonReleased = !Win32Helper.IsKeyDown(0x01);
         if (isLeftButtonReleased && _pendingDropDataView is not null && !_isManualDropInProgress)
         {
-            // 同格子排序松手：提交指示线位置，绝不能走文件导入刷新路径。
+            // 同盒子排序松手：提交指示线位置，绝不能走文件导入刷新路径。
             if (_isReorderDragActive)
             {
                 _pendingDropDataView = null;
@@ -970,7 +970,7 @@ StopDragHighlight();
             return;
         }
 
-        // 同格子排序：只提交顺序，不要走导入刷新。
+        // 同盒子排序：只提交顺序，不要走导入刷新。
         if (_isReorderDragActive)
         {
             App.Log("[DropDiagnostic] Poll release during reorder — committing reorder");

@@ -8,7 +8,7 @@
 
 ## 一、当前实现现状
 
-### 1.1 格子窗口的"多层"结构
+### 1.1 盒子窗口的"多层"结构
 
 当前 Widget 窗口的视觉效果由以下层次叠加而成：
 
@@ -22,8 +22,8 @@
 | **L5 DWM 窗口边框色** | `DwmSetWindowAttribute(DWMWA_BORDER_COLOR, 0xFFFFFFFE)` | `WidgetWindow.xaml.cs:255-256` | 硬编码为"无边框"(0xFFFFFFFE) |
 | **L6 窗口圆角** | `DwmSetWindowAttribute(DWMWA_WINDOW_CORNER_PREFERENCE)` | `Win32Helper.cs:547` | 用户可选 Default/Square/Small/Round |
 | **L7 分隔线** | `HeaderDivider.Background = SolidColorBrush(dividerColor)` | `WidgetWindow.xaml.cs:1462` | 标题栏与内容之间的细线 |
-| **L8 格子内 item 边框** | `BorderThickness="0.8"` + `CardStrokeColorDefaultBrush` | `WidgetShell.xaml:150-152` | 每个文件格子的内边框 |
-| **阴影** | **无** | — | 除了 MusicWidget 的 AlbumArtShadow 外，格子主窗口没有任何阴影 |
+| **L8 盒子内 item 边框** | `BorderThickness="0.8"` + `CardStrokeColorDefaultBrush` | `WidgetShell.xaml:150-152` | 每个文件盒子的内边框 |
+| **阴影** | **无** | — | 除了 MusicWidget 的 AlbumArtShadow 外，盒子主窗口没有任何阴影 |
 
 ### 1.2 当前用户可配置项
 
@@ -119,11 +119,11 @@ acrylicController.Kind = DesktopAcrylicKind.Thin | Base;  // Thin 更薄更通�
 |------|-----|------|
 | **MicaController** | `Microsoft.UI.Composition.SystemBackdrops.MicaController` | 比 Acrylic 更省性能（只采样一次壁纸），更适合长驻 Widget |
 | **MicaBackdrop (XAML)** | `Window.SystemBackdrop = new MicaBackdrop()` | 最简 API，一行代码启用 |
-| **ThemeShadow** | `ThemeShadow` + `Translation` | 给 Widget 内部元素（如格子卡片）添加原生深度阴影 |
+| **ThemeShadow** | `ThemeShadow` + `Translation` | 给 Widget 内部元素（如盒子卡片）添加原生深度阴影 |
 | **DropShadow (Composition)** | `Compositor.CreateDropShadow()` | 给 BackgroundPlate 添加可自定义的窗口级阴影 |
 | **DWMWA_CAPTION_COLOR / TEXT_COLOR** | `DwmSetWindowAttribute` | 自定义标题栏颜色 |
 | **DWMWA_BORDER_COLOR** (自定义值) | `DwmSetWindowAttribute` | 当前硬编码为无边框，可改为用户自定义颜色/透明度 |
-| **In-app Acrylic (ThemeResource)** | `SystemControlAcrylicElementBrush` 等 | 给格子内部 item 使用系统预设亚克力，替代手动计算颜色 |
+| **In-app Acrylic (ThemeResource)** | `SystemControlAcrylicElementBrush` 等 | 给盒子内部 item 使用系统预设亚克力，替代手动计算颜色 |
 | **SystemBackdrop 应用到任意 XAML 元素** | ` Microsoft.UI.Composition.SystemBackdrops` + `DesktopAcrylicController.AddSystemBackdropTarget(visual)` | 不仅限于 Window，可给任意 Visual 施加系统背板 |
 
 ---
@@ -132,7 +132,7 @@ acrylicController.Kind = DesktopAcrylicKind.Thin | Base;  // Thin 更薄更通�
 
 ### 方案 A：材质类型选择器（新增 `WidgetMaterialType` 设置）
 
-**目标**：让用户在设置中选择格子窗口的基底材质类型。
+**目标**：让用户在设置中选择盒子窗口的基底材质类型。
 
 ```
 设置 > 外观 > 材质类型
@@ -234,7 +234,7 @@ private bool ApplyMicaController(bool isDark, double surfaceOpacity)
 
 ### 方案 B：边框自定义控制
 
-**目标**：让用户可以控制格子窗口的边框开关和强度。
+**目标**：让用户可以控制盒子窗口的边框开关和强度。
 
 ```
 设置 > 外观 > 边框
@@ -293,7 +293,7 @@ private void ApplySurfaceStyle()
 
 ### 方案 C：阴影控制
 
-**目标**：给格子窗口添加可控的阴影效果。
+**目标**：给盒子窗口添加可控的阴影效果。
 
 有两个可选路径：
 
@@ -442,9 +442,9 @@ private void ApplySurfaceStyle()
 
 ---
 
-### 方案 E：格子内 item 卡片使用原生 ThemeResource
+### 方案 E：盒子内 item 卡片使用原生 ThemeResource
 
-**目标**：格子内部的文件卡片（WidgetShell.xaml:150-152）当前使用 `{ThemeResource CardBackgroundFillColorDefaultBrush}` + `{ThemeResource CardStrokeColorDefaultBrush}`，这是正确的原生做法。但可以考虑提供更多原生预设。
+**目标**：盒子内部的文件卡片（WidgetShell.xaml:150-152）当前使用 `{ThemeResource CardBackgroundFillColorDefaultBrush}` + `{ThemeResource CardStrokeColorDefaultBrush}`，这是正确的原生做法。但可以考虑提供更多原生预设。
 
 当前：
 ```xml
@@ -534,7 +534,7 @@ private void ApplySurfaceStyle()
 
 - Mica 是为**长驻窗口**设计的，采样壁纸一次。Widget 窗口通常固定在桌面位置，Mica 的壁纸采样会基于窗口当前位置。
 - 如果用户有多个显示器且壁纸不同，Mica 会在窗口移动时重新采样。
-- **Mica 不透明**：用户无法通过 Mica 看到"窗口后面的东西"（不同于 Acrylic 的实时模糊）。这对 Widget 来说可能不是问题（Widget 通常不需要看到后面），但如果用户期望"透过格子看到桌面图标"，则 Mica 不合适。
+- **Mica 不透明**：用户无法通过 Mica 看到"窗口后面的东西"（不同于 Acrylic 的实时模糊）。这对 Widget 来说可能不是问题（Widget 通常不需要看到后面），但如果用户期望"透过盒子看到桌面图标"，则 Mica 不合适。
 
 ### 5.2 性能对比
 

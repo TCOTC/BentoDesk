@@ -1,7 +1,7 @@
-# BentoDesk 格子层级（Z-Order）生命周期与排查手册
+# BentoDesk 盒子层级（Z-Order）生命周期与排查手册
 
 > 文档性质：技术实现手册 + 故障复盘指南。
-> 适用场景：F7 / 托盘唤起格子后出现的层级类问题（压屏、不回落、闪烁、不收起等）。
+> 适用场景：F7 / 托盘唤起盒子后出现的层级类问题（压屏、不回落、闪烁、不收起等）。
 > 关联文档：`docs/architecture/widget_layer_workspace_plan.md`（产品规则口径）、`docs/architecture/current_architecture.md`（整体架构）。
 > 最后更新：2026-07-24（随「F7 唤起压屏」A+B+D 修复同步撰写）。
 
@@ -9,7 +9,7 @@
 
 ## 1. 系统目标与两种层级模式
 
-格子（widget）本质上是一组**无边框 Win32 窗口**，需要在两个状态之间切换：
+盒子（widget）本质上是一组**无边框 Win32 窗口**，需要在两个状态之间切换：
 
 | 状态 | 含义 | Z-order 位置 |
 |---|---|---|
@@ -21,21 +21,21 @@
 层级模式（`Settings.WidgetLayerMode`）：
 
 1. **动态层级（默认）**：本文档主要描述的模式。F7 唤起时浮起，交互结束/点击外部后回落。
-2. **桌面固定层（DesktopPinned，实验）**：格子 attach 到 WorkerW 桌面容器，所有"置顶/回落"操作都改为桌面图标层内的兄弟排序。**注意：几乎所有 Z-order 入口函数都有 `UsesDesktopPinnedMode()` 分支，修改任何一条路径时必须两种模式都过一遍。**
+2. **桌面固定层（DesktopPinned，实验）**：盒子 attach 到 WorkerW 桌面容器，所有"置顶/回落"操作都改为桌面图标层内的兄弟排序。**注意：几乎所有 Z-order 入口函数都有 `UsesDesktopPinnedMode()` 分支，修改任何一条路径时必须两种模式都过一遍。**
 
-格子窗口有三种宿主类型，**每条唤起/回落路径都有三份平行实现**，改动时必须同步：
+盒子窗口有三种宿主类型，**每条唤起/回落路径都有三份平行实现**，改动时必须同步：
 
 | 宿主类 | 文件 | 用于 |
 |---|---|---|
-| `WidgetWindow` | `src/BentoDesk/Views/WidgetWindow.*.cs` | 文件收纳/文件夹映射格子 |
-| `QuickCaptureWidgetWindow` | `src/BentoDesk/Views/QuickCaptureWidgetWindow.*.cs` | 随记格子 |
-| `ContentWidgetWindow` | `src/BentoDesk/Views/ContentWidgetWindow.*.cs` | 音乐/搜索等内容型格子 |
+| `WidgetWindow` | `src/BentoDesk/Views/WidgetWindow.*.cs` | 文件收纳/文件夹映射盒子 |
+| `QuickCaptureWidgetWindow` | `src/BentoDesk/Views/QuickCaptureWidgetWindow.*.cs` | 随记盒子 |
+| `ContentWidgetWindow` | `src/BentoDesk/Views/ContentWidgetWindow.*.cs` | 音乐/搜索等内容型盒子 |
 
 ---
 
 ## 2. 核心机制：唤起不靠"持久置顶"
 
-**这是理解整个系统的钥匙。** 唤起时格子**不是**持久 TopMost 窗口，而是通过一个 Win32 技巧浮到普通层级带顶部：
+**这是理解整个系统的钥匙。** 唤起时盒子**不是**持久 TopMost 窗口，而是通过一个 Win32 技巧浮到普通层级带顶部：
 
 ```
 SetWindowPos(hwnd, HWND_TOPMOST,   ..., SWP_NOACTIVATE | SWP_SHOWWINDOW);
@@ -46,11 +46,11 @@ SetWindowPos(hwnd, HWND_NOTOPMOST, ..., SWP_NOACTIVATE | SWP_SHOWWINDOW);
 
 实现位置：`src/BentoDesk/Helpers/Win32Helper.cs` 的 `BringWindowTemporarilyToFront()`（约 556 行）。
 
-> **推论**：格子压屏问题几乎都不是"置顶没清除"，而是"**回落（restore）没有被触发**"或"**回落了但没有视觉效果**"。排查时不要先找谁设了 TopMost，先找回落信号为什么没响。
+> **推论**：盒子压屏问题几乎都不是"置顶没清除"，而是"**回落（restore）没有被触发**"或"**回落了但没有视觉效果**"。排查时不要先找谁设了 TopMost，先找回落信号为什么没响。
 
 ### 持久置顶只作为瞬态存在
 
-`WidgetLayerService.BringGroupTemporarilyToFront()`（`src/BentoDesk/Services/WidgetLayerService.cs:137`）在批量唤起时会**短暂**把所有格子设为持久 TopMost，随后在同一函数内逐个 `ClearWindowTopMost` 清除，最后把活动窗口 `BringWindowToFront` + `SetForegroundWindow`。整个序列同步执行，正常结束后无残留。
+`WidgetLayerService.BringGroupTemporarilyToFront()`（`src/BentoDesk/Services/WidgetLayerService.cs:137`）在批量唤起时会**短暂**把所有盒子设为持久 TopMost，随后在同一函数内逐个 `ClearWindowTopMost` 清除，最后把活动窗口 `BringWindowToFront` + `SetForegroundWindow`。整个序列同步执行，正常结束后无残留。
 
 ---
 
@@ -71,20 +71,20 @@ SetWindowPos(hwnd, HWND_NOTOPMOST, ..., SWP_NOACTIVATE | SWP_SHOWWINDOW);
 | 条件 | 决策 | 日志标记 |
 |---|---|---|
 | `_widgetsRaisedFromTray == true`（唤起态中） | **hide** | `reason=raised-session` |
-| 无可见格子 | **raise** | `reason=no-visible-windows` |
+| 无可见盒子 | **raise** | `reason=no-visible-windows` |
 | 前台是 BentoDesk / 桌面壳（Progman/WorkerW）/ 任务栏 | **hide** | `reason=foreground-local` |
-| 格子可见但被埋 + 前台是外部窗口 | **raise** | `reason=visible-widgets-behind` |
+| 盒子可见但被埋 + 前台是外部窗口 | **raise** | `reason=visible-widgets-behind` |
 
-> 注意最后一行是**有意设计**（2026-07-24 用户确认保留）：F7 可以把被其他窗口埋住的格子重新捞上来。所以"唤起 → 点外部回落 → 再按 F7"是重新浮起而不是隐藏，属预期行为。
+> 注意最后一行是**有意设计**（2026-07-24 用户确认保留）：F7 可以把被其他窗口埋住的盒子重新捞上来。所以"唤起 → 点外部回落 → 再按 F7"是重新浮起而不是隐藏，属预期行为。
 
 ### 3.3 唤起执行序列
 
 `src/BentoDesk/Services/WidgetManager.TrayAnimation.cs` 的 `RaiseWidgetsFromTrayAsync`（约 40-130 行），顺序固定、相互依赖，**调整顺序前务必读完整个函数**：
 
 1. `_isTogglingWidgetsDesktopLayer = true`（finally 复位，防重入）。
-2. 逐格子 `PrepareWidgetForBatchShowAsync`（异步，可能首次创建窗口）。
-3. 隐藏中的格子 `ShowPreparedRaisedFromTray()`；已可见的格子 `EnsureRaisedFromTrayTopMost()`。
-   - 注意 `EnsureRaisedFromTrayTopMost` 有 `_isAtDesktopLayer` 短路（`WidgetWindow.TrayLifecycle.cs:111`）：**上一轮已被 restore 的格子会被跳过**，它们的物理浮起实际靠第 6 步的 group 操作兜底。
+2. 逐盒子 `PrepareWidgetForBatchShowAsync`（异步，可能首次创建窗口）。
+3. 隐藏中的盒子 `ShowPreparedRaisedFromTray()`；已可见的盒子 `EnsureRaisedFromTrayTopMost()`。
+   - 注意 `EnsureRaisedFromTrayTopMost` 有 `_isAtDesktopLayer` 短路（`WidgetWindow.TrayLifecycle.cs:111`）：**上一轮已被 restore 的盒子会被跳过**，它们的物理浮起实际靠第 6 步的 group 操作兜底。
 4. 记录 `_foregroundAtRaiseTime = GetForegroundWindow()`；设置 `_suppressTrayLayerRestoreUntilUtc = now + 160ms`（防止唤起动画期间的瞬时事件误触发回落）。
 5. `SetWidgetsRaisedFromTray(true)` 进入唤起态。
 6. `QueueTrayRaiseTopMostConfirmation` → `BringGroupTemporarilyToFront`（瞬态置顶再清除，见 §2）。
@@ -128,11 +128,11 @@ SetWindowPos(hwnd, HWND_NOTOPMOST, ..., SWP_NOACTIVATE | SWP_SHOWWINDOW);
 
 ### 4.4 回落执行
 
-`WidgetManager.RestoreRaisedWidgetsToDesktopLayer`（`WidgetManager.cs:1141`）→ 每个格子 `ForceRestoreDesktopLayerFromManager()` → `RestoreDesktopLayer(force: true)` → `ClearTopMostOnly()` → `WidgetLayerService.ClearTopMostPreservingForeground()`。
+`WidgetManager.RestoreRaisedWidgetsToDesktopLayer`（`WidgetManager.cs:1141`）→ 每个盒子 `ForceRestoreDesktopLayerFromManager()` → `RestoreDesktopLayer(force: true)` → `ClearTopMostOnly()` → `WidgetLayerService.ClearTopMostPreservingForeground()`。
 
-关键点（方案 A，2026-07-24 修复）：`ClearTopMostPreservingForeground` **无条件** `BringWindowToFront(foreground)`（`WidgetLayerService.cs:30`）。此前有 `wasTopMost` 门控——格子本就不是持久置顶，门控恒为 false → **状态回落了但画面不变**（静默回落），下一次 F7 命中 `visible-widgets-behind→raise` 变成"闪烁不收起"。
+关键点（方案 A，2026-07-24 修复）：`ClearTopMostPreservingForeground` **无条件** `BringWindowToFront(foreground)`（`WidgetLayerService.cs:30`）。此前有 `wasTopMost` 门控——盒子本就不是持久置顶，门控恒为 false → **状态回落了但画面不变**（静默回落），下一次 F7 命中 `visible-widgets-behind→raise` 变成"闪烁不收起"。
 
-> **坑 #2**：Windows 对"点击**已激活**窗口内部"**不做任何 Z-order 变更**。所以只要激活失败（§3.3 第 8 步）且用户点回原窗口，除了监视器主动 `BringWindowToFront(foreground)` 外，没有任何力量能把格子压下去。回落必须自带视觉效果，不能指望系统。
+> **坑 #2**：Windows 对"点击**已激活**窗口内部"**不做任何 Z-order 变更**。所以只要激活失败（§3.3 第 8 步）且用户点回原窗口，除了监视器主动 `BringWindowToFront(foreground)` 外，没有任何力量能把盒子压下去。回落必须自带视觉效果，不能指望系统。
 
 ---
 
@@ -148,7 +148,7 @@ SetWindowPos(hwnd, HWND_NOTOPMOST, ..., SWP_NOACTIVATE | SWP_SHOWWINDOW);
 | `src/BentoDesk/Services/WidgetLayerService.cs` | Z-order 原语：`BringWindowTemporarilyToFront`、`BringGroupTemporarilyToFront`、`ClearTopMostPreservingForeground`、DesktopPinned attach/detach |
 | `src/BentoDesk/Services/WidgetSessionManager.cs` | 会话状态机 + 交互深度计数（`BeginInteraction`/`EndInteraction`/`ForceResetInteractions`） |
 | `src/BentoDesk/Helpers/Win32Helper.cs` | `BringWindowTemporarilyToFront`（556）、`SetWindowTopMost`（575）、`ClearWindowTopMost`（590）、`IsAnyMouseButtonDown`（约 344）、`GetAsyncKeyState` 封装 |
-| `src/BentoDesk/Views/WidgetWindow.TrayLifecycle.cs` | 文件格子的唤起/回落/激活：`ShowPreparedRaisedFromTray`、`EnsureRaisedFromTrayTopMost`、`ActivateRaisedFromTrayBatch`（130）、`ClearTopMostOnly`（37） |
+| `src/BentoDesk/Views/WidgetWindow.TrayLifecycle.cs` | 文件盒子的唤起/回落/激活：`ShowPreparedRaisedFromTray`、`EnsureRaisedFromTrayTopMost`、`ActivateRaisedFromTrayBatch`（130）、`ClearTopMostOnly`（37） |
 | `src/BentoDesk/Views/WidgetWindow.xaml.cs` | `ElevateForInteraction`（536）、`HoldTemporaryTopMost`（548）、`StartTopMostSafetyTimer`（568）、`WidgetWindow_Activated`（606）、`RestoreDesktopLayer`（688） |
 | `src/BentoDesk/Views/WidgetWindowBase.Interaction.cs` | 基类版本同上 + `ShouldDeferDesktopLayerRestore`（94） |
 | `src/BentoDesk/Views/WidgetWindowBase.Collapse.cs` | `RaiseForExpandedState`（1811）：胶囊展开时的层级处理（含"物理浮起但状态已回落"的兼容分支） |
@@ -166,12 +166,12 @@ SetWindowPos(hwnd, HWND_NOTOPMOST, ..., SWP_NOACTIVATE | SWP_SHOWWINDOW);
 
 ### 坑 #2：以为"点击其他窗口"一定会产生 Z-order 变化 —— 不会
 - Windows 只在**激活**窗口时把它抬到本层级带顶部。点击**已经激活**的窗口内部，什么都不发生。
-- 因此"格子浮起（激活失败）→ 用户点回原窗口"这个最高频操作，系统层面**没有任何自动恢复机制**，必须靠自己的监视器检测到点击后 `BringWindowToFront(foreground)`。
+- 因此"盒子浮起（激活失败）→ 用户点回原窗口"这个最高频操作，系统层面**没有任何自动恢复机制**，必须靠自己的监视器检测到点击后 `BringWindowToFront(foreground)`。
 - 回落函数里的任何 `wasTopMost` 之类门控都可能让回落"状态变了、画面没变"（静默回落），排查时先确认视觉链路。
 
 ### 坑 #3：`SetForegroundWindow` 静默失败 —— 必须检查返回值
 - Windows 前台锁（foreground lock）规则：只有"收到最后一次输入事件"的进程等少数情况能抢前台。热键 → 异步队列 → 窗口准备/动画耗时后，输入归属可能已丢失；前台是提权进程时 UIPI 直接拒绝。
-- 失败时格子仍浮起但永远拿不到前台，`_hasBentoDeskForegroundSinceRaise` 永不成立，回落完全依赖"前台变化"或"鼠标边沿"两条信号。
+- 失败时盒子仍浮起但永远拿不到前台，`_hasBentoDeskForegroundSinceRaise` 永不成立，回落完全依赖"前台变化"或"鼠标边沿"两条信号。
 - 三个 `ActivateRaisedFromTrayBatch` 已实现返回值日志（`[ZOrder] ... SetForegroundWindow FAILED`），复盘先看这条。
 
 ### 坑 #4：`BeginInteractionLayer`/`ReleaseInteractionLayer` 配对泄漏 —— 会永久堵死回落
@@ -192,7 +192,7 @@ SetWindowPos(hwnd, HWND_NOTOPMOST, ..., SWP_NOACTIVATE | SWP_SHOWWINDOW);
 - `_trayRaiseBatchGeneration` 用于让过期异步回调失效（每次唤起/确认/回落都自增）。写新的延迟回调时记得捕获当前代际并在回调里比对，参考 `ConfirmTrayRaiseTopMost`。
 
 ### 坑 #8：`IsBentoDeskWindow` 按进程判定，范围很宽
-- 本进程**所有**窗口（搜索弹窗、设置、托盘隐藏窗口）都算 BentoDesk 窗口。前台判断时，BentoDesk 自家任何窗口拿到前台都会被视为"用户还在用格子"而保持唤起。新增顶级窗口类型时意识到这一点。
+- 本进程**所有**窗口（搜索弹窗、设置、托盘隐藏窗口）都算 BentoDesk 窗口。前台判断时，BentoDesk 自家任何窗口拿到前台都会被视为"用户还在用盒子"而保持唤起。新增顶级窗口类型时意识到这一点。
 
 ### 坑 #9：死代码假象
 - `RequestRestoreRaisedWidgetsToDesktopLayer` 目前只记日志不调度任何检查（"held until=next-toggle"），配套的 `QueueRequestedLayerRestoreCheck` 定义了但无人调用。以为"请求一下就会回落"会落空——真正的回落永远走监视器。
@@ -205,10 +205,10 @@ SetWindowPos(hwnd, HWND_NOTOPMOST, ..., SWP_NOACTIVATE | SWP_SHOWWINDOW);
 
 | 症状 | 大概率原因 | 首查 |
 |---|---|---|
-| 唤起后点外部窗口，格子**从不**回落 | 回落信号全失效（坑 #1/#4）或监视器没启动 | 日志搜 `[TrayBatch] RaisedStateMonitor started` 是否出现 |
+| 唤起后点外部窗口，盒子**从不**回落 | 回落信号全失效（坑 #1/#4）或监视器没启动 | 日志搜 `[TrayBatch] RaisedStateMonitor started` 是否出现 |
 | 点**不同**窗口能回落，点**同一**窗口不回落 | 激活失败 + 鼠标检测失效（坑 #1/#3） | 搜 `SetForegroundWindow FAILED` |
 | 回落了但画面没变，下次 F7 "闪烁不收起" | 静默回落（坑 #2） | `ClearTopMostPreservingForeground` 是否真的 `BringWindowToFront` |
-| 交互过一次格子后永远压屏 | 交互深度泄漏（坑 #4） | 搜 `Interaction watchdog` |
+| 交互过一次盒子后永远压屏 | 交互深度泄漏（坑 #4） | 搜 `Interaction watchdog` |
 | 只有前台是提权应用时出问题 | UIPI：热键走钩子兜底、激活必失败 | 同第 2 行 |
 | F7 时灵时不灵 | 同上（钩子路径在干活，主路径被 UIPI 拦） | `GlobalHotkeyService` 日志 `source=hook/registered` |
 
@@ -230,11 +230,11 @@ SetWindowPos(hwnd, HWND_NOTOPMOST, ..., SWP_NOACTIVATE | SWP_SHOWWINDOW);
 
 ### 7.3 标准复现路径（回归用）
 
-1. 在窗口 X 中按 F7 → 格子浮起。
-2. 点击**另一个**窗口 Y → 格子应立即被 Y 盖住（前台变化路径）。
-3. 再按 F7 → 格子重新浮起（`visible-widgets-behind` 特性，预期行为）。
-4. 点击**同一个**已激活窗口 1 次 → 格子应被盖住（鼠标边沿路径；修复前这里会卡住）。
-5. 再按 F7 → 格子正常收起。
+1. 在窗口 X 中按 F7 → 盒子浮起。
+2. 点击**另一个**窗口 Y → 盒子应立即被 Y 盖住（前台变化路径）。
+3. 再按 F7 → 盒子重新浮起（`visible-widgets-behind` 特性，预期行为）。
+4. 点击**同一个**已激活窗口 1 次 → 盒子应被盖住（鼠标边沿路径；修复前这里会卡住）。
+5. 再按 F7 → 盒子正常收起。
 6. 提权应用（如管理员终端）在前台时重复 1-5，行为应一致（高位采样对提权进程同样有效）。
 
 ---

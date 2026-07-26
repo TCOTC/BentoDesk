@@ -46,7 +46,7 @@ ShowLanguageDialog=no
 Name: "chinesesimplified"; MessagesFile: "Languages\ChineseSimplified.isl"
 
 [CustomMessages]
-chinesesimplified.ConfirmRemoveAppData=是否同时删除 BentoDesk 应用数据？%n%n这些数据包含设置、格子布局、随记图片缓存和日志：%1%n%n选择"否"会保留这些数据，之后重新安装 BentoDesk 时仍可继续使用。
+chinesesimplified.ConfirmRemoveAppData=是否同时删除 BentoDesk 应用数据？%n%n这些数据包含设置、盒子布局、随记图片缓存和日志：%1%n%n选择"否"会保留这些数据，之后重新安装 BentoDesk 时仍可继续使用。
 chinesesimplified.DependencyDownloadTitle=正在准备 BentoDesk 运行环境
 chinesesimplified.DependencyDownloadSubtitle=正在下载缺少的运行时依赖。
 chinesesimplified.DependencyInstallTitle=正在准备 BentoDesk 运行环境

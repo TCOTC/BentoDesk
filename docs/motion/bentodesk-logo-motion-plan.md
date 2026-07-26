@@ -2,7 +2,7 @@
 
 ## Motion Brief
 
-BentoDesk 是 Windows 11 桌面整理工具，品牌动效应当是 clean, precise, lightweight。现有 logo 是三层斜叠的格子/文件层，最适合表达“把散乱内容收进有序层级”的动作。
+BentoDesk 是 Windows 11 桌面整理工具，品牌动效应当是 clean, precise, lightweight。现有 logo 是三层斜叠的盒子/文件层，最适合表达“把散乱内容收进有序层级”的动作。
 
 动效策略：以层级错峰、轻微归位、低幅度循环为主，避免夸张弹跳、粒子和强装饰。最终帧必须回到当前产品静态 SVG。
 
@@ -15,8 +15,8 @@ BentoDesk 是 Windows 11 桌面整理工具，品牌动效应当是 clean, preci
 
 1. `bentodesk-motion-01-layer-assemble.svg`
    - 场景：首次启动、Onboarding 左侧 logo、官网首屏、发布视频开头。
-   - 动作：三层格子错峰进入并归位，整体有很轻的 settle。
-   - 推荐度：最高，最贴合“桌面格子整理”的产品表达。
+   - 动作：三层盒子错峰进入并归位，整体有很轻的 settle。
+   - 推荐度：最高，最贴合“桌面盒子整理”的产品表达。
 
 2. `bentodesk-motion-02-calm-breathe.svg`
    - 场景：设置页空状态、等待权限、加载中、托盘常驻状态提示。
@@ -29,7 +29,7 @@ BentoDesk 是 Windows 11 桌面整理工具，品牌动效应当是 clean, preci
    - 推荐度：适合作为一次性微反馈，不建议持续循环。
 
 4. `bentodesk-motion-04-tray-summon.svg`
-   - 场景：从系统托盘打开窗口、显示全部格子、临时置顶提示。
+   - 场景：从系统托盘打开窗口、显示全部盒子、临时置顶提示。
    - 动作：从右下角缩小状态唤起，再展开三层。
    - 推荐度：适合托盘相关路径，语义很明确。
 

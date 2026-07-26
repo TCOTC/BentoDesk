@@ -21,7 +21,7 @@ public sealed class SettingsSearchMatcherTests
         int score = SettingsSearchMatcher.GetScore(
             "封面悬停",
             "封面悬停动效",
-            "功能格子 / 音乐",
+            "功能盒子 / 音乐",
             "控制封面悬停时的动效");
 
         Assert.NotEqual(SettingsSearchMatcher.NoMatch, score);
@@ -33,7 +33,7 @@ public sealed class SettingsSearchMatcherTests
         int score = SettingsSearchMatcher.GetScore(
             "音乐 透明度",
             "封面悬停动效",
-            "功能格子 / 音乐",
+            "功能盒子 / 音乐",
             "控制封面悬停时的动效");
 
         Assert.Equal(SettingsSearchMatcher.NoMatch, score);

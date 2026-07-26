@@ -12,7 +12,7 @@
 | 编号 | 问题 | 严重程度 | 涉及文件 |
 |------|------|---------|---------|
 | P0 | 动画出现/消失帧率低，高刷新率屏幕上明显卡顿 | 高 | `WidgetTrayAnimationController.cs` + 3 个窗口文件 |
-| P1a | 鼠标滑过格子时轻微卡顿 | 中 | `WidgetWindow.xaml` / `WidgetWindow.xaml.cs` |
+| P1a | 鼠标滑过盒子时轻微卡顿 | 中 | `WidgetWindow.xaml` / `WidgetWindow.xaml.cs` |
 | P1b | Backdrop 刷新三重 Task.Delay 浪费 | 中 | `WidgetWindow.xaml.cs` / `QuickCaptureWidgetWindow.xaml.cs` |
 | P1c | Music 可视化 33ms 定时器持续空转 | 中 | `MusicWidgetViewModel.cs` |
 | P2a | ThemeService 颜色变化事件无 debounce | 低 | `ThemeService.cs` |
@@ -234,13 +234,13 @@ public void Stop()
 
 ---
 
-## 三、P1a：鼠标滑过格子卡顿
+## 三、P1a：鼠标滑过盒子卡顿
 
 ### 3.1 问题根因
 
 文件：`src/BentoDesk/Views/WidgetWindow.xaml` + `WidgetWindow.xaml.cs`
 
-1. 每个格子 Border（`Tag="InteractiveSurface"`）注册了 13 个事件，其中 `WidgetItemSurface_PointerMoved`（第 3782-3784 行）是**空方法**
+1. 每个盒子 Border（`Tag="InteractiveSurface"`）注册了 13 个事件，其中 `WidgetItemSurface_PointerMoved`（第 3782-3784 行）是**空方法**
 2. `RootGrid_PointerEntered/Exited` 每次都调用 `ApplyLegacyTitleActionButtonVisibility`，该方法无条件 `Stop()` 两个 Storyboard 再重新设置属性
 3. `ApplyWidgetItemSurfaceState` 每次都设置 `Background`、`BorderBrush`、`BorderThickness`、`Opacity` 四个依赖属性，即使值未变
 
@@ -341,26 +341,26 @@ private static readonly DependencyProperty ItemSurfaceStateProperty =
 | **Cut 剪贴板半透明** | ❌ 无冲突 | `border.Opacity = isCut ? 0.58 : 1.0` 仍每次执行 |
 | **选中态切换** | ❌ 无冲突 | `ApplySelectionState` → `UpdateInteractiveSurfaces` → `ApplyWidgetItemSurfaceState(border, Normal)` 会重置状态 |
 | **主题切换** | ❌ 无冲突 | `OnSettingsChanged` → `UpdateInteractiveSurfaces` 需要强制刷新，需要在此处重置状态缓存 |
-| **透明度设置** | ❌ 无冲突 | 透明度影响的是 Backdrop，不是格子表面 |
+| **透明度设置** | ❌ 无冲突 | 透明度影响的是 Backdrop，不是盒子表面 |
 | **拖拽排序** | ❌ 无冲突 | `DragStarting` / `DropCompleted` 不经过 `ApplyWidgetItemSurfaceState` |
 | **ShowHoverButtons 设置** | ⚠️ 需注意 | 设置变更时需重置 `_lastShowButtonsState`；在 `OnSettingsChanged` 中添加 `_lastShowButtonsState = false` |
 | **ChromeMode（Overlay/Hidden）** | ❌ 无冲突 | `ApplyChromeMode` 在 WidgetShell 中独立管理，`ApplyLegacyTitleActionButtonVisibility` 只处理 File 窗口的旧标题栏按钮 |
 
 #### 需要测试的回归项
 
-- [ ] 鼠标在格子上 hover → 颜色变化正常
+- [ ] 鼠标在盒子上 hover → 颜色变化正常
 - [ ] 鼠标按下 → pressed 颜色正常
 - [ ] Ctrl+Click 多选 → selected 颜色正常
 - [ ] Ctrl+Click 取消选中 → 恢复 normal 颜色
-- [ ] 拖文件到格子上 → DropTarget 边框高亮正常
-- [ ] 剪贴板剪切文件 → 格子半透明（0.58）
-- [ ] 主题切换（深色/浅色）→ 格子颜色刷新正常
-- [ ] 强调色切换 → 格子颜色刷新正常
-- [ ] 透明度滑块调整 → 格子表面不受影响
+- [ ] 拖文件到盒子上 → DropTarget 边框高亮正常
+- [ ] 剪贴板剪切文件 → 盒子半透明（0.58）
+- [ ] 主题切换（深色/浅色）→ 盒子颜色刷新正常
+- [ ] 强调色切换 → 盒子颜色刷新正常
+- [ ] 透明度滑块调整 → 盒子表面不受影响
 - [ ] 设置中开关 ShowHoverButtons → 标题栏按钮显示/隐藏正常
 - [ ] Overlay 模式 → 按钮隐藏正常
-- [ ] 文字大小调整 → 格子布局刷新正常
-- [ ] 图标大小调整 → 格子布局刷新正常
+- [ ] 文字大小调整 → 盒子布局刷新正常
+- [ ] 图标大小调整 → 盒子布局刷新正常
 
 ---
 
@@ -629,7 +629,7 @@ private static async Task<BitmapImage?> CreateBitmapImageOnUiThreadAsync(byte[] 
 
 #### 需要测试的回归项
 
-- [ ] 文件格内 100+ 文件 → 图标正常显示
+- [ ] 文件盒内 100+ 文件 → 图标正常显示
 - [ ] 大图标模式 → 图标清晰（检查 48px 解码是否足够）
 - [ ] 小图标模式 → 图标清晰
 - [ ] 图片文件 → 缩略图正常
@@ -651,7 +651,7 @@ private static async Task<BitmapImage?> CreateBitmapImageOnUiThreadAsync(byte[] 
 |------|--------|-----------|------|-----------|
 | 1 | P0：动画 Rendering 驱动 | 1 | 中 | 2h |
 | 2 | P1b：Backdrop 单 Timer | 2 | 低 | 1h |
-| 3 | P1a：格子事件清理 + 守卫 | 2 | 低 | 1.5h |
+| 3 | P1a：盒子事件清理 + 守卫 | 2 | 低 | 1.5h |
 | 4 | P1c：Music 定时器确认/修复 | 0-1 | 低 | 0.5h |
 | 5 | P2a：ThemeService debounce | 1 | 低 | 0.5h |
 | 6 | P2b：IconHelper 缓存 | 1 | 低 | 0.5h |
