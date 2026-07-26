@@ -172,8 +172,6 @@ public sealed class SettingsService
     public const string ManagedDropActionMove = "Move";
     public const string ManagedDropActionCopy = "Copy";
 
-    public const string AttachmentStorageModeLink = "Link";
-    public const string AttachmentStorageModeCopy = "Copy";
     public const string FileStackGroupByKind = "Kind";
     public const string FileStackGroupByDateAdded = "DateAdded";
     // Legacy value used by the first Stack preview build.
@@ -187,13 +185,6 @@ public sealed class SettingsService
     public const string FileStackOrderByDateModified = "DateModified";
     public const string FileStackUnmatchedKeepLoose = "KeepLoose";
     public const string FileStackUnmatchedOther = "Other";
-    public const int DefaultTodoItemPreviewLineCount = 2;
-    [Obsolete("Use the feature-specific preview line defaults.")]
-    public const int DefaultItemPreviewLineCount = DefaultTodoItemPreviewLineCount;
-    public const int MinItemPreviewLineCount = 1;
-    public const int MaxItemPreviewLineCount = 10;
-    public const string EditorEnterBehaviorCtrlEnterSaves = "CtrlEnterSaves";
-    public const string EditorEnterBehaviorEnterSaves = "EnterSaves";
     public const double DefaultWidgetWidth = 280;
     public const double DefaultWidgetHeight = 400;
     public const bool DefaultGlobalHotkeyEnabled = true;
@@ -225,18 +216,6 @@ public sealed class SettingsService
     public const string MusicDisplayModeRecordVertical = "RecordVertical";
     public const string MusicDisplayModeRecordHorizontal = "RecordHorizontal";
     public const int MaxRecentOrganizationHistoryCount = 24;
-    public const string TodoNewTaskPositionTop = "Top";
-    public const string TodoNewTaskPositionBottom = "Bottom";
-    public const string TodoDefaultFilterAll = "All";
-    public const string TodoDefaultFilterActive = "Active";
-    public const string TodoDefaultFilterToday = "Today";
-    public const string TodoDefaultFilterThisWeek = "ThisWeek";
-    public const string TodoDefaultFilterThisMonth = "ThisMonth";
-    public const string TodoDefaultFilterImportant = "Important";
-    public const string TodoDefaultFilterCompleted = "Completed";
-    public const int DefaultTodoReminderOffsetMinutes = 5;
-    public const int MinTodoReminderOffsetMinutes = 0;
-    public const int MaxTodoReminderOffsetMinutes = 1440;
     public const string WidgetTabStylePivot = "Pivot";
     public const string WidgetTabStyleButton = "Button";
 public const string WeatherTemperatureUnitCelsius = "Celsius";
@@ -266,7 +245,6 @@ public const int WeatherRefreshMaxMinutes = 180;
             {
                 [nameof(AppSettings.AutoStart)] = DefaultPreferencePreservationReason.SystemIntegration,
                 [nameof(AppSettings.FeatureWidgetEnabledStates)] = DefaultPreferencePreservationReason.UserChoice,
-                [nameof(AppSettings.TodoEnabled)] = DefaultPreferencePreservationReason.UserChoice,
                 [nameof(AppSettings.Widgets)] = DefaultPreferencePreservationReason.UserData,
                 [nameof(AppSettings.WidgetCapsuleBarOrder)] = DefaultPreferencePreservationReason.UserData,
                 [nameof(AppSettings.WidgetCapsuleFreePlacements)] = DefaultPreferencePreservationReason.UserData,
@@ -352,15 +330,6 @@ public const int WeatherRefreshMaxMinutes = 180;
         settings.ShowHoverButtons = true;
         settings.WidgetHoverButtonActions = DefaultWidgetHoverButtonActions;
         settings.AutoCheckForUpdates = true;
-        settings.AttachmentStorageMode = AttachmentStorageModeLink;
-        settings.TodoShowCompletedTasks = false;
-        settings.TodoItemPreviewLineCount = DefaultTodoItemPreviewLineCount;
-        settings.TodoEditorEnterBehavior = EditorEnterBehaviorCtrlEnterSaves;
-        settings.TodoShowFooterStats = false;
-        settings.TodoShowClearCompletedButton = true;
-        settings.TodoConfirmBeforeDelete = false;
-        settings.TodoReminderEnabled = true;
-        settings.TodoDefaultReminderOffsetMinutes = DefaultTodoReminderOffsetMinutes;
         settings.MusicUseArtworkBackdrop = true;
         settings.MusicEnableCoverHoverMotion = true;
         settings.MusicDisplayMode = MusicDisplayModeAuto;
@@ -398,17 +367,6 @@ settings.WeatherRefreshIntervalMinutes = 60;
         settings.SearchPopupCustomY = null;
         settings.SearchPopupCustomWidth = null;
         settings.SearchPopupCustomHeight = null;
-        settings.TodoNewTaskPosition = TodoNewTaskPositionTop;
-        settings.TodoDefaultFilter = TodoDefaultFilterAll;
-        settings.TodoTabStyle = WidgetTabStyleButton;
-        settings.TodoShowTabBar = true;
-        settings.TodoShowAllTab = true;
-        settings.TodoShowActiveTab = false;
-        settings.TodoShowTodayTab = true;
-        settings.TodoShowThisWeekTab = false;
-        settings.TodoShowThisMonthTab = false;
-        settings.TodoShowImportantTab = true;
-        settings.TodoShowCompletedTab = true;
         settings.ManagedDropAction = ManagedDropActionMove;
         settings.GlobalHotkeyEnabled = DefaultGlobalHotkeyEnabled;
         settings.GlobalHotkeyModifiers = DefaultGlobalHotkeyModifiers;
@@ -483,8 +441,7 @@ settings.FocusClickedWidgetOnRaise = false;
                 changed |= NormalizeOrganizerSettings(_settings);
                 changed |= NormalizeHotkeySettings(_settings);
                 changed |= NormalizeSearchSettings(_settings);
-                changed |= NormalizeTodoSettings(_settings);
-changed |= NormalizeWeatherSettings(_settings);
+                changed |= NormalizeWeatherSettings(_settings);
 changed |= NormalizeDeletionSettings(_settings);
             }
 
@@ -551,7 +508,6 @@ changed |= NormalizeDeletionSettings(_settings);
                 NormalizeOrganizerSettings(_settings);
                 NormalizeHotkeySettings(_settings);
                 NormalizeSearchSettings(_settings);
-                NormalizeTodoSettings(_settings);
                 NormalizeWeatherSettings(_settings);
                 json = JsonSerializer.Serialize(_settings, s_jsonOptions);
             }
@@ -1701,13 +1657,6 @@ changed |= NormalizeDeletionSettings(_settings);
     {
         bool changed = false;
 
-        string normalizedAttachmentStorageMode = NormalizeAttachmentStorageMode(settings.AttachmentStorageMode);
-        if (!string.Equals(settings.AttachmentStorageMode, normalizedAttachmentStorageMode, StringComparison.Ordinal))
-        {
-            settings.AttachmentStorageMode = normalizedAttachmentStorageMode;
-            changed = true;
-        }
-
         string normalizedFileStackGroupBy = NormalizeFileStackGroupBy(settings.FileStackGroupBy);
         if (normalizedFileStackGroupBy == FileStackGroupByDateAdded)
         {
@@ -1854,13 +1803,6 @@ changed |= NormalizeDeletionSettings(_settings);
         }
 
         return changed;
-    }
-
-    public static string NormalizeAttachmentStorageMode(string? storageMode)
-    {
-        return string.Equals(storageMode, AttachmentStorageModeCopy, StringComparison.OrdinalIgnoreCase)
-            ? AttachmentStorageModeCopy
-            : AttachmentStorageModeLink;
     }
 
     public static string NormalizeFileStackGroupBy(string? groupBy)
@@ -2052,134 +1994,11 @@ changed |= NormalizeDeletionSettings(_settings);
         return changed;
     }
 
-    internal static bool NormalizeTodoSettings(AppSettings settings)
-    {
-        bool changed = false;
-
-        int normalizedPreviewLineCount = NormalizeItemPreviewLineCount(
-            settings.TodoItemPreviewLineCount);
-        if (settings.TodoItemPreviewLineCount != normalizedPreviewLineCount)
-        {
-            settings.TodoItemPreviewLineCount = normalizedPreviewLineCount;
-            changed = true;
-        }
-
-        string normalizedEnterBehavior = NormalizeEditorEnterBehavior(
-            settings.TodoEditorEnterBehavior);
-        if (!string.Equals(
-                settings.TodoEditorEnterBehavior,
-                normalizedEnterBehavior,
-                StringComparison.Ordinal))
-        {
-            settings.TodoEditorEnterBehavior = normalizedEnterBehavior;
-            changed = true;
-        }
-
-        if (settings.TodoNewTaskPosition is not (TodoNewTaskPositionTop or TodoNewTaskPositionBottom))
-        {
-            settings.TodoNewTaskPosition = TodoNewTaskPositionTop;
-            changed = true;
-        }
-
-        if (settings.TodoDefaultFilter is not (
-            TodoDefaultFilterAll or
-            TodoDefaultFilterActive or
-            TodoDefaultFilterToday or
-            TodoDefaultFilterThisWeek or
-            TodoDefaultFilterThisMonth or
-            TodoDefaultFilterImportant or
-            TodoDefaultFilterCompleted))
-        {
-            settings.TodoDefaultFilter = TodoDefaultFilterAll;
-            changed = true;
-        }
-
-        if (!settings.TodoShowAllTab &&
-            !settings.TodoShowActiveTab &&
-            !settings.TodoShowTodayTab &&
-            !settings.TodoShowThisWeekTab &&
-            !settings.TodoShowThisMonthTab &&
-            !settings.TodoShowImportantTab &&
-            !settings.TodoShowCompletedTab)
-        {
-            settings.TodoShowAllTab = true;
-            changed = true;
-        }
-
-        if (!IsTodoTabVisible(settings, settings.TodoDefaultFilter))
-        {
-            settings.TodoDefaultFilter = GetFirstVisibleTodoTab(settings);
-            changed = true;
-        }
-
-        int normalizedReminderOffset = NormalizeTodoReminderOffsetMinutes(settings.TodoDefaultReminderOffsetMinutes);
-        if (settings.TodoDefaultReminderOffsetMinutes != normalizedReminderOffset)
-        {
-            settings.TodoDefaultReminderOffsetMinutes = normalizedReminderOffset;
-            changed = true;
-        }
-
-        string normalizedTabStyle = NormalizeWidgetTabStyle(settings.TodoTabStyle);
-        if (!string.Equals(settings.TodoTabStyle, normalizedTabStyle, StringComparison.Ordinal))
-        {
-            settings.TodoTabStyle = normalizedTabStyle;
-            changed = true;
-        }
-
-        return changed;
-    }
-
-    public static int NormalizeItemPreviewLineCount(int lineCount) =>
-        Math.Clamp(lineCount, MinItemPreviewLineCount, MaxItemPreviewLineCount);
-
-    public static string NormalizeEditorEnterBehavior(string? behavior) =>
-        string.Equals(
-            behavior,
-            EditorEnterBehaviorEnterSaves,
-            StringComparison.OrdinalIgnoreCase)
-            ? EditorEnterBehaviorEnterSaves
-            : EditorEnterBehaviorCtrlEnterSaves;
-
-    public static bool ShouldSubmitEditorOnEnter(string? behavior, bool controlPressed) =>
-        NormalizeEditorEnterBehavior(behavior) == EditorEnterBehaviorEnterSaves
-            ? !controlPressed
-            : controlPressed;
-
     public static string NormalizeWidgetTabStyle(string? style)
     {
         return style == WidgetTabStylePivot
             ? WidgetTabStylePivot
             : WidgetTabStyleButton;
-    }
-
-    public static bool IsTodoTabVisible(AppSettings settings, string? filter) => filter switch
-    {
-        TodoDefaultFilterActive => settings.TodoShowActiveTab,
-        TodoDefaultFilterToday => settings.TodoShowTodayTab,
-        TodoDefaultFilterThisWeek => settings.TodoShowThisWeekTab,
-        TodoDefaultFilterThisMonth => settings.TodoShowThisMonthTab,
-        TodoDefaultFilterImportant => settings.TodoShowImportantTab,
-        TodoDefaultFilterCompleted => settings.TodoShowCompletedTab,
-        _ => settings.TodoShowAllTab
-    };
-
-    public static string GetFirstVisibleTodoTab(AppSettings settings)
-    {
-        if (settings.TodoShowAllTab) return TodoDefaultFilterAll;
-        if (settings.TodoShowActiveTab) return TodoDefaultFilterActive;
-        if (settings.TodoShowTodayTab) return TodoDefaultFilterToday;
-        if (settings.TodoShowThisWeekTab) return TodoDefaultFilterThisWeek;
-        if (settings.TodoShowThisMonthTab) return TodoDefaultFilterThisMonth;
-        if (settings.TodoShowImportantTab) return TodoDefaultFilterImportant;
-        if (settings.TodoShowCompletedTab) return TodoDefaultFilterCompleted;
-        return TodoDefaultFilterAll;
-    }
-
-    public static int NormalizeTodoReminderOffsetMinutes(int minutes)
-    {
-        return minutes is 0 or 5 or 10 or 15 or 30 or 60 or 1440
-            ? minutes
-            : DefaultTodoReminderOffsetMinutes;
     }
 
     internal static bool NormalizeWeatherSettings(AppSettings settings)

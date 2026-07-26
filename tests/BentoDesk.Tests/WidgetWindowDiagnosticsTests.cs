@@ -28,22 +28,6 @@ public sealed class WidgetWindowDiagnosticsTests
     }
 
     [Fact]
-    public void FormatTrayWindowMessage_UsesStableKindNameIdAndHandle()
-    {
-        var config = new WidgetConfig
-        {
-            Id = "abcdef123456",
-            Name = "Documents",
-            WidgetKind = WidgetKind.Todo
-        };
-        var diagnostics = new WidgetWindowDiagnostics("Todo", config, () => new IntPtr(0xBEEF));
-
-        string message = diagnostics.FormatTrayWindowMessage("PrepareHide gen=2");
-
-        Assert.Equal("[TrayWindow] Todo Documents#abcdef12 hwnd=0xBEEF PrepareHide gen=2", message);
-    }
-
-    [Fact]
     public void Identity_ExposesReadOnlyWindowContext()
     {
         var config = new WidgetConfig

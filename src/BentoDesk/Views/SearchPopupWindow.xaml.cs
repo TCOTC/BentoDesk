@@ -121,7 +121,6 @@ public sealed partial class SearchPopupWindow : Window
         SetupBindings();
 
         _viewModel.ActionRequested += OnViewModelActionRequested;
-        _viewModel.ContentRequested += OnViewModelContentRequested;
         _viewModel.QueryApplied += OnViewModelQueryApplied;
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         ResultsRepeater.ElementPrepared += OnResultsElementPrepared;
@@ -142,8 +141,6 @@ public sealed partial class SearchPopupWindow : Window
     /// Raised when an action needs to be handled by the app (e.g., open settings).
     /// </summary>
     public event EventHandler<string>? ActionRequested;
-
-    public event EventHandler<SearchResultItem>? ContentRequested;
 
     /// <summary>
     /// Shows the popup at the correct position and focuses the search box.
@@ -1140,7 +1137,6 @@ public sealed partial class SearchPopupWindow : Window
         HomeSectionHeader.Text = _localizationService.T("Search.Section.RecommendedApps");
         OpenSelectedLabel.Text = _localizationService.T("Search.Menu.Open");
         OpenLocationLabel.Text = _localizationService.T("Search.Menu.OpenLocation");
-        AttachSelectedLabel.Text = _localizationService.T("Search.Menu.AttachToTodo");
 
         // Recommendation panel localization
         FavoritesHeaderText.Text = _localizationService.T("Search.Recommend.Favorite");
@@ -2723,11 +2719,6 @@ public sealed partial class SearchPopupWindow : Window
         await _viewModel.RefreshSearchAsync();
     }
 
-    private static bool CanAttachItem(SearchResultItem item) =>
-        item.Kind == SearchResultKind.File &&
-        !string.IsNullOrWhiteSpace(item.DetailPath) &&
-        File.Exists(item.DetailPath);
-
     private void TryPreviewSelectedItem()
     {
         var item = _viewModel.SelectedItem;
@@ -2749,19 +2740,6 @@ public sealed partial class SearchPopupWindow : Window
         {
             App.Log($"[SearchPopup] QuickLook preview unavailable for '{item.DetailPath}'.");
         }
-    }
-
-    private async Task AttachItemToTodoAsync(SearchResultItem item)
-    {
-        var actionService = (App.Current as App)?.SearchActionService;
-        if (actionService is null)
-        {
-            return;
-        }
-
-        bool ok = await actionService.AttachFileToTodoAsync(item.DetailPath);
-        ShowTransientStatus(_localizationService.T(
-            ok ? "Search.Action.AttachedToTodo" : "Search.Action.AttachFailed"));
     }
 
     private void CopyPathToClipboard(SearchResultItem item)
@@ -2927,7 +2905,6 @@ public sealed partial class SearchPopupWindow : Window
         bool isFileSystemItem = item.Kind is SearchResultKind.File or SearchResultKind.Folder &&
                                 !string.IsNullOrWhiteSpace(item.DetailPath);
         OpenLocationButton.Visibility = isFileSystemItem ? Visibility.Visible : Visibility.Collapsed;
-        AttachSelectedButton.Visibility = CanAttachItem(item) ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void OpenSelectedButton_Click(object sender, RoutedEventArgs e)
@@ -2946,20 +2923,6 @@ public sealed partial class SearchPopupWindow : Window
         }
     }
 
-    private async void AttachSelectedButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_viewModel.SelectedItem is { } item)
-        {
-            await AttachItemToTodoAsync(item);
-        }
-    }
-
-    private void OnViewModelContentRequested(object? sender, SearchResultItem item)
-    {
-        HidePopup();
-        ContentRequested?.Invoke(this, item);
-    }
-
     private void OnViewModelQueryApplied(object? sender, string query)
     {
         // Reflect the applied history/favorite query into the search box and re-focus.
@@ -2971,7 +2934,6 @@ public sealed partial class SearchPopupWindow : Window
     private void OnWindowClosed(object sender, WindowEventArgs args)
     {
         _viewModel.ActionRequested -= OnViewModelActionRequested;
-        _viewModel.ContentRequested -= OnViewModelContentRequested;
         _viewModel.QueryApplied -= OnViewModelQueryApplied;
         _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         ResultsRepeater.ElementPrepared -= OnResultsElementPrepared;

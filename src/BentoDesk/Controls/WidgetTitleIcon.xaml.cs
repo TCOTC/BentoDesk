@@ -270,7 +270,6 @@ public sealed partial class WidgetTitleIcon : UserControl
         yield return LineDefaultPath;
         yield return LineManagedStoragePath;
         yield return LineMappedFolderPath;
-        yield return LineTodoPath;
         yield return LineMusicPath;
         yield return LineWeatherPath;
         yield return LineTagsPath;
@@ -279,7 +278,6 @@ public sealed partial class WidgetTitleIcon : UserControl
         yield return FilledDefaultPath;
         yield return FilledManagedStoragePath;
         yield return FilledMappedFolderPath;
-        yield return FilledTodoPath;
         yield return FilledMusicPath;
         yield return FilledWeatherPath;
         yield return FilledTagsPath;
@@ -294,7 +292,6 @@ public sealed partial class WidgetTitleIcon : UserControl
             {
                 WidgetTitleIconKind.ManagedStorage => FilledManagedStoragePath,
                 WidgetTitleIconKind.MappedFolder => FilledMappedFolderPath,
-                WidgetTitleIconKind.Todo => FilledTodoPath,
                 WidgetTitleIconKind.Music => FilledMusicPath,
                 WidgetTitleIconKind.Weather => FilledWeatherPath,
                 WidgetTitleIconKind.Tags => FilledTagsPath,
@@ -306,7 +303,6 @@ public sealed partial class WidgetTitleIcon : UserControl
             {
                 WidgetTitleIconKind.ManagedStorage => LineManagedStoragePath,
                 WidgetTitleIconKind.MappedFolder => LineMappedFolderPath,
-                WidgetTitleIconKind.Todo => LineTodoPath,
                 WidgetTitleIconKind.Music => LineMusicPath,
                 WidgetTitleIconKind.Weather => LineWeatherPath,
                 WidgetTitleIconKind.Tags => LineTagsPath,
@@ -320,7 +316,6 @@ public sealed partial class WidgetTitleIcon : UserControl
     {
         return kind is WidgetTitleIconKind.ManagedStorage
             or WidgetTitleIconKind.MappedFolder
-            or WidgetTitleIconKind.Todo
             or WidgetTitleIconKind.Music
             or WidgetTitleIconKind.Search;
     }

@@ -32,15 +32,13 @@ public sealed class SettingsSynchronizationTests
         settingsService.Settings.WidgetCapsuleBarDirection =
             SettingsService.WidgetCapsuleBarDirectionVertical;
         settingsService.Settings.WidgetCapsuleBarSpacing = 12;
-        settingsService.Settings.WidgetCapsuleBarOrder = ["weather", "todo"];
-        settingsService.Settings.WidgetCapsuleFreePlacements["todo"] = new BentoDesk.Models.WidgetCompactPlacement
+        settingsService.Settings.WidgetCapsuleBarOrder = ["weather", "music"];
+        settingsService.Settings.WidgetCapsuleFreePlacements["music"] = new BentoDesk.Models.WidgetCompactPlacement
         {
             X = 120,
             Y = 80,
             PositionAnchor = WidgetPositionAnchors.LeftTop
         };
-        settingsService.Settings.TodoShowThisWeekTab = true;
-        settingsService.Settings.TodoDefaultFilter = SettingsService.TodoDefaultFilterThisWeek;
         settingsService.Settings.WeatherSkin = SettingsService.WeatherSkinRich;
 
         await settingsService.SaveAsync();
@@ -64,9 +62,8 @@ public sealed class SettingsSynchronizationTests
             SettingsService.WidgetCapsuleBarDirectionVertical,
             reloadedService.Settings.WidgetCapsuleBarDirection);
         Assert.Equal(12d, reloadedService.Settings.WidgetCapsuleBarSpacing);
-        Assert.Equal(new[] { "weather", "todo" }, reloadedService.Settings.WidgetCapsuleBarOrder);
-        Assert.Equal(120d, reloadedService.Settings.WidgetCapsuleFreePlacements["todo"].X);
-        Assert.Equal(SettingsService.TodoDefaultFilterThisWeek, reloadedService.Settings.TodoDefaultFilter);
+        Assert.Equal(new[] { "weather", "music" }, reloadedService.Settings.WidgetCapsuleBarOrder);
+        Assert.Equal(120d, reloadedService.Settings.WidgetCapsuleFreePlacements["music"].X);
         Assert.Equal(SettingsService.WeatherSkinRich, reloadedService.Settings.WeatherSkin);
     }
 

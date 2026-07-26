@@ -11,7 +11,7 @@ public sealed class WidgetShellContentHostTests
     public async Task SetContentAsync_InitializesSetsAndAppliesAppearance()
     {
         var calls = new List<string>();
-        var content = new TestWidgetContent("first", WidgetKind.Todo, calls);
+        var content = new TestWidgetContent("first", WidgetKind.Music, calls);
         var host = new WidgetShellContentHost(setContent: c => calls.Add($"set:{c.WidgetId}"));
 
         await host.SetContentAsync(content);
@@ -30,7 +30,7 @@ public sealed class WidgetShellContentHostTests
     {
         var calls = new List<string>();
         var first = new TestWidgetContent("first", WidgetKind.File, calls);
-        var second = new TestWidgetContent("second", WidgetKind.Todo, calls);
+        var second = new TestWidgetContent("second", WidgetKind.Music, calls);
         var host = new WidgetShellContentHost(setContent: c => calls.Add($"set:{c.WidgetId}"));
 
         await host.SetContentAsync(first);
@@ -53,7 +53,7 @@ public sealed class WidgetShellContentHostTests
     public async Task RefreshAndActivationCallbacks_ForwardToCurrentContent()
     {
         var calls = new List<string>();
-        var content = new TestWidgetContent("first", WidgetKind.Todo, calls);
+        var content = new TestWidgetContent("first", WidgetKind.Music, calls);
         var host = new WidgetShellContentHost(setContent: _ => { });
         await host.SetContentAsync(content);
         calls.Clear();

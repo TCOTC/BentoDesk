@@ -17,7 +17,6 @@ public static class ServiceRegistry
         services.AddSingleton<SettingsService>();
         services.AddSingleton<SettingsMigrationPipeline>();
         services.AddSingleton<BentoDeskDataBackupService>();
-        services.AddSingleton<BentoDeskAttachmentHealthService>();
         services.AddSingleton<FileService>();
         services.AddSingleton<ResizeGuideOverlayService>();
 

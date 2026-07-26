@@ -13,7 +13,6 @@ public sealed class WidgetRegistryTests
         Assert.True(registry.IsKnown(WidgetKind.Weather));
         Assert.True(registry.CanCreateWindow(WidgetKind.Weather));
         Assert.True(registry.CanCreateWindow(WidgetKind.File));
-        Assert.True(registry.CanCreateWindow(WidgetKind.Todo));
         Assert.True(registry.CanCreateWindow(WidgetKind.Music));
     }
 
@@ -27,37 +26,6 @@ public sealed class WidgetRegistryTests
         };
 
         Assert.False(registry.IsAvailableForSession(tagsWidget, new AppSettings()));
-    }
-
-    [Fact]
-    public void IsAvailableForSession_RespectsTodoEnabledSetting()
-    {
-        var registry = WidgetRegistry.Default;
-        var todoWidget = new WidgetConfig
-        {
-            WidgetKind = WidgetKind.Todo
-        };
-
-        Assert.False(registry.IsAvailableForSession(
-            todoWidget,
-            new AppSettings { TodoEnabled = false }));
-        Assert.True(registry.IsAvailableForSession(
-            todoWidget,
-            new AppSettings { TodoEnabled = true }));
-    }
-
-    [Fact]
-    public void IsAvailableForSession_UsesFeatureWidgetStateOverLegacyTodoSetting()
-    {
-        var registry = WidgetRegistry.Default;
-        var todoWidget = new WidgetConfig
-        {
-            WidgetKind = WidgetKind.Todo
-        };
-        var settings = new AppSettings { TodoEnabled = true };
-        FeatureWidgetSettings.SetEnabled(settings, WidgetKind.Todo, false);
-
-        Assert.False(registry.IsAvailableForSession(todoWidget, settings));
     }
 
     [Fact]

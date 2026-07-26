@@ -8,7 +8,6 @@ public sealed class WidgetContentFactoryTests
     [Theory]
     [InlineData(WidgetKind.File, "BentoDesk", WidgetContentStage.Implemented, true, WidgetContentAvailability.Available)]
     [InlineData(WidgetKind.Weather, "Weather", WidgetContentStage.Implemented, false, WidgetContentAvailability.Available)]
-    [InlineData(WidgetKind.Todo, "Todo", WidgetContentStage.Implemented, false, WidgetContentAvailability.Available)]
     [InlineData(WidgetKind.Tags, "Tags", WidgetContentStage.Placeholder, false, WidgetContentAvailability.Planned)]
     [InlineData(WidgetKind.Music, "Music", WidgetContentStage.Implemented, false, WidgetContentAvailability.Available)]
     [InlineData(WidgetKind.SystemMonitor, "System Monitor", WidgetContentStage.Placeholder, false, WidgetContentAvailability.Planned)]
@@ -44,7 +43,6 @@ public sealed class WidgetContentFactoryTests
         Assert.Equal(
         [
             WidgetKind.File,
-            WidgetKind.Todo,
             WidgetKind.Music,
             WidgetKind.Weather,
             WidgetKind.Tags,
@@ -55,7 +53,6 @@ public sealed class WidgetContentFactoryTests
 
     [Theory]
     [InlineData(WidgetKind.File, WidgetChromeCategory.Interactive, WidgetChromeMode.Standard)]
-    [InlineData(WidgetKind.Todo, WidgetChromeCategory.Interactive, WidgetChromeMode.Standard)]
     [InlineData(WidgetKind.Tags, WidgetChromeCategory.Interactive, WidgetChromeMode.Standard)]
     [InlineData(WidgetKind.Music, WidgetChromeCategory.Display, WidgetChromeMode.Overlay)]
     [InlineData(WidgetKind.Weather, WidgetChromeCategory.Display, WidgetChromeMode.Overlay)]
@@ -98,14 +95,12 @@ public sealed class WidgetContentFactoryTests
 
         Assert.Equal(
         [
-            WidgetKind.Todo,
             WidgetKind.Music,
             WidgetKind.Weather,
             WidgetKind.Search
         ], descriptors.Select(descriptor => descriptor.WidgetKind));
         Assert.DoesNotContain(descriptors, descriptor => descriptor.WidgetKind == WidgetKind.File);
         Assert.DoesNotContain(descriptors, descriptor => descriptor.IsPlanned);
-        Assert.Contains(descriptors, descriptor => descriptor.WidgetKind == WidgetKind.Todo && descriptor.HasImplementedContent);
         Assert.Contains(descriptors, descriptor => descriptor.WidgetKind == WidgetKind.Music && descriptor.HasImplementedContent);
         Assert.Contains(descriptors, descriptor => descriptor.WidgetKind == WidgetKind.Weather && descriptor.HasImplementedContent);
     }
@@ -113,7 +108,6 @@ public sealed class WidgetContentFactoryTests
     [Theory]
     [InlineData(WidgetKind.File, true, false, true, true, false)]
     [InlineData(WidgetKind.Weather, true, false, false, true, false)]
-    [InlineData(WidgetKind.Todo, true, false, false, true, false)]
     [InlineData(WidgetKind.Tags, false, true, false, false, true)]
     [InlineData(WidgetKind.Music, true, false, false, true, false)]
     [InlineData(WidgetKind.SystemMonitor, false, true, false, false, true)]
@@ -186,142 +180,6 @@ public sealed class WidgetContentFactoryTests
         Assert.Equal("tags-test", content.WidgetId);
         Assert.Equal(WidgetKind.Tags, content.WidgetKind);
         Assert.False(WidgetRegistry.Default.CanCreateWindow(WidgetKind.Tags));
-    }
-
-    [Fact]
-    public void CreateTodoContent_ReturnsImplementedAdapterForCreatableTodoKind()
-    {
-        string tempRoot = Path.Combine(Path.GetTempPath(), "BentoDesk.Tests", Guid.NewGuid().ToString("N"));
-        var factory = TestServices.CreateWidgetContentFactory();
-        var config = new WidgetConfig
-        {
-            Id = "todo-test",
-            Name = "Todo",
-            WidgetKind = WidgetKind.Todo
-        };
-
-        try
-        {
-            string widgetsDataRoot = Directory.CreateDirectory(Path.Combine(tempRoot, "widgets")).FullName;
-            var store = new TodoWidgetStore(widgetsDataRoot, config.Id);
-
-            var content = factory.CreateTodoContent(config, store);
-
-            Assert.IsType<TodoWidgetContentAdapter>(content);
-            Assert.Equal("todo-test", content.WidgetId);
-            Assert.Equal(WidgetKind.Todo, content.WidgetKind);
-            Assert.True(factory.HasImplementedContent(WidgetKind.Todo));
-            Assert.False(factory.IsPlaceholderOnly(WidgetKind.Todo));
-            Assert.False(factory.CanShowInCreateEntry(WidgetKind.Todo));
-            Assert.True(WidgetRegistry.Default.CanCreateWindow(WidgetKind.Todo));
-        }
-        finally
-        {
-            try
-            {
-                if (Directory.Exists(tempRoot))
-                {
-                    Directory.Delete(tempRoot, recursive: true);
-                }
-            }
-            catch
-            {
-            }
-        }
-    }
-
-    [Fact]
-    public void CreateTodoContent_RejectsNonTodoConfig()
-    {
-        var factory = TestServices.CreateWidgetContentFactory();
-        var config = new WidgetConfig
-        {
-            WidgetKind = WidgetKind.File
-        };
-
-        Assert.Throws<ArgumentException>(() => factory.CreateTodoContent(config));
-    }
-
-    [Fact]
-    public void CreateDetachedContent_ReturnsTodoAdapterForContentWindow()
-    {
-        string tempRoot = Path.Combine(Path.GetTempPath(), "BentoDesk.Tests", Guid.NewGuid().ToString("N"));
-        var factory = TestServices.CreateWidgetContentFactory();
-        var config = new WidgetConfig
-        {
-            Id = "todo-detached",
-            Name = "Todo",
-            WidgetKind = WidgetKind.Todo
-        };
-
-        try
-        {
-            string widgetsDataRoot = Directory.CreateDirectory(Path.Combine(tempRoot, "widgets")).FullName;
-
-            var content = factory.CreateDetachedContent(
-                config,
-                widget => new TodoWidgetStore(widgetsDataRoot, widget.Id));
-
-            Assert.IsType<TodoWidgetContentAdapter>(content);
-            Assert.Equal(WidgetKind.Todo, content.WidgetKind);
-            Assert.True(factory.CanCreateDetachedContent(WidgetKind.Todo));
-            Assert.False(factory.CanShowInCreateEntry(WidgetKind.Todo));
-            Assert.True(WidgetRegistry.Default.CanCreateWindow(WidgetKind.Todo));
-        }
-        finally
-        {
-            try
-            {
-                if (Directory.Exists(tempRoot))
-                {
-                    Directory.Delete(tempRoot, recursive: true);
-                }
-            }
-            catch
-            {
-            }
-        }
-    }
-
-    [Fact]
-    public void CreateDetachedContent_UsesSettingsAwareTodoProviderWhenSettingsServiceIsProvided()
-    {
-        string tempRoot = Path.Combine(Path.GetTempPath(), "BentoDesk.Tests", Guid.NewGuid().ToString("N"));
-        var factory = TestServices.CreateWidgetContentFactory();
-        var settingsService = new SettingsService();
-        settingsService.Settings.TextSize = 17;
-        var config = new WidgetConfig
-        {
-            Id = "todo-settings-aware",
-            Name = "Todo",
-            WidgetKind = WidgetKind.Todo
-        };
-
-        try
-        {
-            string widgetsDataRoot = Directory.CreateDirectory(Path.Combine(tempRoot, "widgets")).FullName;
-
-            var content = factory.CreateDetachedContent(
-                config,
-                widget => new TodoWidgetStore(widgetsDataRoot, widget.Id),
-                settingsService);
-
-            var adapter = Assert.IsType<TodoWidgetContentAdapter>(content);
-            Assert.Equal(WidgetKind.Todo, adapter.WidgetKind);
-        }
-        finally
-        {
-            try
-            {
-                if (Directory.Exists(tempRoot))
-                {
-                    Directory.Delete(tempRoot, recursive: true);
-                }
-            }
-            catch
-            {
-            }
-        }
     }
 
     [Theory]

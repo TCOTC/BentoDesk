@@ -7,7 +7,7 @@
 [![Windows 11](https://img.shields.io/badge/Windows-11-0078D4.svg)](#环境要求)
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4.svg)](#构建)
 
-BentoDesk 是一个基于 WinUI 3 的 Windows 11 桌面整理工具。它用轻量桌面格子帮你收纳文件、映射文件夹、记录待办，也可以在桌面上控制音乐。BentoDesk 不会替换 Windows 桌面，只是在原生桌面之上补一层更好整理、更好访问、更容易临时唤起的能力。
+BentoDesk 是一个基于 WinUI 3 的 Windows 11 桌面整理工具。它用轻量桌面格子帮你收纳文件、映射文件夹，也可以在桌面上控制音乐。BentoDesk 不会替换 Windows 桌面，只是在原生桌面之上补一层更好整理、更好访问、更容易临时唤起的能力。
 
 > 本仓库基于 [DeskBox](https://github.com/Tianyu199509/DeskBox)（作者：Tianyu Zhu）fork，并更名为 BentoDesk，仍遵循 GPL-3.0。
 
@@ -46,7 +46,6 @@ Windows 桌面已经陪大家用了很多年，也是很多人每天最常用的
 
 - **收纳格子**：创建真实文件夹支撑的桌面格子，用于整理文件。
 - **文件夹映射**：把已有文件夹展示为桌面格子，不改变原文件位置。
-- **待办格子**：支持截止日期、提醒、重复、颜色标记、多附件、可配置视图和批量操作。
 - **音乐格子**：支持播放控制、播放模式切换、系统音量调整和自适应封面布局，可跟随封面氛围取色。
 - **胶囊模式**：把格子收起为智能摘要，可独立摆放，也可组合成能够排序和整体移动的桌面栏。
 - **文件自动叠放**：按类型、日期或自定义扩展名规则整理文件格子，不移动真实文件。
@@ -67,11 +66,9 @@ Windows 桌面已经陪大家用了很多年，也是很多人每天最常用的
 
 ### 核心格子
 
-| 文件格子 | 待办格子 |
+| 文件格子 | 音乐格子 |
 | --- | --- |
-| ![BentoDesk 文件格子列表视图](docs/images/screenshots/zh-cn/file-widget-list.png) | ![BentoDesk 待办格子](docs/images/screenshots/zh-cn/todo-widget.png) |
-| 音乐格子 | |
-| ![BentoDesk 音乐格子](docs/images/screenshots/zh-cn/music-widget.png) | |
+| ![BentoDesk 文件格子列表视图](docs/images/screenshots/zh-cn/file-widget-list.png) | ![BentoDesk 音乐格子](docs/images/screenshots/zh-cn/music-widget.png) |
 
 ### 设置页
 

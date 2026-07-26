@@ -296,8 +296,6 @@ public sealed class SearchHistoryService
         public string? Subtitle { get; set; }
         public string? DetailPath { get; set; }
         public string? Glyph { get; set; }
-        public string? TodoWidgetId { get; set; }
-        public string? TodoItemId { get; set; }
 
         public static PersistedResult From(SearchResultItem item) => new()
         {
@@ -306,9 +304,7 @@ public sealed class SearchHistoryService
             Title = item.Title,
             Subtitle = item.Subtitle,
             DetailPath = item.DetailPath,
-            Glyph = item.Glyph,
-            TodoWidgetId = item.TodoWidgetId,
-            TodoItemId = item.TodoItemId
+            Glyph = item.Glyph
         };
 
         public SearchRecommendationItem ToRecommendation() => new()
@@ -317,9 +313,7 @@ public sealed class SearchHistoryService
             Title = Title,
             Subtitle = Subtitle,
             DetailPath = DetailPath,
-            Glyph = Glyph,
-            TodoWidgetId = TodoWidgetId,
-            TodoItemId = TodoItemId
+            Glyph = Glyph
         };
     }
 }

@@ -100,7 +100,6 @@ $groups = @{
         'ResetFeatureWidgetConfig',
         'GetDefaultFeatureWidgetSize',
         'CloseLoadedFeatureWidgetWindows',
-        'SetTodoEnabledAsync',
         'SetContentFeatureWidgetEnabledAsync',
         'SetWeatherFeatureWidgetEnabledAsync',
         'GetFeatureWidgetEnabledState',
@@ -118,8 +117,7 @@ $groups = @{
         'CreateSingletonContentFeatureWidgetAsync',
         'GetDefaultFeatureWidgetTitle',
         'TryGetFileWidgetFolderPath',
-        'ShowTodoReminderTargetAsync',
-        'CreateTodoWidgetAsync'
+        'CreateSingletonContentFeatureWidgetAsync'
     )
 }
 

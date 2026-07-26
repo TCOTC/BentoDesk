@@ -23,7 +23,7 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
     {
         string dataDirectory = Directory.CreateDirectory(Path.Combine(_appDataRoot, "data")).FullName;
         string attachmentDirectory = Directory.CreateDirectory(
-            Path.Combine(dataDirectory, "widgets", "todo", "attachments")).FullName;
+            Path.Combine(dataDirectory, "widgets", "files", "nested")).FullName;
         await File.WriteAllTextAsync(Path.Combine(dataDirectory, "settings.json"), "{\"language\":\"zh-CN\"}");
         await File.WriteAllBytesAsync(Path.Combine(attachmentDirectory, "spec.pdf"), [1, 2, 3]);
         await File.WriteAllTextAsync(Path.Combine(dataDirectory, "ignored.tmp"), "partial");
@@ -34,7 +34,7 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
         Assert.True(File.Exists(backupPath));
         using ZipArchive archive = ZipFile.OpenRead(backupPath);
         Assert.NotNull(archive.GetEntry("data/settings.json"));
-        Assert.NotNull(archive.GetEntry("data/widgets/todo/attachments/spec.pdf"));
+        Assert.NotNull(archive.GetEntry("data/widgets/files/nested/spec.pdf"));
         Assert.Null(archive.GetEntry("data/ignored.tmp"));
         ZipArchiveEntry manifestEntry = Assert.IsType<ZipArchiveEntry>(archive.GetEntry("manifest.json"));
         using Stream manifestStream = manifestEntry.Open();
@@ -161,7 +161,7 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task PrepareAndApplyRestore_ReplacesDataAndRebasesManagedAttachments()
+    public async Task PrepareAndApplyRestore_ReplacesDataAndPreservesWidgetSettings()
     {
         string sourceRoot = Directory.CreateDirectory(Path.Combine(_tempRoot, "source-app-data")).FullName;
         string sourceData = Directory.CreateDirectory(Path.Combine(sourceRoot, "data")).FullName;
@@ -182,8 +182,6 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
                     Extensions = [".psd", ".fig"]
                 }
             ],
-            TodoItemPreviewLineCount = 2,
-            TodoEditorEnterBehavior = SettingsService.EditorEnterBehaviorEnterSaves,
             Widgets =
             [
                 new WidgetConfig
@@ -214,37 +212,9 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             }));
         string widgetsRoot = Path.Combine(sourceData, "widgets");
-        string sourceAttachment = Path.Combine(
-            widgetsRoot,
-            "todo-widget",
-            "attachments",
-            "task",
-            "image.png");
-        Directory.CreateDirectory(Path.GetDirectoryName(sourceAttachment)!);
-        await File.WriteAllBytesAsync(sourceAttachment, [1, 2, 3, 4]);
-        var sourceStore = new TodoWidgetStore(widgetsRoot, "todo-widget");
-        await sourceStore.SaveAsync(new TodoWidgetData
-        {
-            Items =
-            [
-                new TodoItem
-                {
-                    Id = "task",
-                    Text = "Restored task",
-                    Attachments =
-                    [
-                        new TodoAttachment
-                        {
-                            Id = "image",
-                            FilePath = sourceAttachment,
-                            DisplayName = "image.png",
-                            Type = "image",
-                            StorageMode = TodoAttachment.ManagedStorageMode
-                        }
-                    ]
-                }
-            ]
-        });
+        string widgetDataPath = Path.Combine(widgetsRoot, "files", "state.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(widgetDataPath)!);
+        await File.WriteAllTextAsync(widgetDataPath, "{\"version\":1}");
         string backupPath = await new BentoDeskDataBackupService(sourceRoot)
             .ExportBackupAsync(_exportRoot);
 
@@ -255,28 +225,19 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
         BentoDeskRestorePreparation preparation = await targetService.PrepareRestoreAsync(backupPath);
         BentoDeskRestoreApplyResult result = await targetService.ApplyPendingRestoreAsync();
 
-        Assert.True(preparation.FileCount >= 3);
+        Assert.True(preparation.FileCount >= 2);
         Assert.Equal(2, preparation.BackupSchemaVersion);
         Assert.True(preparation.HasIntegrityManifest);
         Assert.True(result.HadPendingRestore);
         Assert.True(result.Succeeded, result.ErrorMessage);
         Assert.False(File.Exists(targetService.PendingRestoreMarkerPath));
-        string restoredAttachment = Path.Combine(
+        string restoredWidgetDataPath = Path.Combine(
             targetData,
             "widgets",
-            "todo-widget",
-            "attachments",
-            "task",
-            "image.png");
-        Assert.True(File.Exists(restoredAttachment));
-        TodoWidgetData restored = await new TodoWidgetStore(
-            Path.Combine(targetData, "widgets"),
-            "todo-widget").LoadAsync();
-        TodoItem restoredItem = Assert.Single(restored.Items);
-        Assert.Equal(
-            restoredAttachment,
-            Assert.Single(restoredItem.Attachments).FilePath,
-            ignoreCase: true);
+            "files",
+            "state.json");
+        Assert.True(File.Exists(restoredWidgetDataPath));
+        Assert.Contains("\"version\":1", await File.ReadAllTextAsync(restoredWidgetDataPath));
         AppSettings restoredSettings = JsonSerializer.Deserialize<AppSettings>(
             await File.ReadAllTextAsync(Path.Combine(targetData, "settings.json")),
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
@@ -288,7 +249,6 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
         Assert.True(restoredSettings.FileStacksEnabled);
         Assert.Equal(SettingsService.FileStackUnmatchedOther, restoredSettings.FileStackUnmatchedBehavior);
         Assert.Equal("Design", Assert.Single(restoredSettings.FileStackCustomRules).Name);
-        Assert.Equal(2, restoredSettings.TodoItemPreviewLineCount);
         WidgetConfig restoredWidget = Assert.Single(restoredSettings.Widgets);
         Assert.Equal(196, restoredWidget.CompactWidth);
         Assert.Equal("LeftTop", restoredWidget.CompactPlacement?.PositionAnchor);

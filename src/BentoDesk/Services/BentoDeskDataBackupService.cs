@@ -167,10 +167,6 @@ public sealed class BentoDeskDataBackupService
                 stagingRoot,
                 cancellationToken);
             string stagedDataDirectory = Path.Combine(stagingRoot, "data");
-            await RebaseManagedAttachmentPathsAsync(
-                stagedDataDirectory,
-                archiveInfo.Manifest.SourceDataPath,
-                cancellationToken);
             ValidateRestoreData(stagedDataDirectory);
 
             var marker = new PendingRestoreMarker(
@@ -459,18 +455,6 @@ public sealed class BentoDeskDataBackupService
         }
 
         ValidateJsonFileIfPresent<AppSettings>(settingsPath);
-
-        string widgetsDirectory = Path.Combine(dataDirectory, "widgets");
-        if (Directory.Exists(widgetsDirectory))
-        {
-            foreach (string todoPath in Directory.EnumerateFiles(
-                         widgetsDirectory,
-                         "todo.json",
-                         SearchOption.AllDirectories))
-            {
-                ValidateJsonFileIfPresent<TodoWidgetData>(todoPath);
-            }
-        }
     }
 
     private static void ValidateJsonFileIfPresent<T>(string path)
@@ -494,150 +478,6 @@ public sealed class BentoDeskDataBackupService
                 $"Backup data file '{Path.GetFileName(path)}' is invalid.",
                 ex);
         }
-    }
-
-    private async Task RebaseManagedAttachmentPathsAsync(
-        string stagedDataDirectory,
-        string? sourceDataPath,
-        CancellationToken cancellationToken)
-    {
-        string widgetsDirectory = Path.Combine(stagedDataDirectory, "widgets");
-        if (!Directory.Exists(widgetsDirectory))
-        {
-            return;
-        }
-
-        foreach (string todoPath in Directory.EnumerateFiles(
-                     widgetsDirectory,
-                     "todo.json",
-                     SearchOption.AllDirectories))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            await RebaseTodoFileAsync(
-                todoPath,
-                stagedDataDirectory,
-                sourceDataPath,
-                cancellationToken);
-            string backupPath = ResilientJsonStore.GetBackupPath(todoPath);
-            if (File.Exists(backupPath))
-            {
-                try
-                {
-                    await RebaseTodoFileAsync(
-                        backupPath,
-                        stagedDataDirectory,
-                        sourceDataPath,
-                        cancellationToken);
-                }
-                catch (Exception ex) when (ex is JsonException or InvalidDataException)
-                {
-                    App.Log($"[DataBackup] Skipped invalid Todo backup store: {ex.Message}");
-                }
-            }
-        }
-    }
-
-    private async Task RebaseTodoFileAsync(
-        string path,
-        string stagedDataDirectory,
-        string? sourceDataPath,
-        CancellationToken cancellationToken)
-    {
-        TodoWidgetData data = JsonSerializer.Deserialize<TodoWidgetData>(
-                                  await File.ReadAllTextAsync(path, cancellationToken),
-                                  s_dataJsonOptions) ??
-                              throw new InvalidDataException("Todo backup data is invalid.");
-        string storeRelativePath = Path.GetRelativePath(
-                stagedDataDirectory,
-                Path.GetDirectoryName(path)!)
-            .Replace(Path.DirectorySeparatorChar, '/');
-        foreach (TodoAttachment attachment in (data.Items ?? [])
-                     .SelectMany(item => item.Attachments ?? [])
-                     .Where(attachment => attachment is not null && attachment.IsManagedCopy))
-        {
-            attachment.FilePath = TryRebaseManagedPath(
-                                      attachment.FilePath,
-                                      sourceDataPath,
-                                      stagedDataDirectory,
-                                      storeRelativePath) ??
-                                  attachment.FilePath;
-        }
-
-        await File.WriteAllTextAsync(
-            path,
-            JsonSerializer.Serialize(data, s_dataJsonOptions),
-            cancellationToken);
-    }
-
-    private string? TryRebaseManagedPath(
-        string? originalPath,
-        string? sourceDataPath,
-        string stagedDataDirectory,
-        string fallbackStoreRelativePath)
-    {
-        if (string.IsNullOrWhiteSpace(originalPath))
-        {
-            return null;
-        }
-
-        string? relativePath = null;
-        if (!string.IsNullOrWhiteSpace(sourceDataPath) &&
-            TryGetRelativePathInsideDirectory(originalPath, sourceDataPath, out string sourceRelativePath))
-        {
-            relativePath = sourceRelativePath;
-        }
-
-        relativePath ??= TryGetStoreRelativePath(originalPath, fallbackStoreRelativePath);
-        if (string.IsNullOrWhiteSpace(relativePath))
-        {
-            return null;
-        }
-
-        string stagedPath = Path.GetFullPath(Path.Combine(stagedDataDirectory, relativePath));
-        if (!IsPathInsideDirectory(stagedPath, stagedDataDirectory) || !File.Exists(stagedPath))
-        {
-            return null;
-        }
-
-        return Path.GetFullPath(Path.Combine(DataDirectory, relativePath));
-    }
-
-    private static string? TryGetStoreRelativePath(string originalPath, string storeRelativePath)
-    {
-        string normalizedOriginal = originalPath.Replace('\\', '/');
-        string normalizedStore = storeRelativePath.Trim('/').Replace('\\', '/');
-        int storeIndex = normalizedOriginal.IndexOf(
-            $"/{normalizedStore}/",
-            StringComparison.OrdinalIgnoreCase);
-        if (storeIndex < 0)
-        {
-            return null;
-        }
-
-        return normalizedOriginal[(storeIndex + 1)..].Replace('/', Path.DirectorySeparatorChar);
-    }
-
-    private static bool TryGetRelativePathInsideDirectory(
-        string path,
-        string directory,
-        out string relativePath)
-    {
-        try
-        {
-            string fullPath = Path.GetFullPath(path);
-            string fullDirectory = Path.GetFullPath(directory);
-            if (IsPathInsideDirectory(fullPath, fullDirectory))
-            {
-                relativePath = Path.GetRelativePath(fullDirectory, fullPath);
-                return true;
-            }
-        }
-        catch
-        {
-        }
-
-        relativePath = string.Empty;
-        return false;
     }
 
     private async Task<PendingRestoreMarker> ReadPendingRestoreMarkerAsync(

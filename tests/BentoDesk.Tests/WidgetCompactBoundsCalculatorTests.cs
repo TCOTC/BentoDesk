@@ -41,7 +41,6 @@ public sealed class WidgetCompactBoundsCalculatorTests
 
     [Theory]
     [InlineData(SettingsService.WidgetCompactContentModeSmart, WidgetKind.File, 42)]
-    [InlineData(SettingsService.WidgetCompactContentModeSmart, WidgetKind.Todo, 42)]
     [InlineData(SettingsService.WidgetCompactContentModeSmart, WidgetKind.Music, 52)]
     [InlineData(SettingsService.WidgetCompactContentModeSmart, WidgetKind.Weather, 52)]
     [InlineData(SettingsService.WidgetCompactContentModeSmart, WidgetKind.Search, 52)]
@@ -60,7 +59,6 @@ public sealed class WidgetCompactBoundsCalculatorTests
 
     [Theory]
     [InlineData(WidgetKind.File, 272)]
-    [InlineData(WidgetKind.Todo, 272)]
     [InlineData(WidgetKind.Music, 320)]
     public void Calculate_SmartStyleUsesWidgetAppropriateWidth(WidgetKind kind, int expectedWidth)
     {

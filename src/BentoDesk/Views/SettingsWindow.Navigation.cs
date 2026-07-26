@@ -46,7 +46,6 @@ public sealed partial class SettingsWindow
             ["FileStorageSettings"] = FileStorageSettingsSection,
             ["FileStackSettings"] = FileStackSettingsSection,
             ["FeatureWidgets"] = FeatureWidgetsSection,
-            ["TodoSettings"] = TodoSettingsSection,
             ["MusicSettings"] = MusicSettingsSection,
             ["WeatherSettings"] = WeatherSettingsSection,
             ["SearchSettings"] = SearchSettingsSection,
@@ -57,7 +56,6 @@ public sealed partial class SettingsWindow
             ["ManagedStorage"] = ManagedStorageSection,
             ["Maintenance"] = MaintenanceSection,
             ["BackupRestoreSettings"] = BackupRestoreSettingsSection,
-            ["DataHealthSettings"] = DataHealthSettingsSection,
             ["CompatibilityDiagnosticsSettings"] = CompatibilityDiagnosticsSettingsSection,
             ["ResetSettings"] = ResetSettingsSection,
             ["About"] = AboutSection

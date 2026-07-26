@@ -3,14 +3,12 @@ using BentoDesk.Models;
 namespace BentoDesk.Services;
 
 /// <summary>
-/// Compatibility layer for singleton feature widget enabled states.
-/// Keep legacy AppSettings booleans mirrored until all callers are descriptor-driven.
+/// Singleton feature widget enabled states backed by <see cref="AppSettings.FeatureWidgetEnabledStates"/>.
 /// </summary>
 public static class FeatureWidgetSettings
 {
     private static readonly WidgetKind[] s_featureKinds =
     [
-        WidgetKind.Todo,
         WidgetKind.Music,
         WidgetKind.Weather,
         WidgetKind.Search
@@ -132,23 +130,9 @@ public static class FeatureWidgetSettings
         return kind.ToString();
     }
 
-    private static bool GetLegacyEnabled(AppSettings settings, WidgetKind kind)
-    {
-        return kind switch
-        {
-            WidgetKind.Todo => settings.TodoEnabled,
-            WidgetKind.Music => false,
-            WidgetKind.Weather => false,
-            WidgetKind.Search => false,
-            _ => false
-        };
-    }
+    private static bool GetLegacyEnabled(AppSettings settings, WidgetKind kind) => false;
 
     private static void SetLegacyEnabled(AppSettings settings, WidgetKind kind, bool enabled)
     {
-        if (kind == WidgetKind.Todo)
-        {
-            settings.TodoEnabled = enabled;
-        }
     }
 }

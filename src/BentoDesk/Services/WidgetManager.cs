@@ -310,11 +310,6 @@ public sealed partial class WidgetManager
         FeatureWidgetHandler[] handlers =
         [
             new(
-                WidgetKind.Todo,
-                async _ => await CreateTodoWidgetAsync(),
-                SetTodoEnabledAsync,
-                () => HideAndCloseFeatureWidgetAsync(WidgetKind.Todo)),
-            new(
                 WidgetKind.Music,
                 async _ => await CreateSingletonContentFeatureWidgetAsync(WidgetKind.Music),
                 SetContentFeatureWidgetEnabledAsync,
@@ -341,13 +336,6 @@ public sealed partial class WidgetManager
             new(
                 WidgetKind.File,
                 async request => await CreateWidgetFromConfigAsync(
-                    request.Config,
-                    request.KeepPreparedForAnimation,
-                    request.RevealAfterCreate,
-                    request.ShowRaisedWhileInitializing)),
-            new(
-                WidgetKind.Todo,
-                async request => await CreateContentWidgetFromConfigAsync(
                     request.Config,
                     request.KeepPreparedForAnimation,
                     request.RevealAfterCreate,
@@ -558,9 +546,6 @@ public sealed partial class WidgetManager
         {
             case WidgetKind.File:
                 await CreateManagedWidgetAsync(_localizationService.T("Widget.DefaultNameShort"));
-                break;
-            case WidgetKind.Todo:
-                await CreateTodoWidgetAsync();
                 break;
             case WidgetKind.Music:
                 await CreateSingletonContentFeatureWidgetAsync(widgetKind);
@@ -1229,9 +1214,6 @@ public sealed partial class WidgetManager
     {
         return kind switch
         {
-            WidgetKind.Todo => (
-                Math.Max(_settingsService.Settings.DefaultWidgetWidth, 320),
-                Math.Max(_settingsService.Settings.DefaultWidgetHeight, 420)),
             WidgetKind.Music => (380, 190),
             WidgetKind.Weather => (200, 200),
             _ => (

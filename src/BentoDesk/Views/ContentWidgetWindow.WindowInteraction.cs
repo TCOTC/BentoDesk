@@ -23,50 +23,12 @@ namespace BentoDesk.Views;
 
 public sealed partial class ContentWidgetWindow
 {
-    private async void RootGrid_DragOver(object sender, DragEventArgs e)
+    private void RootGrid_DragOver(object sender, DragEventArgs e)
     {
-        if (!IsCompactBoundsStateActive || CurrentContent is not TodoWidgetContentAdapter todo)
-        {
-            return;
-        }
-
-        var deferral = e.GetDeferral();
-        try
-        {
-            e.AcceptedOperation = await todo.CanImportExternalDropAsync(e.DataView)
-                ? DataPackageOperation.Copy
-                : DataPackageOperation.None;
-            e.DragUIOverride.IsGlyphVisible = false;
-            e.DragUIOverride.Caption = e.AcceptedOperation == DataPackageOperation.None
-                ? string.Empty
-                : App.Current.LocalizationService.T("Widget.Compact.TodoDropHint");
-            e.Handled = true;
-        }
-        finally
-        {
-            deferral.Complete();
-        }
     }
 
-    private async void RootGrid_Drop(object sender, DragEventArgs e)
+    private void RootGrid_Drop(object sender, DragEventArgs e)
     {
-        if (!IsCompactBoundsStateActive || CurrentContent is not TodoWidgetContentAdapter todo)
-        {
-            return;
-        }
-
-        var deferral = e.GetDeferral();
-        try
-        {
-            e.Handled = true;
-            e.AcceptedOperation = await todo.ImportExternalDropAsync(e.DataView)
-                ? DataPackageOperation.Copy
-                : DataPackageOperation.None;
-        }
-        finally
-        {
-            deferral.Complete();
-        }
     }
 
     private void RootGrid_KeyDown(object sender, KeyRoutedEventArgs e)

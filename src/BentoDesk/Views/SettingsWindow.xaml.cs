@@ -98,7 +98,6 @@ public sealed partial class SettingsWindow : Window
             ["FileStorageSettings"] = new("FileStorageSettings", "Settings.Group.FileStorage.Title", "AppearanceDetail", "AppearanceDetail"),
             ["ManagedStorage"] = new("ManagedStorage", "Settings.ManagedStorage.PageTitle", "FileStorageSettings", "AppearanceDetail"),
             ["FileStackSettings"] = new("FileStackSettings", "Settings.FileStacks.PageTitle", "AppearanceDetail", "AppearanceDetail"),
-            ["TodoSettings"] = new("TodoSettings", "Settings.Todo.Title", "FeatureWidgets", "FeatureWidgets"),
             ["MusicSettings"] = new("MusicSettings", "Settings.Music.Title", "FeatureWidgets", "FeatureWidgets"),
             ["WeatherSettings"] = new("WeatherSettings", "Settings.Weather.Title", "FeatureWidgets", "FeatureWidgets"),
             ["SearchSettings"] = new("SearchSettings", "Settings.Search.Title", "FeatureWidgets", "FeatureWidgets"),
@@ -111,7 +110,6 @@ public sealed partial class SettingsWindow : Window
             ["CapsuleAnimationSettings"] = new("CapsuleAnimationSettings", "Settings.Capsule.Animation.Title", "CapsuleMode", "CapsuleMode"),
             ["CapsuleOverridesSettings"] = new("CapsuleOverridesSettings", "Settings.Capsule.Overrides.Title", "CapsuleMode", "CapsuleMode"),
             ["BackupRestoreSettings"] = new("BackupRestoreSettings", "Settings.DataBackup.Title", "Maintenance", "Maintenance"),
-            ["DataHealthSettings"] = new("DataHealthSettings", "Settings.AttachmentHealth.Title", "Maintenance", "Maintenance"),
             ["CompatibilityDiagnosticsSettings"] = new("CompatibilityDiagnosticsSettings", "Settings.DragDropPermission.Title", "Maintenance", "Maintenance"),
             ["ResetSettings"] = new("ResetSettings", "Settings.Restore.Title", "Maintenance", "Maintenance")
         };

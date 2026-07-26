@@ -55,82 +55,10 @@ public sealed partial class WidgetManager
             TaskContinuationOptions.OnlyOnFaulted);
     }
 
-    public async Task<ContentWidgetWindow> CreateTodoWidgetAsync(string? name = null, bool focusNewInput = false)
-    {
-        SetFeatureWidgetEnabledState(WidgetKind.Todo, true);
-
-        // Single-instance: show existing Todo if one exists
-        var existingConfig = _settingsService.Settings.Widgets
-            .FirstOrDefault(w => w.WidgetKind == WidgetKind.Todo && !IsDeleted(w.Id));
-        if (existingConfig is not null)
-        {
-            await ShowWidgetAsync(existingConfig.Id, reveal: true, autoRestoreOnReveal: false);
-            if (_contentWidgets.TryGetValue(existingConfig.Id, out var existing))
-            {
-                if (focusNewInput)
-                {
-                    existing.TriggerAddAction();
-                }
-
-                return existing;
-            }
-        }
-
-        name = string.IsNullOrWhiteSpace(name)
-            ? _localizationService.T("Todo.Title")
-            : name;
-
-        var config = new WidgetConfig
-        {
-            Name = name,
-            WidgetKind = WidgetKind.Todo,
-            BoundsCoordinateVersion = WidgetConfig.CurrentBoundsCoordinateVersion,
-            Width = Math.Max(_settingsService.Settings.DefaultWidgetWidth, 320),
-            Height = Math.Max(_settingsService.Settings.DefaultWidgetHeight, 420)
-        };
-
-        _settingsService.Settings.Widgets.Add(config);
-        await _settingsService.SaveAsync();
-
-        var window = await CreateContentWidgetFromConfigAsync(config, revealAfterCreate: true);
-        if (focusNewInput)
-        {
-            window.TriggerAddAction();
-        }
-
-        return window;
-    }
-
-    public async Task ShowTodoReminderTargetAsync(string? widgetId, string? itemId, bool preferTodayFilter)
-    {
-        ContentWidgetWindow? window = null;
-        if (!string.IsNullOrWhiteSpace(widgetId))
-        {
-            var config = _settingsService.Settings.Widgets.FirstOrDefault(widget =>
-                widget.WidgetKind == WidgetKind.Todo &&
-                string.Equals(widget.Id, widgetId, StringComparison.Ordinal) &&
-                !IsDeleted(widget.Id));
-
-            if (config is not null)
-            {
-                SetFeatureWidgetEnabledState(WidgetKind.Todo, true);
-                await ShowContentWidgetAsync(config, reveal: true);
-                _contentWidgets.TryGetValue(config.Id, out window);
-            }
-        }
-
-        window ??= await CreateTodoWidgetAsync();
-        if (window.CurrentContent?.View is TodoWidgetContent todoContent)
-        {
-            todoContent.RevealReminderItem(itemId, preferTodayFilter);
-        }
-    }
-
     private string GetDefaultFeatureWidgetTitle(WidgetKind kind, WidgetContentDescriptor descriptor)
     {
         string key = kind switch
         {
-            WidgetKind.Todo => "Todo.Title",
             WidgetKind.Music => "Music.Title",
             WidgetKind.Weather => "Weather.Title",
             WidgetKind.Search => "Search.Title",
@@ -360,14 +288,6 @@ public sealed partial class WidgetManager
                 .Where(widget => widget.WidgetKind == kind)
                 .ToList();
 
-            if (kind == WidgetKind.Todo)
-            {
-                foreach (var todoConfig in configs)
-                {
-                    await new TodoWidgetStore(todoConfig.Id).ClearAsync();
-                }
-            }
-
             SetFeatureWidgetEnabledState(kind, false);
             var config = configs.FirstOrDefault(widget => !IsDeleted(widget.Id)) ??
                          configs.FirstOrDefault();
@@ -457,44 +377,6 @@ public sealed partial class WidgetManager
         {
             CloseFeatureWidgetInstance(window);
         }
-    }
-
-    public async Task SetTodoEnabledAsync(bool enabled, bool reveal = true)
-    {
-        SetFeatureWidgetEnabledState(WidgetKind.Todo, enabled);
-
-        if (enabled)
-        {
-            if (reveal)
-            {
-                await CreateTodoWidgetAsync();
-            }
-            else
-            {
-                var config = _settingsService.Settings.Widgets
-                    .FirstOrDefault(w => w.WidgetKind == WidgetKind.Todo && !IsDeleted(w.Id));
-                if (config is not null)
-                {
-                    config.IsDisabled = false;
-                    config.IsVisible = true;
-                }
-
-                await _settingsService.SaveAsync();
-            }
-
-            return;
-        }
-
-        foreach (var config in _settingsService.Settings.Widgets.Where(widget =>
-                     widget.WidgetKind == WidgetKind.Todo &&
-                     !IsDeleted(widget.Id)))
-        {
-            config.IsVisible = false;
-            config.IsDisabled = false;
-        }
-
-        HideAndCloseFeatureWidgetAsync(WidgetKind.Todo);
-        await _settingsService.SaveAsync();
     }
 
     private async Task SetContentFeatureWidgetEnabledAsync(WidgetKind kind, bool enabled, bool reveal = true)

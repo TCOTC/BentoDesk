@@ -255,22 +255,6 @@ public sealed partial class ContentWidgetWindow
             flyout.Items.Add(settingsItem);
         }
 
-        if (_config.WidgetKind == WidgetKind.Todo)
-        {
-            flyout.Items.Add(new MenuFlyoutSeparator());
-            var clearAllItem = new MenuFlyoutItem
-            {
-                Text = App.Current.LocalizationService.T("Todo.ClearAll"),
-                Icon = new FontIcon
-                {
-                    Glyph = "\uE894",
-                    Foreground = new SolidColorBrush(Colors.Red)
-                }
-            };
-            clearAllItem.Click += (_, _) => ShowTodoClearAllConfirmation();
-            flyout.Items.Add(clearAllItem);
-        }
-
         flyout.Items.Add(new MenuFlyoutSeparator());
         var disableWidget = new MenuFlyoutItem
         {
@@ -289,14 +273,6 @@ public sealed partial class ContentWidgetWindow
         return flyout;
     }
 
-    private void ShowTodoClearAllConfirmation()
-    {
-        if (_contentHost.CurrentContent?.View is TodoWidgetContent todoContent)
-        {
-            todoContent.ShowClearAllConfirmation(ContentWidgetShell.MoreActionButton);
-        }
-    }
-
     private void SetChromeModeOverride(WidgetChromeMode mode)
     {
         WidgetChromeModeNames.SetOverrideMode(_config, mode);
@@ -308,7 +284,6 @@ public sealed partial class ContentWidgetWindow
     {
         return kind switch
         {
-            WidgetKind.Todo => "Todo.OpenSettings",
             WidgetKind.Music => "Music.OpenSettings",
             _ => "Common.Configure"
         };

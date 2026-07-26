@@ -18,7 +18,7 @@ BentoDesk 仅通过官网 / GitHub 分发（Inno Setup 安装包）。本文档�
 
 ## 二、开发时怎么跑
 
-日常 UI、格子、设置、文件、待办、随记、音乐等功能开发，直接构建即可：
+日常 UI、格子、设置、文件、随记、音乐等功能开发，直接构建即可：
 
 ```powershell
 dotnet build .\src\BentoDesk\BentoDesk.csproj `

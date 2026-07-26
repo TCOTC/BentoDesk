@@ -8,8 +8,6 @@ public static class BentoDeskDragData
 {
     public const string TextFormat = "BentoDesk.Internal.Text.v1";
     public const string SourceFormat = "BentoDesk.Internal.Source.v1";
-    public const string TodoColorMarkerFormat = "BentoDesk.Todo.ColorMarker.v1";
-    public const string SourceTodo = "todo";
 
     public static void SetText(DataPackage dataPackage, string? text, string source)
     {
@@ -22,32 +20,6 @@ public static class BentoDeskDragData
         dataPackage.SetText(normalizedText);
         dataPackage.SetData(TextFormat, normalizedText);
         dataPackage.SetData(SourceFormat, source);
-    }
-
-    public static void SetTodoColorMarker(DataPackage dataPackage, string colorMarker)
-    {
-        if (!string.IsNullOrWhiteSpace(colorMarker))
-        {
-            dataPackage.SetData(TodoColorMarkerFormat, colorMarker.Trim());
-        }
-    }
-
-    public static async Task<string?> TryGetTodoColorMarkerAsync(DataPackageView dataView)
-    {
-        if (!dataView.Contains(TodoColorMarkerFormat))
-        {
-            return null;
-        }
-
-        try
-        {
-            return await dataView.GetDataAsync(TodoColorMarkerFormat) as string;
-        }
-        catch (Exception ex)
-        {
-            App.Log($"[DragDrop] Failed to read todo color marker: {ex.Message}");
-            return null;
-        }
     }
 
     public static async Task<string?> TryGetTextAsync(DataPackageView dataView)

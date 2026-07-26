@@ -955,7 +955,7 @@ public sealed partial class WidgetShell : UserControl
     private void ApplyCompactActionLabels(bool isPlaying)
     {
         var localization = App.Current.LocalizationService;
-        SetAccessibleLabel(CompactPrimaryActionButton, localization.T("Todo.Menu.MarkCompleted"));
+        SetAccessibleLabel(CompactPrimaryActionButton, localization.T("Search.Title"));
         SetAccessibleLabel(CompactPreviousButton, localization.T("Music.Control.Previous"));
         SetAccessibleLabel(
             CompactPlayPauseButton,
@@ -1068,7 +1068,7 @@ public sealed partial class WidgetShell : UserControl
 
             CompactLiveProgressTransform.ScaleX = value;
 
-            // Todo progress: overdue=orange, normal=accent→green gradient
+            // Progress bar color: overdue = orange, normal = accent → green gradient
             if (!isPlaying && !isFullBleed)
             {
                 if (isAttention)
@@ -1530,28 +1530,12 @@ public sealed partial class WidgetShell : UserControl
         _breathBorderTimer = null;
     }
 
-    // ── Conditional animations (todo flash, capture bounce) ────
+    // ── Conditional animations (capture bounce) ────
 
-    private string? _lastTodoLiveKey;
     private string? _lastCaptureLiveKey;
 
     private void ApplyConditionalAnimations(WidgetCompactPresentation p)
     {
-        // Todo: all-complete flash
-        if (p.EdgeGlowColor is not null && p.EdgeGlowColor.Value.G > 150 && p.EdgeGlowColor.Value.R < 100)
-        {
-            // Green glow = all complete
-            if (_lastTodoLiveKey is not null && _lastTodoLiveKey != p.LiveStateKey)
-            {
-                TriggerEdgeGlowFlash();
-            }
-            _lastTodoLiveKey = p.LiveStateKey;
-        }
-        else
-        {
-            _lastTodoLiveKey = null;
-        }
-
         // Quick capture: new record bounce
         if (p.EnableBounceOnUpdate && _lastCaptureLiveKey is not null && _lastCaptureLiveKey != p.LiveStateKey)
         {
@@ -1565,21 +1549,6 @@ public sealed partial class WidgetShell : UserControl
         {
             _lastCaptureLiveKey = null;
         }
-    }
-
-    private void TriggerEdgeGlowFlash()
-    {
-        if (!SystemAnimationsEnabled()) return;
-        var sb = new Storyboard();
-        var anim = new DoubleAnimation
-        {
-            From = 1.0, To = 0.5, Duration = TimeSpan.FromMilliseconds(150),
-            AutoReverse = true, EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
-        };
-        Storyboard.SetTarget(anim, CompactEdgeGlow);
-        Storyboard.SetTargetProperty(anim, "Opacity");
-        sb.Children.Add(anim);
-        sb.Begin();
     }
 
     private void TriggerCapsuleBounce()

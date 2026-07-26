@@ -128,117 +128,6 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task LoadAsync_MigratesLegacyFeatureWidgetEnabledStates()
-    {
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            """
-            {
-              "todoEnabled": true
-            }
-            """);
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
-        Assert.True(FeatureWidgetSettings.IsEnabled(service.Settings, WidgetKind.Todo));
-        Assert.True(service.Settings.TodoEnabled);
-    }
-
-    [Fact]
-    public async Task LoadAsync_FeatureWidgetEnabledStatesSynchronizeLegacyMirrors()
-    {
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            """
-            {
-              "todoEnabled": true,
-              "featureWidgetEnabledStates": {
-                "Todo": false
-              }
-            }
-            """);
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
-        Assert.False(FeatureWidgetSettings.IsEnabled(service.Settings, WidgetKind.Todo));
-        Assert.False(service.Settings.TodoEnabled);
-    }
-
-    [Fact]
-    public async Task LoadAsync_NormalizesTodoSettings()
-    {
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            """
-            {
-              "todoNewTaskPosition": "Middle",
-              "todoDefaultFilter": "Someday",
-              "todoShowCompletedTasks": false,
-              "todoShowFooterStats": false,
-              "todoShowClearCompletedButton": false,
-              "todoConfirmBeforeDelete": true,
-              "todoReminderEnabled": false,
-              "todoDefaultReminderOffsetMinutes": 999,
-              "todoItemPreviewLineCount": -4,
-              "todoEditorEnterBehavior": "unexpected",
-              "managedDropAction": "Copy"
-            }
-            """);
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
-        Assert.Equal(SettingsService.TodoNewTaskPositionTop, service.Settings.TodoNewTaskPosition);
-        Assert.Equal(SettingsService.TodoDefaultFilterAll, service.Settings.TodoDefaultFilter);
-        Assert.False(service.Settings.TodoShowCompletedTasks);
-        Assert.False(service.Settings.TodoShowFooterStats);
-        Assert.False(service.Settings.TodoShowClearCompletedButton);
-        Assert.True(service.Settings.TodoConfirmBeforeDelete);
-        Assert.False(service.Settings.TodoReminderEnabled);
-        Assert.Equal(SettingsService.DefaultTodoReminderOffsetMinutes, service.Settings.TodoDefaultReminderOffsetMinutes);
-        Assert.Equal(SettingsService.MinItemPreviewLineCount, service.Settings.TodoItemPreviewLineCount);
-        Assert.Equal(
-            SettingsService.EditorEnterBehaviorCtrlEnterSaves,
-            service.Settings.TodoEditorEnterBehavior);
-        Assert.Equal(SettingsService.ManagedDropActionCopy, service.Settings.ManagedDropAction);
-    }
-
-    [Theory]
-    [InlineData(1, 1)]
-    [InlineData(2, 2)]
-    [InlineData(3, 3)]
-    [InlineData(4, 4)]
-    [InlineData(5, 5)]
-    [InlineData(6, 6)]
-    [InlineData(7, 7)]
-    [InlineData(8, 8)]
-    [InlineData(9, 9)]
-    [InlineData(10, 10)]
-    [InlineData(0, SettingsService.MinItemPreviewLineCount)]
-    [InlineData(100, SettingsService.MaxItemPreviewLineCount)]
-    public void NormalizeItemPreviewLineCount_ClampsToSupportedRange(int value, int expected)
-    {
-        Assert.Equal(expected, SettingsService.NormalizeItemPreviewLineCount(value));
-    }
-
-    [Theory]
-    [InlineData(SettingsService.EditorEnterBehaviorCtrlEnterSaves, false, false)]
-    [InlineData(SettingsService.EditorEnterBehaviorCtrlEnterSaves, true, true)]
-    [InlineData(SettingsService.EditorEnterBehaviorEnterSaves, false, true)]
-    [InlineData(SettingsService.EditorEnterBehaviorEnterSaves, true, false)]
-    public void ShouldSubmitEditorOnEnter_UsesConfiguredModifier(
-        string behavior,
-        bool controlPressed,
-        bool expected)
-    {
-        Assert.Equal(
-            expected,
-            SettingsService.ShouldSubmitEditorOnEnter(behavior, controlPressed));
-    }
-
-    [Fact]
     public async Task LoadAsync_NormalizesWidgetChromeSettingsAndMetadata()
     {
         await File.WriteAllTextAsync(
@@ -257,9 +146,9 @@ public sealed class SettingsServiceTests : IDisposable
                   }
                 },
                 {
-                  "id": "todo",
-                  "name": "Todo",
-                  "widgetKind": "Todo",
+                  "id": "search",
+                  "name": "Search",
+                  "widgetKind": "Search",
                   "metadata": {
                     "ChromeMode": "System"
                   }
@@ -460,56 +349,6 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task LoadAsync_RepairsEmptyTabSelectionsAndHiddenDefaults()
-    {
-        var settings = new AppSettings
-        {
-            TodoDefaultFilter = SettingsService.TodoDefaultFilterCompleted,
-            TodoShowAllTab = false,
-            TodoShowActiveTab = false,
-            TodoShowTodayTab = false,
-            TodoShowThisWeekTab = false,
-            TodoShowThisMonthTab = false,
-            TodoShowImportantTab = false,
-            TodoShowCompletedTab = false
-        };
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            JsonSerializer.Serialize(settings, s_jsonOptions));
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
-        Assert.True(service.Settings.TodoShowAllTab);
-        Assert.Equal(SettingsService.TodoDefaultFilterAll, service.Settings.TodoDefaultFilter);
-    }
-
-    [Theory]
-    [InlineData(SettingsService.TodoDefaultFilterThisWeek)]
-    [InlineData(SettingsService.TodoDefaultFilterThisMonth)]
-    public async Task LoadAsync_PreservesEnabledCalendarTabAsDefault(string filter)
-    {
-        var settings = new AppSettings
-        {
-            TodoDefaultFilter = filter,
-            TodoShowAllTab = false,
-            TodoShowTodayTab = false,
-            TodoShowImportantTab = false,
-            TodoShowCompletedTab = false,
-            TodoShowThisWeekTab = filter == SettingsService.TodoDefaultFilterThisWeek,
-            TodoShowThisMonthTab = filter == SettingsService.TodoDefaultFilterThisMonth
-        };
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            JsonSerializer.Serialize(settings, s_jsonOptions));
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
-        Assert.Equal(filter, service.Settings.TodoDefaultFilter);
-    }
-
-    [Fact]
     public void ApplyDefaultPreferences_MatchesNewUserAppearanceDefaults()
     {
         var newUserDefaults = new AppSettings();
@@ -527,18 +366,11 @@ public sealed class SettingsServiceTests : IDisposable
             WidgetMaterialIntensity = 0.1,
             LayoutDensity = "Compact",
             AutoStart = false,
-            TodoEnabled = true,
             FeatureWidgetEnabledStates = new Dictionary<string, bool>
             {
                 [WidgetKind.Music.ToString()] = true
             },
             ResizeSnapEnabled = false,
-            TodoTabStyle = SettingsService.WidgetTabStylePivot,
-            TodoShowFooterStats = true,
-            TodoItemPreviewLineCount = 1,
-            TodoEditorEnterBehavior = SettingsService.EditorEnterBehaviorEnterSaves,
-            TodoReminderEnabled = false,
-            TodoDefaultReminderOffsetMinutes = 999,
             ManagedDropAction = SettingsService.ManagedDropActionCopy,
             GlobalHotkeyEnabled = false,
             GlobalHotkeyModifiers = (int)HotkeyModifierKeys.Control,
@@ -576,21 +408,9 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal(newUserDefaults.WidgetMaterialIntensity, restoredDefaults.WidgetMaterialIntensity);
         Assert.True(newUserDefaults.AutoCheckForUpdates);
         Assert.Equal(newUserDefaults.AutoCheckForUpdates, restoredDefaults.AutoCheckForUpdates);
-        Assert.True(newUserDefaults.TodoReminderEnabled);
-        Assert.Equal(SettingsService.DefaultTodoReminderOffsetMinutes, newUserDefaults.TodoDefaultReminderOffsetMinutes);
-        Assert.Equal(newUserDefaults.TodoReminderEnabled, restoredDefaults.TodoReminderEnabled);
-        Assert.Equal(newUserDefaults.TodoDefaultReminderOffsetMinutes, restoredDefaults.TodoDefaultReminderOffsetMinutes);
-        Assert.Equal(newUserDefaults.TodoTabStyle, restoredDefaults.TodoTabStyle);
-        Assert.Equal(SettingsService.WidgetTabStyleButton, restoredDefaults.TodoTabStyle);
         Assert.Equal(SettingsService.LayoutDensityStandard, restoredDefaults.LayoutDensity);
         Assert.True(restoredDefaults.ResizeSnapEnabled);
-        Assert.False(restoredDefaults.TodoShowFooterStats);
-        Assert.Equal(newUserDefaults.TodoItemPreviewLineCount, restoredDefaults.TodoItemPreviewLineCount);
-        Assert.Equal(SettingsService.DefaultTodoItemPreviewLineCount, newUserDefaults.TodoItemPreviewLineCount);
-        Assert.False(newUserDefaults.TodoShowCompletedTasks);
-        Assert.Equal(newUserDefaults.TodoEditorEnterBehavior, restoredDefaults.TodoEditorEnterBehavior);
         Assert.False(restoredDefaults.AutoStart);
-        Assert.True(restoredDefaults.TodoEnabled);
         Assert.True(restoredDefaults.FeatureWidgetEnabledStates[WidgetKind.Music.ToString()]);
         Assert.Equal(newUserDefaults.ManagedDropAction, restoredDefaults.ManagedDropAction);
         Assert.Equal(newUserDefaults.GlobalHotkeyEnabled, restoredDefaults.GlobalHotkeyEnabled);
@@ -718,19 +538,6 @@ public sealed class SettingsServiceTests : IDisposable
     public void NormalizeWidgetHoverButtonActions_ConstrainsSelection(string? value, string expected)
     {
         Assert.Equal(expected, SettingsService.NormalizeWidgetHoverButtonActions(value));
-    }
-
-    [Theory]
-    [InlineData(null, SettingsService.AttachmentStorageModeLink)]
-    [InlineData("", SettingsService.AttachmentStorageModeLink)]
-    [InlineData("unknown", SettingsService.AttachmentStorageModeLink)]
-    [InlineData("link", SettingsService.AttachmentStorageModeLink)]
-    [InlineData("copy", SettingsService.AttachmentStorageModeCopy)]
-    public void NormalizeAttachmentStorageMode_UsesLinkAsSafeDefault(
-        string? value,
-        string expected)
-    {
-        Assert.Equal(expected, SettingsService.NormalizeAttachmentStorageMode(value));
     }
 
     [Theory]

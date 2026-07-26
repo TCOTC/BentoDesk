@@ -19,7 +19,6 @@ public sealed class FeatureWidgetEntryFactoryTests
 
         Assert.Equal(
         [
-            WidgetKind.Todo,
             WidgetKind.Music,
             WidgetKind.Weather,
             WidgetKind.Search

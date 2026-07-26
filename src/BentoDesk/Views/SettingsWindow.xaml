@@ -1250,158 +1250,6 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                 </StackPanel>
 
                 <StackPanel
-                    x:Name="TodoSettingsSection"
-                    Visibility="Collapsed"
-                    Style="{StaticResource SectionPanelStyle}">
-                    <StackPanel Margin="0,8,0,0" Spacing="4">
-                        <StackPanel Style="{StaticResource SettingsSubsectionHeaderStyle}">
-                            <TextBlock Style="{StaticResource SettingsSubsectionTitleTextStyle}" svc:Localized.Key="Settings.Todo.Tabs.Title" />
-                            <TextBlock Style="{StaticResource SettingDescriptionTextStyle}" svc:Localized.Key="Settings.Todo.Tabs.Description" />
-                        </StackPanel>
-                                <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.HeaderKey="Settings.Tabs.ShowBar">
-                                    <ToggleSwitch MinWidth="0" OffContent="" OnContent="" IsOn="{Binding TodoShowTabBar, Mode=TwoWay}" />
-                                </toolkit:SettingsCard>
-                                <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.HeaderKey="Settings.Todo.DefaultFilter.Title">
-                                    <ComboBox
-                                        MinWidth="150"
-                                        ItemsSource="{Binding AvailableTodoDefaultFilterOptions}"
-                                        controls:SettingsComboBox.Value="{Binding SelectedTodoDefaultFilter, Mode=TwoWay}" />
-                                </toolkit:SettingsCard>
-                                <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.HeaderKey="Settings.Todo.TabStyle.Title">
-                                    <ComboBox
-                                        MinWidth="150"
-                                        ItemsSource="{Binding AvailableTodoTabStyleOptions}"
-                                        controls:SettingsComboBox.Value="{Binding SelectedTodoTabStyle, Mode=TwoWay}" />
-                                </toolkit:SettingsCard>
-                                <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.HeaderKey="Settings.Todo.Tabs.All"><ToggleSwitch MinWidth="0" OffContent="" OnContent="" IsOn="{Binding TodoShowAllTab, Mode=TwoWay}" /></toolkit:SettingsCard>
-                                <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.HeaderKey="Settings.Todo.Tabs.Active"><ToggleSwitch MinWidth="0" OffContent="" OnContent="" IsOn="{Binding TodoShowActiveTab, Mode=TwoWay}" /></toolkit:SettingsCard>
-                                <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.HeaderKey="Settings.Todo.Tabs.Today"><ToggleSwitch MinWidth="0" OffContent="" OnContent="" IsOn="{Binding TodoShowTodayTab, Mode=TwoWay}" /></toolkit:SettingsCard>
-                                <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.HeaderKey="Settings.Todo.Tabs.ThisWeek"><ToggleSwitch MinWidth="0" OffContent="" OnContent="" IsOn="{Binding TodoShowThisWeekTab, Mode=TwoWay}" /></toolkit:SettingsCard>
-                                <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.HeaderKey="Settings.Todo.Tabs.ThisMonth"><ToggleSwitch MinWidth="0" OffContent="" OnContent="" IsOn="{Binding TodoShowThisMonthTab, Mode=TwoWay}" /></toolkit:SettingsCard>
-                                <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.HeaderKey="Settings.Todo.Tabs.Important"><ToggleSwitch MinWidth="0" OffContent="" OnContent="" IsOn="{Binding TodoShowImportantTab, Mode=TwoWay}" /></toolkit:SettingsCard>
-                                <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.HeaderKey="Settings.Todo.Tabs.Completed"><ToggleSwitch MinWidth="0" OffContent="" OnContent="" IsOn="{Binding TodoShowCompletedTab, Mode=TwoWay}" /></toolkit:SettingsCard>
-
-
-                        <StackPanel Style="{StaticResource SettingsSubsectionHeaderStyle}">
-                            <TextBlock Style="{StaticResource SettingsSubsectionTitleTextStyle}" svc:Localized.Key="Settings.ContentEditor.Group.Title" />
-                            <TextBlock Style="{StaticResource SettingDescriptionTextStyle}" svc:Localized.Key="Settings.ContentEditor.Group.Description" />
-                        </StackPanel>
-                                <toolkit:SettingsCard
-                                    HorizontalContentAlignment="Right"
-                                    svc:Localized.DescriptionKey="Settings.ContentEditor.PreviewLines.Description"
-                                    svc:Localized.HeaderKey="Settings.ContentEditor.PreviewLines.Title">
-                                    <ComboBox
-                                        MinWidth="260"
-                                        ItemsSource="{Binding AvailableItemPreviewLineCountOptions}"
-                                        controls:SettingsComboBox.Value="{Binding TodoItemPreviewLineCount, Mode=TwoWay}" />
-                                </toolkit:SettingsCard>
-                                <toolkit:SettingsCard
-                                    HorizontalContentAlignment="Right"
-                                    svc:Localized.DescriptionKey="Settings.ContentEditor.EnterBehavior.Description"
-                                    svc:Localized.HeaderKey="Settings.ContentEditor.EnterBehavior.Title">
-                                    <ComboBox
-                                        MinWidth="260"
-                                        ItemsSource="{Binding AvailableEditorEnterBehaviorOptions}"
-                                        controls:SettingsComboBox.Value="{Binding TodoEditorEnterBehavior, Mode=TwoWay}" />
-                                </toolkit:SettingsCard>
-
-
-                        <toolkit:SettingsCard
-                            HorizontalContentAlignment="Right"
-                            svc:Localized.DescriptionKey="Settings.Todo.NewTaskPosition.Description"
-                            svc:Localized.HeaderKey="Settings.Todo.NewTaskPosition.Title">
-                            <toolkit:SettingsCard.HeaderIcon>
-                                <FontIcon Glyph="&#xE8CB;" />
-                            </toolkit:SettingsCard.HeaderIcon>
-                            <ComboBox
-                                MinWidth="150"
-                                ItemsSource="{Binding AvailableTodoNewTaskPositionOptions}"
-                                controls:SettingsComboBox.Value="{Binding SelectedTodoNewTaskPosition, Mode=TwoWay}" />
-                        </toolkit:SettingsCard>
-
-                        <toolkit:SettingsCard
-                            HorizontalContentAlignment="Right"
-                            svc:Localized.DescriptionKey="Settings.Todo.ReminderEnabled.Description"
-                            svc:Localized.HeaderKey="Settings.Todo.ReminderEnabled.Title">
-                            <toolkit:SettingsCard.HeaderIcon>
-                                <FontIcon Glyph="&#xE916;" />
-                            </toolkit:SettingsCard.HeaderIcon>
-                            <ToggleSwitch
-                                OnContent=""
-                                OffContent=""
-                                MinWidth="0"
-                                IsOn="{Binding TodoReminderEnabled, Mode=TwoWay}" />
-                        </toolkit:SettingsCard>
-
-                        <toolkit:SettingsCard
-                            HorizontalContentAlignment="Right"
-                            svc:Localized.DescriptionKey="Settings.Todo.ReminderOffset.Description"
-                            svc:Localized.HeaderKey="Settings.Todo.ReminderOffset.Title">
-                            <toolkit:SettingsCard.HeaderIcon>
-                                <FontIcon Glyph="&#xE823;" />
-                            </toolkit:SettingsCard.HeaderIcon>
-                            <ComboBox
-                                MinWidth="150"
-                                IsEnabled="{Binding TodoReminderEnabled}"
-                                ItemsSource="{Binding AvailableTodoReminderOffsetOptions}"
-                                controls:SettingsComboBox.Value="{Binding SelectedTodoReminderOffsetMinutes, Mode=TwoWay}" />
-                        </toolkit:SettingsCard>
-
-                        <toolkit:SettingsCard
-                            HorizontalContentAlignment="Right"
-                            svc:Localized.DescriptionKey="Settings.Todo.ShowCompleted.Description"
-                            svc:Localized.HeaderKey="Settings.Todo.ShowCompleted.Title">
-                            <toolkit:SettingsCard.HeaderIcon>
-                                <FontIcon Glyph="&#xE73E;" />
-                            </toolkit:SettingsCard.HeaderIcon>
-                            <ToggleSwitch
-                                OnContent=""
-                                OffContent=""
-                                MinWidth="0"
-                                IsOn="{Binding TodoShowCompletedTasks, Mode=TwoWay}" />
-                        </toolkit:SettingsCard>
-
-                        <StackPanel Style="{StaticResource SettingsSubsectionHeaderStyle}">
-                            <TextBlock Style="{StaticResource SettingsSubsectionTitleTextStyle}" svc:Localized.Key="Settings.Todo.Group.FooterActions.Title" />
-                            <TextBlock Style="{StaticResource SettingDescriptionTextStyle}" svc:Localized.Key="Settings.Todo.Group.FooterActions.Description" />
-                        </StackPanel>
-                                <toolkit:SettingsCard
-                                    HorizontalContentAlignment="Right"
-                                    svc:Localized.DescriptionKey="Settings.Todo.ShowFooterStats.Description"
-                                    svc:Localized.HeaderKey="Settings.Todo.ShowFooterStats.Title">
-                                    <ToggleSwitch
-                                        OnContent=""
-                                        OffContent=""
-                                        MinWidth="0"
-                                        IsOn="{Binding TodoShowFooterStats, Mode=TwoWay}" />
-                                </toolkit:SettingsCard>
-
-                                <toolkit:SettingsCard
-                                    HorizontalContentAlignment="Right"
-                                    svc:Localized.DescriptionKey="Settings.Todo.ShowClearCompleted.Description"
-                                    svc:Localized.HeaderKey="Settings.Todo.ShowClearCompleted.Title">
-                                    <ToggleSwitch
-                                        OnContent=""
-                                        OffContent=""
-                                        MinWidth="0"
-                                        IsOn="{Binding TodoShowClearCompletedButton, Mode=TwoWay}" />
-                                </toolkit:SettingsCard>
-
-                                <toolkit:SettingsCard
-                                    HorizontalContentAlignment="Right"
-                                    svc:Localized.DescriptionKey="Settings.Todo.ConfirmBeforeDelete.Description"
-                                    svc:Localized.HeaderKey="Settings.Todo.ConfirmBeforeDelete.Title">
-                                    <ToggleSwitch
-                                        OnContent=""
-                                        OffContent=""
-                                        MinWidth="0"
-                                        IsOn="{Binding TodoConfirmBeforeDelete, Mode=TwoWay}" />
-                                </toolkit:SettingsCard>
-
-                    </StackPanel>
-                </StackPanel>
-
-                <StackPanel
                     x:Name="MusicSettingsSection"
                     Visibility="Collapsed"
                     Style="{StaticResource SectionPanelStyle}">
@@ -1711,19 +1559,6 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
 
                         <toolkit:SettingsCard
                             HorizontalContentAlignment="Right"
-                            svc:Localized.DescriptionKey="Settings.AttachmentStorageMode.Description"
-                            svc:Localized.HeaderKey="Settings.AttachmentStorageMode.Title">
-                            <toolkit:SettingsCard.HeaderIcon>
-                                <FontIcon Glyph="&#xE723;" />
-                            </toolkit:SettingsCard.HeaderIcon>
-                            <ComboBox
-                                MinWidth="{StaticResource SettingsControlMinWidth}"
-                                ItemsSource="{Binding AvailableAttachmentStorageModeOptions}"
-                                controls:SettingsComboBox.Value="{Binding SelectedAttachmentStorageMode, Mode=TwoWay}" />
-                        </toolkit:SettingsCard>
-
-                        <toolkit:SettingsCard
-                            HorizontalContentAlignment="Right"
                             svc:Localized.DescriptionKey="Settings.Onboarding.Description"
                             svc:Localized.HeaderKey="Settings.Onboarding.Title">
                             <toolkit:SettingsCard.HeaderIcon>
@@ -1758,22 +1593,6 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                                     <StackPanel Grid.Column="1" IsHitTestVisible="False" Spacing="3" VerticalAlignment="Center">
                                         <TextBlock Style="{StaticResource SettingTitleTextStyle}" svc:Localized.Key="Settings.DataBackup.Title" />
                                         <TextBlock Style="{StaticResource SettingDescriptionTextStyle}" TextWrapping="Wrap" svc:Localized.Key="Settings.DataBackup.Description" />
-                                    </StackPanel>
-                                    <FontIcon Grid.Column="2" FontSize="12" Glyph="&#xE76C;" IsHitTestVisible="False" VerticalAlignment="Center" />
-                                </Grid>
-                            </Button>
-                        </Border>
-
-                        <Border Style="{StaticResource SettingsGroupStyle}">
-                            <Button
-                                Click="NestedSettingsButton_Click"
-                                Style="{StaticResource DrillDownRowStyle}"
-                                Tag="DataHealthSettings">
-                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                                    <FontIcon Grid.Column="0" FontSize="18" Glyph="&#xE9D9;" IsHitTestVisible="False" VerticalAlignment="Center" />
-                                    <StackPanel Grid.Column="1" IsHitTestVisible="False" Spacing="3" VerticalAlignment="Center">
-                                        <TextBlock Style="{StaticResource SettingTitleTextStyle}" svc:Localized.Key="Settings.AttachmentHealth.Title" />
-                                        <TextBlock Style="{StaticResource SettingDescriptionTextStyle}" TextWrapping="Wrap" svc:Localized.Key="Settings.AttachmentHealth.Description" />
                                     </StackPanel>
                                     <FontIcon Grid.Column="2" FontSize="12" Glyph="&#xE76C;" IsHitTestVisible="False" VerticalAlignment="Center" />
                                 </Grid>
@@ -1871,42 +1690,6 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                                     </ListView.ItemTemplate>
                                 </ListView>
                             </StackPanel>
-                        </toolkit:SettingsCard>
-                    </StackPanel>
-                </StackPanel>
-
-                <StackPanel
-                    x:Name="DataHealthSettingsSection"
-                    Visibility="Collapsed"
-                    Style="{StaticResource SectionPanelStyle}">
-                    <StackPanel Margin="0,8,0,0" Spacing="4">
-                        <toolkit:SettingsCard
-                            ContentAlignment="Vertical"
-                            HorizontalContentAlignment="Stretch"
-                            svc:Localized.DescriptionKey="Settings.AttachmentHealth.Description"
-                            svc:Localized.HeaderKey="Settings.AttachmentHealth.Title">
-                            <toolkit:SettingsCard.HeaderIcon>
-                                <FontIcon Glyph="&#xE9D9;" />
-                            </toolkit:SettingsCard.HeaderIcon>
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
-                                <TextBlock
-                                    x:Name="AttachmentHealthSummaryText"
-                                    VerticalAlignment="Center"
-                                    Style="{StaticResource SettingDescriptionTextStyle}"
-                                    TextWrapping="Wrap"
-                                    svc:Localized.Key="Settings.AttachmentHealth.NotChecked" />
-                                <Button
-                                    x:Name="CheckAttachmentHealthButton"
-                                    Grid.Column="1"
-                                    Click="CheckAttachmentHealthButton_Click"
-                                    Style="{StaticResource ActionButtonStyle}"
-                                    svc:Localized.ToolTipKey="Settings.AttachmentHealth.CheckTooltip">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <SymbolIcon Symbol="Refresh" />
-                                        <TextBlock svc:Localized.Key="Settings.AttachmentHealth.Check" />
-                                    </StackPanel>
-                                </Button>
-                            </Grid>
                         </toolkit:SettingsCard>
                     </StackPanel>
                 </StackPanel>

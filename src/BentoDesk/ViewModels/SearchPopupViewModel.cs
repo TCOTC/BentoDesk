@@ -298,8 +298,6 @@ public sealed partial class SearchPopupViewModel : ObservableObject, IDisposable
         DetailPath = rec.DetailPath,
         Glyph = rec.Glyph,
         ActionId = rec.ActionId,
-        TodoWidgetId = rec.TodoWidgetId,
-        TodoItemId = rec.TodoItemId,
         HistoryQuery = rec.HistoryQuery
     };
 
@@ -466,7 +464,7 @@ public sealed partial class SearchPopupViewModel : ObservableObject, IDisposable
                 item => item.Kind is SearchResultKind.File or SearchResultKind.Folder,
                 supportsFileSort: true);
             AddTab("bentodesk", "Search.Tab.BentoDesk", "\uE80F",
-                item => item.Kind is SearchResultKind.Todo or SearchResultKind.Action,
+                item => item.Kind == SearchResultKind.Action,
                 supportsFileSort: false);
         }
         else
@@ -509,7 +507,6 @@ public sealed partial class SearchPopupViewModel : ObservableObject, IDisposable
     private string GetTypeDisplay(SearchResultItem item) => item.Kind switch
     {
         SearchResultKind.Folder => _localizationService.T("Search.Type.Folder"),
-        SearchResultKind.Todo => _localizationService.T("Search.Type.Todo"),
         SearchResultKind.Action => _localizationService.T("Search.Type.Action"),
         SearchResultKind.File => FileCategoryHelper.Categorize(item.Title) switch
         {
@@ -627,8 +624,7 @@ public sealed partial class SearchPopupViewModel : ObservableObject, IDisposable
                                      FileCategoryHelper.Categorize(item.Title) == FileCategory.Image,
         SearchResultFilter.Documents => item.Kind == SearchResultKind.File &&
                                         FileCategoryHelper.Categorize(item.Title) == FileCategory.Document,
-        SearchResultFilter.BentoDesk => item.Kind is SearchResultKind.Todo or
-                                      SearchResultKind.Action,
+        SearchResultFilter.BentoDesk => item.Kind == SearchResultKind.Action,
         _ => true
     };
 
@@ -738,11 +734,6 @@ public sealed partial class SearchPopupViewModel : ObservableObject, IDisposable
             case SearchResultKind.Action:
                 CommitExecution(item, recordResult: false);
                 ExecuteAction(item.ActionId);
-                return true;
-
-            case SearchResultKind.Todo:
-                CommitExecution(item);
-                ContentRequested?.Invoke(this, item);
                 return true;
 
             case SearchResultKind.History:
@@ -918,9 +909,6 @@ public sealed partial class SearchPopupViewModel : ObservableObject, IDisposable
     {
         switch (actionId)
         {
-            case "new-todo":
-                ActionRequested?.Invoke(this, "new-todo");
-                break;
             case "open-settings":
                 ActionRequested?.Invoke(this, "open-settings");
                 break;
@@ -929,9 +917,6 @@ public sealed partial class SearchPopupViewModel : ObservableObject, IDisposable
                 break;
             case "toggle-theme":
                 ActionRequested?.Invoke(this, "toggle-theme");
-                break;
-            case "open-todo":
-                ActionRequested?.Invoke(this, "open-todo");
                 break;
         }
     }
@@ -994,12 +979,9 @@ public sealed partial class SearchPopupViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Raised when an action requires external handling (e.g., open settings, create todo).
+    /// Raised when an action requires external handling (e.g., open settings).
     /// </summary>
     public event EventHandler<string>? ActionRequested;
-
-    /// <summary>Raised when a BentoDesk result should open its exact source item.</summary>
-    public event EventHandler<SearchResultItem>? ContentRequested;
 
     /// <summary>
     /// Raised when a history/favorite query is applied and the search box should update.

@@ -368,39 +368,6 @@ public sealed partial class SettingsWindow
         }
     }
 
-    private async void CheckAttachmentHealthButton_Click(object sender, RoutedEventArgs e)
-    {
-        CheckAttachmentHealthButton.IsEnabled = false;
-        AttachmentHealthSummaryText.Text = _localizationService.T("Settings.AttachmentHealth.Checking");
-        try
-        {
-            BentoDeskAttachmentHealthReport report = await App.Current.AttachmentHealthService.ScanAsync();
-            string key = report.UnreadableStoreCount > 0
-                ? "Settings.AttachmentHealth.Partial"
-                : report.IsHealthy
-                    ? "Settings.AttachmentHealth.Healthy"
-                    : "Settings.AttachmentHealth.Issues";
-            AttachmentHealthSummaryText.Text = _localizationService.Format(
-                key,
-                report.ReferencedFileCount,
-                report.MissingLinkedFiles.Count,
-                report.MissingManagedFiles.Count,
-                report.OrphanManagedFiles.Count,
-                report.UnreadableStoreCount);
-        }
-        catch (Exception ex)
-        {
-            App.Log($"[AttachmentHealth] Scan failed: {ex}");
-            AttachmentHealthSummaryText.Text = _localizationService.Format(
-                "Settings.AttachmentHealth.Failed",
-                ex.Message);
-        }
-        finally
-        {
-            CheckAttachmentHealthButton.IsEnabled = true;
-        }
-    }
-
     private async void RestoreDefaultSettingsButton_Click(object sender, RoutedEventArgs e)
     {
         if (SettingsRoot.XamlRoot is null)

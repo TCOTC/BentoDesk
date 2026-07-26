@@ -6,7 +6,6 @@ namespace BentoDesk.Services;
 internal sealed record WidgetContentProviderContext(
     LocalizationService LocalizationService,
     SettingsService? SettingsService,
-    Func<WidgetConfig, TodoWidgetStore>? TodoStoreFactory,
     Func<WidgetKind, WidgetContentDescriptor> GetDescriptor);
 
 internal interface IWidgetContentProvider

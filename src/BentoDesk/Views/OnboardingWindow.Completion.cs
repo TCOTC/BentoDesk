@@ -22,10 +22,6 @@ public sealed partial class OnboardingWindow
     {
         // Widgets summary
         var enabledWidgets = new List<string>();
-        if (FeatureWidgetSettings.IsEnabled(_settingsService.Settings, WidgetKind.Todo))
-        {
-            enabledWidgets.Add(_localizationService.T("Onboarding.Step2.TodoTitle"));
-        }
         if (FeatureWidgetSettings.IsEnabled(_settingsService.Settings, WidgetKind.Music))
         {
             enabledWidgets.Add(_localizationService.T("Onboarding.Step2.MusicTitle"));

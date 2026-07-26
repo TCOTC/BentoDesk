@@ -13,7 +13,6 @@ using Microsoft.UI.Xaml.Media;
 public enum SearchResultKind
 {
     File,
-    Todo,
     Action,
     Folder,
     History,
@@ -152,13 +151,6 @@ public sealed class SearchResultItem
     public string? TypeDisplay { get; set; }
 
     /// <summary>
-    /// For Todo results: the widget ID and item ID for direct actions.
-    /// </summary>
-    public string? TodoWidgetId { get; init; }
-    public string? TodoItemId { get; init; }
-    public bool TodoIsCompleted { get; init; }
-
-    /// <summary>
     /// For Action results: the action identifier.
     /// </summary>
     public string? ActionId { get; init; }
@@ -204,8 +196,6 @@ public sealed class SearchRecommendationItem
     public string? Glyph { get; init; }
     public string? DetailPath { get; init; }
     public string? ActionId { get; init; }
-    public string? TodoWidgetId { get; init; }
-    public string? TodoItemId { get; init; }
 
     /// <summary>
     /// For History/Favorite recommendations: the query text to re-run when activated.
@@ -216,7 +206,7 @@ public sealed class SearchRecommendationItem
 /// <summary>
 /// A dynamic tab in the search popup. Tabs are generated from the current result set:
 /// extension-semantic tabs (Apps/Documents/...) when a query is active, Kind-semantic
-/// tabs (Todo/Note/File/Folder) plus recent-content tabs in the empty state.
+/// tabs (Note/File/Folder) plus recent-content tabs in the empty state.
 /// </summary>
 public sealed class SearchTabItem : INotifyPropertyChanged
 {

@@ -20,11 +20,6 @@ namespace BentoDesk.Views;
 
 public sealed partial class SettingsWindow
 {
-    private void OpenTodoSettingsButton_Click(object sender, RoutedEventArgs e)
-    {
-        NavigateToSettingsSection("TodoSettings");
-    }
-
     private void OpenAppearanceDetailButton_Click(object sender, RoutedEventArgs e)
     {
         NavigateToSettingsSection("AppearanceDetail");

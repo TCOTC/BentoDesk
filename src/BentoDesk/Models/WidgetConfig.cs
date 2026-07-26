@@ -201,9 +201,6 @@ public enum WidgetKind
     /// <summary>Reserved for a future weather widget.</summary>
     Weather,
 
-    /// <summary>Reserved for a future todo widget.</summary>
-    Todo,
-
     /// <summary>Reserved for a future tag widget.</summary>
     Tags,
 

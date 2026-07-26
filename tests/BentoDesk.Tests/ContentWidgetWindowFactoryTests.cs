@@ -16,21 +16,6 @@ public sealed class ContentWidgetWindowFactoryTests : IDisposable
     }
 
     [Fact]
-    public void CreateContentWindowPlan_ReturnsTodoAdapterForCreatableTodoKind()
-    {
-        var config = CreateConfig("todo-window", WidgetKind.Todo);
-        var factory = CreateFactory();
-
-        var plan = factory.CreateContentWindowPlan(config);
-
-        Assert.Equal(config, plan.Config);
-        Assert.Equal(WidgetKind.Todo, plan.Descriptor.WidgetKind);
-        Assert.IsType<TodoWidgetContentAdapter>(plan.Content);
-        Assert.True(factory.CanCreateContentWindow(WidgetKind.Todo));
-        Assert.True(WidgetRegistry.Default.CanCreateWindow(WidgetKind.Todo));
-    }
-
-    [Fact]
     public void CreateContentWindowPlan_ReturnsMusicAdapterForCreatableMusicKind()
     {
         var config = CreateConfig("music-window", WidgetKind.Music);
@@ -91,8 +76,7 @@ public sealed class ContentWidgetWindowFactoryTests : IDisposable
     {
         return new ContentWidgetWindowFactory(
             TestServices.CreateWidgetContentFactory(),
-            new SettingsService(),
-            todoStoreFactory: widget => new TodoWidgetStore(_widgetsDataRoot, widget.Id));
+            new SettingsService());
     }
 
     private static WidgetConfig CreateConfig(string id, WidgetKind widgetKind)

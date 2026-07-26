@@ -69,11 +69,6 @@ internal static class SearchResultRanker
             return $"path:{NormalizePath(item.DetailPath)}";
         }
 
-        if (item.Kind == SearchResultKind.Todo && !string.IsNullOrWhiteSpace(item.TodoItemId))
-        {
-            return $"todo:{item.TodoWidgetId}:{item.TodoItemId}";
-        }
-
         if (item.Kind == SearchResultKind.Action && !string.IsNullOrWhiteSpace(item.ActionId))
         {
             return $"action:{item.ActionId}";
@@ -108,7 +103,6 @@ internal static class SearchResultRanker
         score += item.Kind switch
         {
             SearchResultKind.Action => 6,
-            SearchResultKind.Todo => 5,
             SearchResultKind.Folder => 1,
             _ => 0
         };

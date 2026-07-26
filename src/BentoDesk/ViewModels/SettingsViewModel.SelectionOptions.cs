@@ -87,29 +87,8 @@ public partial class SettingsViewModel
     public IReadOnlyList<SettingsOption> AvailableWidgetLayerModeOptions =>
         CreateSelectionOptions(AvailableWidgetLayerModes, AvailableWidgetLayerModeDisplayNames);
 
-    public IReadOnlyList<SettingsOption> AvailableItemPreviewLineCountOptions =>
-        CreateSelectionOptions(AvailableItemPreviewLineCounts, AvailableItemPreviewLineCountDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableEditorEnterBehaviorOptions =>
-        CreateSelectionOptions(AvailableEditorEnterBehaviors, AvailableEditorEnterBehaviorDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableTodoNewTaskPositionOptions =>
-        CreateSelectionOptions(AvailableTodoNewTaskPositions, AvailableTodoNewTaskPositionDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableAttachmentStorageModeOptions =>
-        CreateSelectionOptions(AvailableAttachmentStorageModes, AvailableAttachmentStorageModeDisplayNames);
-
     public IReadOnlyList<SettingsOption> AvailableManagedDropActionOptions =>
         CreateSelectionOptions(AvailableManagedDropActions, AvailableManagedDropActionDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableTodoDefaultFilterOptions =>
-        CreateSelectionOptions(AvailableTodoDefaultFilters, AvailableTodoDefaultFilterDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableTodoTabStyleOptions =>
-        CreateSelectionOptions(AvailableWidgetTabStyles, AvailableTodoTabStyleDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableTodoReminderOffsetOptions =>
-        CreateSelectionOptions(AvailableTodoReminderOffsetMinutes, AvailableTodoReminderOffsetDisplayNames);
 
     public IReadOnlyList<SettingsOption> AvailableMusicDisplayModeOptions =>
         CreateSelectionOptions(AvailableMusicDisplayModes, AvailableMusicDisplayModeDisplayNames);
@@ -189,14 +168,7 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(AvailableInteractiveWidgetChromeModeOptions));
         OnPropertyChanged(nameof(AvailableWidgetTitleIconModeOptions));
         OnPropertyChanged(nameof(AvailableWidgetLayerModeOptions));
-        OnPropertyChanged(nameof(AvailableItemPreviewLineCountOptions));
-        OnPropertyChanged(nameof(AvailableEditorEnterBehaviorOptions));
-        OnPropertyChanged(nameof(AvailableTodoNewTaskPositionOptions));
-        OnPropertyChanged(nameof(AvailableAttachmentStorageModeOptions));
         OnPropertyChanged(nameof(AvailableManagedDropActionOptions));
-        OnPropertyChanged(nameof(AvailableTodoDefaultFilterOptions));
-        OnPropertyChanged(nameof(AvailableTodoTabStyleOptions));
-        OnPropertyChanged(nameof(AvailableTodoReminderOffsetOptions));
         OnPropertyChanged(nameof(AvailableMusicDisplayModeOptions));
         OnPropertyChanged(nameof(AvailableWeatherTemperatureUnitOptions));
         OnPropertyChanged(nameof(AvailableWeatherWindSpeedUnitOptions));

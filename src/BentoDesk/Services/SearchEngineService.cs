@@ -118,13 +118,7 @@ public sealed class SearchEngineService : IDisposable
 
         var providerTasks = new List<Task<IReadOnlyList<SearchResultItem>>>();
 
-        // Start every enabled provider together. BentoDesk content normally wins the
-        // first-result race, while system and full-disk providers complete in parallel.
-        if (settings.SearchIncludeBentoDeskContent)
-        {
-            providerTasks.Add(SearchBentoDeskContentAsync(query, maxResults, cancellationToken));
-        }
-
+        // Start every enabled provider together.
         providerTasks.Add(Task.FromResult(SearchActions(query)));
 
         // Layer 2: Windows Search Index (system-indexed locations)
@@ -317,79 +311,10 @@ public sealed class SearchEngineService : IDisposable
         }
     }
 
-    private async Task<IReadOnlyList<SearchResultItem>> SearchBentoDeskContentAsync(
-        string query, int maxResults, CancellationToken cancellationToken)
-    {
-        return await SearchTodosAsync(query, maxResults, cancellationToken);
-    }
-
-    private async Task<IReadOnlyList<SearchResultItem>> SearchTodosAsync(
-        string query, int maxResults, CancellationToken cancellationToken)
-    {
-        var results = new List<SearchResultItem>();
-        var settings = _settingsService.Settings;
-
-        var todoWidgets = settings.Widgets
-            .Where(w => w.WidgetKind == WidgetKind.Todo && !w.IsDisabled)
-            .ToList();
-
-        foreach (var widget in todoWidgets)
-        {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                break;
-            }
-
-            try
-            {
-                var store = new TodoWidgetStore(widget.Id);
-                var data = await store.LoadAsync();
-
-                foreach (var item in data.Items)
-                {
-                    if (results.Count >= maxResults)
-                    {
-                        break;
-                    }
-
-                    bool matches = item.Text.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                                   (item.Notes?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false);
-
-                    if (!matches)
-                    {
-                        continue;
-                    }
-
-                    double score = ComputeTextRelevance(item.Text, query);
-                    results.Add(new SearchResultItem
-                    {
-                        Kind = SearchResultKind.Todo,
-                        Title = item.Text,
-                        Subtitle = item.DueDate.HasValue
-                            ? $"{_localizationService.T("Search.Todo.Due")}: {item.DueDate.Value:yyyy-MM-dd}"
-                            : widget.Name,
-                        TodoWidgetId = widget.Id,
-                        TodoItemId = item.Id,
-                        TodoIsCompleted = item.IsCompleted,
-                        Glyph = "\uE9D5",
-                        RelevanceScore = score + (item.IsCompleted ? -20 : 10)
-                    });
-                }
-            }
-            catch
-            {
-                // Skip widgets that fail to load
-            }
-        }
-
-        return results.OrderByDescending(r => r.RelevanceScore).Take(maxResults).ToList();
-    }
-
     private IReadOnlyList<SearchResultItem> SearchActions(string query)
     {
         var actions = new (string Id, string NameKey, string Glyph)[]
         {
-            ("new-todo", "Search.Action.NewTodo", "\uE9D5"),
             ("open-settings", "Search.Action.OpenSettings", "\uE713"),
             ("toggle-widgets", "Search.Action.ToggleWidgets", "\uE8A5"),
             ("toggle-theme", "Search.Action.ToggleTheme", "\uE793")
@@ -423,7 +348,6 @@ public sealed class SearchEngineService : IDisposable
         var groupOrder = new[]
         {
             (SearchResultKind.Action, _localizationService.T("Search.Group.Actions")),
-            (SearchResultKind.Todo, _localizationService.T("Search.Group.Todos")),
             (SearchResultKind.File, _localizationService.T("Search.Group.Files")),
             (SearchResultKind.Folder, _localizationService.T("Search.Group.Folders"))
         };

@@ -115,7 +115,6 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
         string contentMode = ResolveEffectiveCompactContentMode();
         return CurrentContent switch
         {
-            TodoWidgetContentAdapter todo => CreateTodoCompactPresentation(todo, contentMode, localization),
             MusicWidgetContentAdapter music =>
                 CreateMusicCompactPresentation(music, contentMode),
             WeatherWidgetContentAdapter weather => CreateWeatherCompactPresentation(weather, contentMode),
@@ -294,65 +293,6 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
                 weather.ViewModel.PrecipitationText));
     }
 
-    private WidgetCompactPresentation CreateTodoCompactPresentation(
-        TodoWidgetContentAdapter todo,
-        string contentMode,
-        LocalizationService localization)
-    {
-        if (SettingsService.Settings.WidgetCompactHideSensitiveContent &&
-            contentMode == SettingsService.WidgetCompactContentModeSmart)
-        {
-            contentMode = SettingsService.WidgetCompactContentModeSummary;
-        }
-
-        var nextItem = GetNextCompactTodoItem(todo);
-        int overdueCount = todo.ViewModel.Items.Count(item => item.IsOverdue);
-        string countSummary = localization.Format(
-            "Widget.Compact.TodoSummary",
-            todo.ViewModel.TodayFilterCount,
-            overdueCount);
-
-        WidgetCompactPresentation presentation = contentMode switch
-        {
-            SettingsService.WidgetCompactContentModeMinimal => new WidgetCompactPresentation(
-                _titleViewModel.DisplayName,
-                string.Empty,
-                _descriptor.DefaultGlyph,
-                localization.T("Widget.Compact.TodoDropHint")),
-            SettingsService.WidgetCompactContentModeSmart when nextItem is not null =>
-                new WidgetCompactPresentation(
-                    NormalizeCompactSingleLine(nextItem.Text),
-                    BuildCompactTodoDueSummary(nextItem, countSummary, localization),
-                    _descriptor.DefaultGlyph,
-                    localization.T("Widget.Compact.TodoDropHint"),
-                    ShowPrimaryAction: true),
-            _ => new WidgetCompactPresentation(
-                _titleViewModel.DisplayName,
-                countSummary,
-                _descriptor.DefaultGlyph,
-                localization.T("Widget.Compact.TodoDropHint"))
-        };
-
-        int totalCount = todo.ViewModel.Items.Count;
-        int completedCount = todo.ViewModel.CompletedCount;
-
-        return presentation with
-        {
-            EnableMarquee = true,
-            Progress = totalCount > 0
-                ? completedCount / (double)totalCount
-                : null,
-            IsAttention = overdueCount > 0,
-            LiveStateKey = string.Join(
-                "|",
-                nextItem?.Id ?? string.Empty,
-                nextItem?.Text ?? string.Empty,
-                completedCount,
-                totalCount,
-                overdueCount)
-        };
-    }
-
     private static double? GetMusicCompactProgress(MusicWidgetContentAdapter music)
     {
         double duration = music.ViewModel.Duration.TotalSeconds;
@@ -382,44 +322,6 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
                 StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
     }
 
-    private static string BuildCompactTodoDueSummary(
-        TodoItemViewModel item,
-        string fallback,
-        LocalizationService localization)
-    {
-        if (item.DueDate is not { } dueDate)
-        {
-            return fallback;
-        }
-
-        if (item.IsOverdue)
-        {
-            return localization.T("Todo.Due.OverdueSuffix");
-        }
-
-        DateTimeOffset localDueDate = dueDate.ToLocalTime();
-        DateTime today = DateTime.Today;
-        if (localDueDate.Date == today)
-        {
-            return localization.Format("Todo.Due.TodayAt", localDueDate.ToString("HH:mm"));
-        }
-
-        if (localDueDate.Date == today.AddDays(1))
-        {
-            return localization.Format("Todo.Due.TomorrowAt", localDueDate.ToString("HH:mm"));
-        }
-
-        return localDueDate.ToString("M/d");
-    }
-
-    private static TodoItemViewModel? GetNextCompactTodoItem(TodoWidgetContentAdapter todo) =>
-        todo.ViewModel.Items
-            .Where(item => !item.IsCompleted)
-            .OrderByDescending(item => item.IsOverdue)
-            .ThenByDescending(item => item.IsImportant)
-            .ThenBy(item => item.DueDate ?? DateTimeOffset.MaxValue)
-            .FirstOrDefault();
-
     private static string BuildWeatherCompactSummary(
         WeatherWidgetContentAdapter weather,
         string contentMode)
@@ -441,21 +343,14 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
             : $"{description} · {weather.ViewModel.PrecipitationText}";
     }
 
-    protected override async Task OnCompactPrimaryActionRequestedAsync()
+    protected override Task OnCompactPrimaryActionRequestedAsync()
     {
         if (CurrentContent is SearchWidgetContentAdapter)
         {
             App.Current.OpenSearchPopup();
-            return;
         }
 
-        if (CurrentContent is not TodoWidgetContentAdapter todo ||
-            GetNextCompactTodoItem(todo) is not { } item)
-        {
-            return;
-        }
-
-        await todo.ViewModel.SetCompletedAsync(item.Id, true);
+        return Task.CompletedTask;
     }
 
     protected override Task OnCompactPreviousRequestedAsync()
@@ -803,7 +698,6 @@ IsHideAnimationRunning = true;
 
         _compactPresentationSource = content switch
         {
-            TodoWidgetContentAdapter todo => todo.ViewModel,
             MusicWidgetContentAdapter music => music.ViewModel,
             WeatherWidgetContentAdapter weather => weather.ViewModel,
             _ => null
@@ -1062,7 +956,6 @@ IsHideAnimationRunning = true;
                     var localization = App.Current.LocalizationService;
                     var key = Config.WidgetKind switch
                     {
-                        WidgetKind.Todo => "Todo.Title",
                         WidgetKind.Weather => "Weather.Title",
                         WidgetKind.Tags => "Tags.Title",
                         WidgetKind.Music => "Music.Title",

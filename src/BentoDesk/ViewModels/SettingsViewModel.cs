@@ -80,12 +80,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private string _selectedInteractiveWidgetChromeMode = SettingsService.WidgetChromeModeStandard;
     private string _selectedWidgetTitleIconMode = SettingsService.WidgetTitleIconModeColor;
     private string _selectedWidgetLayerMode = SettingsService.WidgetLayerModeDynamic;
-    private string _selectedTodoNewTaskPosition = SettingsService.TodoNewTaskPositionTop;
-    private string _selectedAttachmentStorageMode = SettingsService.AttachmentStorageModeLink;
     private string _selectedManagedDropAction = SettingsService.ManagedDropActionMove;
-    private string _selectedTodoDefaultFilter = SettingsService.TodoDefaultFilterAll;
-    private string _selectedTodoTabStyle = SettingsService.WidgetTabStyleButton;
-    private int _selectedTodoReminderOffsetMinutes = SettingsService.DefaultTodoReminderOffsetMinutes;
     private string _selectedMusicDisplayMode = SettingsService.MusicDisplayModeAuto;
 private string _selectedWeatherTemperatureUnit = SettingsService.WeatherTemperatureUnitCelsius;
 private string _selectedWeatherWindSpeedUnit = SettingsService.WeatherWindSpeedUnitKmh;
@@ -129,12 +124,7 @@ private int _selectedWeatherRefreshInterval = 60;
     private string[]? _cachedInteractiveWidgetChromeModeDisplayNames;
     private string[]? _cachedWidgetTitleIconModeDisplayNames;
     private string[]? _cachedWidgetLayerModeDisplayNames;
-    private string[]? _cachedTodoNewTaskPositionDisplayNames;
-    private string[]? _cachedAttachmentStorageModeDisplayNames;
     private string[]? _cachedManagedDropActionDisplayNames;
-    private string[]? _cachedTodoDefaultFilterDisplayNames;
-    private string[]? _cachedTodoTabStyleDisplayNames;
-    private string[]? _cachedTodoReminderOffsetDisplayNames;
     private string[]? _cachedMusicDisplayModeDisplayNames;
 private string[]? _cachedWeatherTempUnitDisplayNames;
 private string[]? _cachedWeatherWindUnitDisplayNames;
@@ -169,20 +159,6 @@ private string[]? _cachedWeatherRefreshIntervalDisplayNames;
     [ObservableProperty] private double _fileNameWidthScale = SettingsService.DefaultFileNameWidthScale;
     [ObservableProperty] private bool _showFileExtensions;
     [ObservableProperty] private bool _hideShortcutExtensionWhenShowingFileExtensions = true;
-    [ObservableProperty] private bool _todoEnabled;
-    [ObservableProperty] private bool _todoShowTabBar = true;
-    [ObservableProperty] private bool _todoShowAllTab = true;
-    [ObservableProperty] private bool _todoShowActiveTab;
-    [ObservableProperty] private bool _todoShowTodayTab = true;
-    [ObservableProperty] private bool _todoShowThisWeekTab;
-    [ObservableProperty] private bool _todoShowThisMonthTab;
-    [ObservableProperty] private bool _todoShowImportantTab = true;
-    [ObservableProperty] private bool _todoShowCompletedTab = true;
-    [ObservableProperty] private bool _todoShowCompletedTasks = true;
-    [ObservableProperty] private bool _todoShowFooterStats;
-    [ObservableProperty] private bool _todoShowClearCompletedButton = true;
-    [ObservableProperty] private bool _todoConfirmBeforeDelete;
-    [ObservableProperty] private bool _todoReminderEnabled = true;
     [ObservableProperty] private bool _musicUseArtworkBackdrop = true;
     [ObservableProperty] private bool _musicEnableCoverHoverMotion = true;
 
@@ -237,7 +213,6 @@ private string[]? _cachedWeatherRefreshIntervalDisplayNames;
         _showListItemDetails = settings.ShowListItemDetails;
         _showFileItemPathTooltips = settings.ShowFileItemPathTooltips;
         InitializeFileStackSettings(settings);
-        InitializeContentEditorSettings(settings);
         _widgetOpacity = settings.WidgetOpacity;
         _widgetMaterialIntensity = settings.WidgetMaterialIntensity;
         _selectedWidgetCornerPreference = settings.WidgetCornerPreference is CornerDefault or CornerSquare or CornerSmall or CornerRound
@@ -297,24 +272,9 @@ private string[]? _cachedWeatherRefreshIntervalDisplayNames;
         _selectedLayoutDensity = SettingsService.ResolveLayoutDensityPreset(settings);
         _showFileExtensions = settings.ShowFileExtensions;
         _hideShortcutExtensionWhenShowingFileExtensions = settings.HideShortcutExtensionWhenShowingFileExtensions;
-        _selectedAttachmentStorageMode = SettingsService.NormalizeAttachmentStorageMode(settings.AttachmentStorageMode);
         _selectedManagedDropAction = settings.ManagedDropAction == SettingsService.ManagedDropActionMove
             ? SettingsService.ManagedDropActionMove
             : SettingsService.ManagedDropActionCopy;
-        _todoEnabled = FeatureWidgetSettings.IsEnabled(settings, WidgetKind.Todo);
-        _todoShowTabBar = settings.TodoShowTabBar;
-        _todoShowAllTab = settings.TodoShowAllTab;
-        _todoShowActiveTab = settings.TodoShowActiveTab;
-        _todoShowTodayTab = settings.TodoShowTodayTab;
-        _todoShowThisWeekTab = settings.TodoShowThisWeekTab;
-        _todoShowThisMonthTab = settings.TodoShowThisMonthTab;
-        _todoShowImportantTab = settings.TodoShowImportantTab;
-        _todoShowCompletedTab = settings.TodoShowCompletedTab;
-        _todoShowCompletedTasks = settings.TodoShowCompletedTasks;
-        _todoShowFooterStats = settings.TodoShowFooterStats;
-        _todoShowClearCompletedButton = settings.TodoShowClearCompletedButton;
-        _todoConfirmBeforeDelete = settings.TodoConfirmBeforeDelete;
-        _todoReminderEnabled = settings.TodoReminderEnabled;
         _musicUseArtworkBackdrop = settings.MusicUseArtworkBackdrop;
         _musicEnableCoverHoverMotion = settings.MusicEnableCoverHoverMotion;
         _selectedMusicDisplayMode = SettingsService.NormalizeMusicDisplayMode(settings.MusicDisplayMode);
@@ -344,10 +304,6 @@ _selectedWeatherRefreshInterval = Math.Clamp(
     settings.WeatherRefreshIntervalMinutes,
     SettingsService.WeatherRefreshMinMinutes,
     SettingsService.WeatherRefreshMaxMinutes);
-        _selectedTodoNewTaskPosition = NormalizeTodoNewTaskPosition(settings.TodoNewTaskPosition);
-        _selectedTodoDefaultFilter = NormalizeTodoDefaultFilter(settings.TodoDefaultFilter);
-        _selectedTodoTabStyle = SettingsService.NormalizeWidgetTabStyle(settings.TodoTabStyle);
-        _selectedTodoReminderOffsetMinutes = SettingsService.NormalizeTodoReminderOffsetMinutes(settings.TodoDefaultReminderOffsetMinutes);
         _managedStorageRootPath = settings.DefaultManagedStorageRootPath;
 
         ApplyCachedUpdateResult();

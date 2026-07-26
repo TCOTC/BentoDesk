@@ -40,58 +40,10 @@ public class AppSettings
     /// <summary>Last time BentoDesk successfully attempted an update check.</summary>
     public DateTimeOffset? LastUpdateCheckAt { get; set; }
 
-    public bool TodoEnabled { get; set; }
-
     /// <summary>
     /// Enabled state for singleton feature widgets, keyed by <see cref="WidgetKind"/> name.
-    /// Legacy boolean properties are still kept as compatibility mirrors.
     /// </summary>
     public Dictionary<string, bool> FeatureWidgetEnabledStates { get; set; } = [];
-
-    /// <summary>Default storage behavior for Todo attachments. Valid values: <c>Link</c>, <c>Copy</c>.</summary>
-    public string AttachmentStorageMode { get; set; } = "Link";
-
-    /// <summary>Where newly added Todo tasks are inserted. Valid values: <c>"Top"</c>, <c>"Bottom"</c>.</summary>
-    public string TodoNewTaskPosition { get; set; } = "Top";
-
-    /// <summary>Todo tab style. Valid values: <c>"Pivot"</c>, <c>"Button"</c>.</summary>
-    public string TodoTabStyle { get; set; } = "Button";
-
-    public bool TodoShowTabBar { get; set; } = true;
-    public bool TodoShowAllTab { get; set; } = true;
-    public bool TodoShowActiveTab { get; set; }
-    public bool TodoShowTodayTab { get; set; } = true;
-    public bool TodoShowThisWeekTab { get; set; }
-    public bool TodoShowThisMonthTab { get; set; }
-    public bool TodoShowImportantTab { get; set; } = true;
-    public bool TodoShowCompletedTab { get; set; } = true;
-
-    /// <summary>Default Todo filter used when the widget opens.</summary>
-    public string TodoDefaultFilter { get; set; } = "All";
-
-    /// <summary>Whether completed Todo tasks remain visible in non-completed views.</summary>
-    public bool TodoShowCompletedTasks { get; set; }
-
-    /// <summary>Maximum number of text lines shown for each Todo item in the list.</summary>
-    public int TodoItemPreviewLineCount { get; set; } = 2;
-
-    /// <summary>Enter-key behavior used by Todo multiline editors.</summary>
-    public string TodoEditorEnterBehavior { get; set; } = "CtrlEnterSaves";
-
-    /// <summary>Whether the Todo footer item count is visible.</summary>
-    public bool TodoShowFooterStats { get; set; }
-
-    /// <summary>Whether the Todo footer clear-completed command is visible.</summary>
-    public bool TodoShowClearCompletedButton { get; set; } = true;
-
-    /// <summary>Whether Todo delete and clear-completed commands ask for confirmation first.</summary>
-    public bool TodoConfirmBeforeDelete { get; set; }
-
-    /// <summary>Whether Todo due-date reminders are shown while BentoDesk is running.</summary>
-    public bool TodoReminderEnabled { get; set; } = true;
-
-    /// <summary>Default reminder lead time in minutes before a Todo due date.</summary>
-    public int TodoDefaultReminderOffsetMinutes { get; set; } = 5;
 
     /// <summary>Whether the Music widget uses album artwork color as a soft backdrop.</summary>
     public bool MusicUseArtworkBackdrop { get; set; } = true;
@@ -190,7 +142,7 @@ public class AppSettings
     public string DisplayWidgetChromeMode { get; set; } = "Overlay";
 
     /// <summary>
-    /// Default chrome/title mode for interactive widgets such as files, Todo, and Tags.
+    /// Default chrome/title mode for interactive widgets such as files and Tags.
     /// Valid values: <c>"Standard"</c>, <c>"Compact"</c>, <c>"Overlay"</c>, <c>"Hidden"</c>.
     /// </summary>
     public string InteractiveWidgetChromeMode { get; set; } = "Standard";
@@ -249,7 +201,7 @@ public class AppSettings
     /// </summary>
     public string WidgetCompactContentMode { get; set; } = "Smart";
 
-    /// <summary>Whether compact Todo widgets hide their content previews.</summary>
+    /// <summary>Whether compact widgets hide sensitive content previews.</summary>
     public bool WidgetCompactHideSensitiveContent { get; set; }
 
     /// <summary>Schema version for compact content settings migrated from the legacy combined style.</summary>
@@ -526,7 +478,7 @@ public class AppSettings
     /// </summary>
     public string SearchDisplayMode { get; set; } = "Spotlight";
 
-    /// <summary>Whether to include BentoDesk internal content (todos, notes, widget files) in search.</summary>
+    /// <summary>Whether to include BentoDesk internal content (notes, widget files) in search.</summary>
     public bool SearchIncludeBentoDeskContent { get; set; } = true;
 
     /// <summary>Whether to include Windows indexed locations in search.</summary>

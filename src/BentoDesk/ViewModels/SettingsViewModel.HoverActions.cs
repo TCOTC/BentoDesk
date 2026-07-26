@@ -268,24 +268,4 @@ public partial class SettingsViewModel
     {
         return SettingsService.NormalizeWidgetTitleIconModeSetting(mode);
     }
-
-    private static string NormalizeTodoNewTaskPosition(string? position)
-    {
-        return position == SettingsService.TodoNewTaskPositionBottom
-            ? SettingsService.TodoNewTaskPositionBottom
-            : SettingsService.TodoNewTaskPositionTop;
-    }
-
-    private static string NormalizeTodoDefaultFilter(string? filter)
-    {
-        return filter is
-            SettingsService.TodoDefaultFilterActive or
-            SettingsService.TodoDefaultFilterToday or
-            SettingsService.TodoDefaultFilterThisWeek or
-            SettingsService.TodoDefaultFilterThisMonth or
-            SettingsService.TodoDefaultFilterImportant or
-            SettingsService.TodoDefaultFilterCompleted
-            ? filter
-            : SettingsService.TodoDefaultFilterAll;
-    }
 }

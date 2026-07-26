@@ -33,18 +33,6 @@ public sealed class WidgetContentFactory
             "WidgetContent.File.StatusDescription",
             "Common.NewWidget"),
         new(
-            WidgetKind.Todo,
-            "Todo",
-            "\uE9D5",
-            WidgetContentStage.Implemented,
-            CanShowInCreateEntry: false,
-            WidgetContentAvailability.Available,
-            "WidgetContent.Todo.StatusLabel",
-            "WidgetContent.Todo.StatusDescription",
-            "Todo.NewWidget",
-            HasSettingsPage: true,
-            SettingsSectionTag: "TodoSettings"),
-        new(
             WidgetKind.Music,
             "Music",
             "\uEC4F",
@@ -123,19 +111,6 @@ public sealed class WidgetContentFactory
         return new PlaceholderWidgetContent(config, descriptor);
     }
 
-    public IWidgetContent CreateTodoContent(WidgetConfig config, TodoWidgetStore? store = null, SettingsService? settingsService = null)
-    {
-        if (config.WidgetKind != WidgetKind.Todo)
-        {
-            throw new ArgumentException("Todo content requires a Todo widget config.", nameof(config));
-        }
-
-        return CreateDetachedContent(
-            config,
-            _ => store ?? new TodoWidgetStore(config.Id),
-            settingsService);
-    }
-
     /// <summary>
     /// Creates content that is not yet attached to a production widget window.
     /// This is a hidden pipeline path for validating future widget kinds before
@@ -143,7 +118,6 @@ public sealed class WidgetContentFactory
     /// </summary>
     internal IWidgetContent CreateDetachedContent(
         WidgetConfig config,
-        Func<WidgetConfig, TodoWidgetStore>? todoStoreFactory = null,
         SettingsService? settingsService = null)
     {
         if (!_contentProviders.TryGetValue(config.WidgetKind, out var provider) ||
@@ -156,7 +130,6 @@ public sealed class WidgetContentFactory
         var context = new WidgetContentProviderContext(
             _localizationService,
             settingsService,
-            todoStoreFactory,
             GetDescriptor);
         return provider.CreateDetachedContent(config, context);
     }
@@ -239,7 +212,6 @@ public sealed class WidgetContentFactory
     {
         IWidgetContentProvider[] providers =
         [
-            new TodoWidgetContentProvider(),
             new MusicWidgetContentProvider(),
             new WeatherWidgetContentProvider(),
             new SearchWidgetContentProvider(),

@@ -7,7 +7,6 @@ public sealed class WidgetCompactPrivacyPolicyTests
 {
     [Theory]
     [InlineData(WidgetKind.File)]
-    [InlineData(WidgetKind.Todo)]
     public void ResolveContentMode_HidesSmartTextForTextBearingWidgets(WidgetKind widgetKind)
     {
         Assert.Equal(
@@ -31,7 +30,6 @@ public sealed class WidgetCompactPrivacyPolicyTests
 
     [Theory]
     [InlineData(WidgetKind.File, true)]
-    [InlineData(WidgetKind.Todo, true)]
     [InlineData(WidgetKind.Music, true)]
     [InlineData(WidgetKind.Weather, false)]
     public void HidesSensitiveContent_CoversExpectedWidgets(

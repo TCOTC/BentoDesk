@@ -124,33 +124,11 @@ public partial class SettingsViewModel
             ShowFileExtensions = settings.ShowFileExtensions;
             HideShortcutExtensionWhenShowingFileExtensions = settings.HideShortcutExtensionWhenShowingFileExtensions;
 
-            ApplyContentEditorSettingsSnapshot(settings);
             ApplyFileStackSettingsSnapshot(settings);
 
-            SelectedAttachmentStorageMode = SettingsService.NormalizeAttachmentStorageMode(settings.AttachmentStorageMode);
             SelectedManagedDropAction = settings.ManagedDropAction == SettingsService.ManagedDropActionMove
                 ? SettingsService.ManagedDropActionMove
                 : SettingsService.ManagedDropActionCopy;
-
-            TodoEnabled = FeatureWidgetSettings.IsEnabled(settings, WidgetKind.Todo);
-            TodoShowTabBar = settings.TodoShowTabBar;
-            TodoShowAllTab = settings.TodoShowAllTab;
-            TodoShowActiveTab = settings.TodoShowActiveTab;
-            TodoShowTodayTab = settings.TodoShowTodayTab;
-            TodoShowThisWeekTab = settings.TodoShowThisWeekTab;
-            TodoShowThisMonthTab = settings.TodoShowThisMonthTab;
-            TodoShowImportantTab = settings.TodoShowImportantTab;
-            TodoShowCompletedTab = settings.TodoShowCompletedTab;
-            TodoShowCompletedTasks = settings.TodoShowCompletedTasks;
-            TodoShowFooterStats = settings.TodoShowFooterStats;
-            TodoShowClearCompletedButton = settings.TodoShowClearCompletedButton;
-            TodoConfirmBeforeDelete = settings.TodoConfirmBeforeDelete;
-            TodoReminderEnabled = settings.TodoReminderEnabled;
-            SelectedTodoNewTaskPosition = NormalizeTodoNewTaskPosition(settings.TodoNewTaskPosition);
-            SelectedTodoDefaultFilter = NormalizeTodoDefaultFilter(settings.TodoDefaultFilter);
-            SelectedTodoTabStyle = SettingsService.NormalizeWidgetTabStyle(settings.TodoTabStyle);
-            SelectedTodoReminderOffsetMinutes = SettingsService.NormalizeTodoReminderOffsetMinutes(
-                settings.TodoDefaultReminderOffsetMinutes);
 
             MusicUseArtworkBackdrop = settings.MusicUseArtworkBackdrop;
             MusicEnableCoverHoverMotion = settings.MusicEnableCoverHoverMotion;
@@ -279,11 +257,6 @@ public partial class SettingsViewModel
             _cachedInteractiveWidgetChromeModeDisplayNames = null;
             _cachedWidgetTitleIconModeDisplayNames = null;
             _cachedWidgetLayerModeDisplayNames = null;
-            _cachedTodoNewTaskPositionDisplayNames = null;
-            _cachedAttachmentStorageModeDisplayNames = null;
-            _cachedTodoDefaultFilterDisplayNames = null;
-            _cachedTodoTabStyleDisplayNames = null;
-            _cachedTodoReminderOffsetDisplayNames = null;
             _cachedMusicDisplayModeDisplayNames = null;
             _cachedWeatherTempUnitDisplayNames = null;
             _cachedWeatherWindUnitDisplayNames = null;
@@ -316,19 +289,13 @@ public partial class SettingsViewModel
             OnPropertyChanged(nameof(AvailableInteractiveWidgetChromeModeDisplayNames));
             OnPropertyChanged(nameof(AvailableWidgetTitleIconModeDisplayNames));
             OnPropertyChanged(nameof(AvailableWidgetLayerModeDisplayNames));
-            OnPropertyChanged(nameof(AvailableTodoNewTaskPositionDisplayNames));
-            OnPropertyChanged(nameof(AvailableAttachmentStorageModeDisplayNames));
             OnPropertyChanged(nameof(AvailableManagedDropActionDisplayNames));
-            OnPropertyChanged(nameof(AvailableTodoDefaultFilterDisplayNames));
-            OnPropertyChanged(nameof(AvailableTodoTabStyleDisplayNames));
-            OnPropertyChanged(nameof(AvailableTodoReminderOffsetDisplayNames));
             OnPropertyChanged(nameof(AvailableMusicDisplayModeDisplayNames));
             OnPropertyChanged(nameof(AvailableWeatherTemperatureUnitDisplayNames));
             OnPropertyChanged(nameof(AvailableWeatherWindSpeedUnitDisplayNames));
             OnPropertyChanged(nameof(AvailableWeatherDefaultViewDisplayNames));
             OnPropertyChanged(nameof(AvailableWeatherSkinDisplayNames));
             OnPropertyChanged(nameof(AvailableWeatherRefreshIntervalDisplayNames));
-            RefreshContentEditorLocalizedProperties();
             NotifySelectionOptionsChanged();
         }
 
@@ -382,10 +349,6 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(SelectedWidgetLayerModeText));
         NotifyHoverButtonActionPropertiesChanged();
         OnPropertyChanged(nameof(HoverButtonActionsSummaryText));
-        OnPropertyChanged(nameof(SelectedTodoNewTaskPositionText));
-        OnPropertyChanged(nameof(SelectedTodoDefaultFilterText));
-        OnPropertyChanged(nameof(SelectedTodoTabStyleText));
-        OnPropertyChanged(nameof(SelectedTodoReminderOffsetMinutesText));
         OnPropertyChanged(nameof(SelectedMusicDisplayModeText));
     }
 }

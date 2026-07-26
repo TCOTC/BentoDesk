@@ -12,19 +12,16 @@ public sealed class ContentWidgetWindowFactory
     private readonly WidgetContentFactory _contentFactory;
     private readonly SettingsService _settingsService;
     private readonly Func<WidgetConfig, IWidgetContent, SettingsService, WidgetContentDescriptor, ContentWidgetWindow> _windowFactory;
-    private readonly Func<WidgetConfig, TodoWidgetStore>? _todoStoreFactory;
 
     public ContentWidgetWindowFactory(
         WidgetContentFactory contentFactory,
         SettingsService settingsService,
-        Func<WidgetConfig, IWidgetContent, SettingsService, WidgetContentDescriptor, ContentWidgetWindow>? windowFactory = null,
-        Func<WidgetConfig, TodoWidgetStore>? todoStoreFactory = null)
+        Func<WidgetConfig, IWidgetContent, SettingsService, WidgetContentDescriptor, ContentWidgetWindow>? windowFactory = null)
     {
         _contentFactory = contentFactory;
         _settingsService = settingsService;
         _windowFactory = windowFactory ?? ((config, content, settings, descriptor) =>
             new ContentWidgetWindow(config, content, settings, descriptor));
-        _todoStoreFactory = todoStoreFactory;
     }
 
     internal bool CanCreateContentWindow(WidgetKind widgetKind)
@@ -49,7 +46,6 @@ public sealed class ContentWidgetWindowFactory
         var descriptor = _contentFactory.GetDescriptor(config.WidgetKind);
         var content = _contentFactory.CreateDetachedContent(
             config,
-            _todoStoreFactory,
             _settingsService);
         return new ContentWidgetWindowPlan(config, content, descriptor);
     }
