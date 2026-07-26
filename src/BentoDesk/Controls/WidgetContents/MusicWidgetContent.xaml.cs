@@ -100,6 +100,14 @@ public sealed partial class MusicWidgetContent : UserControl, IDisposable
         }
     }
 
+    private async void NextSessionButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is not null)
+        {
+            await ViewModel.SelectNextSessionAsync();
+        }
+    }
+
     private async void PlayPauseButton_Click(object sender, RoutedEventArgs e)
     {
         if (ViewModel is not null)

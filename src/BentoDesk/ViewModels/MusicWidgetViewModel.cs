@@ -440,6 +440,8 @@ public sealed partial class MusicWidgetViewModel : ObservableObject, IDisposable
 
     public string NextTooltip => _localizationService.T("Music.Control.Next");
 
+    public string NextSessionTooltip => _localizationService.T("Music.Control.NextSession");
+
     public string PlaybackModeGlyph => PlaybackMode switch
     {
         MusicPlaybackMode.Shuffle => "\uE8B1",
@@ -575,7 +577,10 @@ public sealed partial class MusicWidgetViewModel : ObservableObject, IDisposable
         foreach (var id in ids)
         {
             SessionIds.Add(id);
-            SessionDisplayNames.Add(string.IsNullOrWhiteSpace(id) ? _localizationService.T("Music.SourceUnknown") : id);
+            string displayName = MusicSessionService.GetSourceDisplayName(id);
+            SessionDisplayNames.Add(string.IsNullOrWhiteSpace(displayName)
+                ? _localizationService.T("Music.SourceUnknown")
+                : displayName);
         }
 
         OnPropertyChanged(nameof(SessionPickerVisibility));
@@ -838,6 +843,7 @@ public sealed partial class MusicWidgetViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(PlayPauseTooltip));
         OnPropertyChanged(nameof(PreviousTooltip));
         OnPropertyChanged(nameof(NextTooltip));
+        OnPropertyChanged(nameof(NextSessionTooltip));
         OnPropertyChanged(nameof(PlaybackModeTooltip));
         OnPropertyChanged(nameof(VolumeTooltip));
         OnPropertyChanged(nameof(SystemVolumeLabel));

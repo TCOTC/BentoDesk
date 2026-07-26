@@ -479,7 +479,7 @@ public sealed class MusicSessionService : IDisposable
         return session.SourceAppUserModelId ?? string.Empty;
     }
 
-    private static string GetSourceDisplayName(string sourceAppUserModelId)
+    public static string GetSourceDisplayName(string sourceAppUserModelId)
     {
         if (string.IsNullOrWhiteSpace(sourceAppUserModelId))
         {

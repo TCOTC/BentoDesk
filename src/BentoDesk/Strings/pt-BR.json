@@ -148,6 +148,7 @@
     "Music.Control.Pause": "Pausar",
     "Music.Control.Previous": "Anterior",
     "Music.Control.Next": "Próximo",
+    "Music.Control.NextSession": "Próxima fonte de mídia",
     "Music.Control.Mode.Normal": "Reprodução normal",
     "Music.Control.Mode.Shuffle": "Aleatório",
     "Music.Control.Mode.Repeat": "Repetir",

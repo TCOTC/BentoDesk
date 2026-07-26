@@ -1190,6 +1190,23 @@
             </Grid>
         </Grid>
 
+        <Button
+            x:Name="NextSessionButton"
+            Width="24"
+            Height="24"
+            MinWidth="24"
+            MinHeight="24"
+            Margin="0,6,6,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Click="NextSessionButton_Click"
+            CornerRadius="4"
+            Style="{StaticResource MusicIconButtonStyle}"
+            ToolTipService.ToolTip="{Binding NextSessionTooltip}"
+            Visibility="{Binding SessionPickerVisibility}">
+            <FontIcon FontSize="11" Glyph="&#xE76C;" />
+        </Button>
+
         <Border
             x:Name="InlineVolumePanel"
             Width="238"

@@ -108,6 +108,17 @@ public sealed partial class MusicWidgetViewModel
         await RefreshAsync();
     }
 
+    public Task SelectNextSessionAsync()
+    {
+        if (_isDisposed || SessionIds.Count <= 1)
+        {
+            return Task.CompletedTask;
+        }
+
+        int nextIndex = (SelectedSessionIndex + 1) % SessionIds.Count;
+        return SelectSessionAsync(nextIndex);
+    }
+
     public async Task TogglePlayPauseAsync()
     {
         if (_isDisposed)

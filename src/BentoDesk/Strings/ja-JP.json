@@ -148,6 +148,7 @@
     "Music.Control.Pause": "一時停止",
     "Music.Control.Previous": "前へ",
     "Music.Control.Next": "次へ",
+    "Music.Control.NextSession": "次のメディアソース",
     "Music.Control.Mode.Normal": "通常再生",
     "Music.Control.Mode.Shuffle": "シャッフル",
     "Music.Control.Mode.Repeat": "リピート",

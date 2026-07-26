@@ -299,6 +299,7 @@
     "Todo.Due.Today": "今天",
     "Onboarding.Step5.Hint1": "把桌面文件拖进格子即可立刻整理",
     "Music.MoreSessions": "多个媒体来源",
+    "Music.Control.NextSession": "下一个媒体应用",
     "Widget.Stack.Menu": "自动叠放",
     "Settings.FileStacks.GroupBy.Kind": "文件类型",
     "Settings.Weather.ShowForecast.Description": "在格子内显示多日天气预报",
