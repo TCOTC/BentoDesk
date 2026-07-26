@@ -201,59 +201,35 @@ public sealed partial class WidgetWindow
 
     // ── Native context menu ────────────────────────────────────
 
-    // ── Multi-selection context menu items ─────────────────────
-
-    private MenuFlyout CreateMultiSelectionFlyout()
+    /// <summary>
+    /// Shows the Windows Explorer shell context menu for the given file items.
+    /// </summary>
+    private void ShowNativeFileContextMenu(IReadOnlyList<WidgetItem> items)
     {
-        var flyout = new MenuFlyout();
-
-        var cutItem = CreateFileContextCommand("Common.Cut", "\uE8C6");
-        cutItem.Click += async (_, _) =>
+        if (items.Count == 0 || HWnd == IntPtr.Zero)
         {
-            flyout.Hide();
-            await CopySelectionToClipboardAsync(cut: true);
-        };
-        flyout.Items.Add(cutItem);
-
-        var copyItem = CreateFileContextCommand("Common.Copy", "\uE8C8");
-        copyItem.Click += async (_, _) =>
-        {
-            flyout.Hide();
-            await CopySelectionToClipboardAsync(cut: false);
-        };
-        flyout.Items.Add(copyItem);
-
-        var deleteItem = CreateFileContextCommand("Common.Delete", "\uE74D");
-        deleteItem.Click += async (_, _) =>
-        {
-            flyout.Hide();
-            await DeleteSelectedItemsAsync();
-        };
-        flyout.Items.Add(new MenuFlyoutSeparator());
-
-        var copyPathItem = CreateFileContextCommand("Widget.CopyPath", "\uE8C8");
-        copyPathItem.Click += (_, _) =>
-        {
-            flyout.Hide();
-            CopySelectedPathsToClipboard();
-        };
-        flyout.Items.Add(copyPathItem);
-
-        if (CanMoveItemsBackToDesktop())
-        {
-            var moveBackToDesktopItem = CreateFileContextCommand("Widget.MoveBackToDesktop", "\uE74A");
-            moveBackToDesktopItem.Click += async (_, _) =>
-            {
-                flyout.Hide();
-                await MoveSelectedItemsBackToDesktopAsync();
-            };
-            flyout.Items.Add(moveBackToDesktopItem);
+            return;
         }
 
-        flyout.Items.Add(new MenuFlyoutSeparator());
-        flyout.Items.Add(deleteItem);
+        var paths = items
+            .Select(static item => item.Path)
+            .Where(static path => !string.IsNullOrWhiteSpace(path))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        if (paths.Length == 0 || !Win32Helper.GetCursorPos(out var cursor))
+        {
+            return;
+        }
 
-        return flyout;
+        BeginInteractionLayer("file-native-menu-opened");
+        try
+        {
+            ShellContextMenuHelper.ShowContextMenu(HWnd, paths, cursor.X, cursor.Y);
+        }
+        finally
+        {
+            ReleaseInteractionLayer("file-native-menu-closed");
+        }
     }
 
     // ── Content area flyout ────────────────────────────────────

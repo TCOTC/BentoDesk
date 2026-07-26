@@ -549,11 +549,6 @@ StopDragHighlight();
         return (requestedOperation & operation) == operation;
     }
 
-    private bool CanMoveItemsBackToDesktop()
-    {
-        return !string.IsNullOrWhiteSpace(ViewModel.MappedFolderPath);
-    }
-
     // ── Reorder preview helpers ────────────────────────────────
 
     /// <summary>

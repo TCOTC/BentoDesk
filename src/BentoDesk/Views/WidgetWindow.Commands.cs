@@ -542,29 +542,6 @@ public sealed partial class WidgetWindow
         }
     }
 
-    private async Task MoveSelectedItemsBackToDesktopAsync()
-    {
-        var selectedItems = GetSelectedItems();
-        if (selectedItems.Count == 0)
-        {
-            return;
-        }
-
-        try
-        {
-            int movedCount = await ViewModel.MoveItemsBackToDesktopAsync(selectedItems, useShellProgress: true);
-
-            ClearRemovedCutPaths();
-            ShowStatusToast(movedCount > 0
-                ? _localizationService.Format("Widget.MovedBackToDesktop", movedCount)
-                : _localizationService.T("Widget.NoItemsMoved"));
-        }
-        catch (Exception ex)
-        {
-            await ShowErrorDialogAsync(_localizationService.T("Widget.MoveBackToDesktopFailed"), ex.Message);
-        }
-    }
-
     private void TogglePositionLock_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.TogglePositionLockCommand.Execute(null);

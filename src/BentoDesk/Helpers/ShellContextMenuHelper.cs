@@ -310,13 +310,64 @@ public static class ShellContextMenuHelper
     /// <returns>The result of showing the menu.</returns>
     public static NativeMenuResult ShowContextMenu(IntPtr hwnd, string filePath, int screenX, int screenY)
     {
-        if (string.IsNullOrEmpty(filePath) || hwnd == IntPtr.Zero)
+        return ShowContextMenu(hwnd, [filePath], screenX, screenY);
+    }
+
+    /// <summary>
+    /// Shows the native Windows Explorer context menu for one or more files that share the same parent folder.
+    /// </summary>
+    /// <param name="hwnd">The owner window handle (must be a top-level Win32 window).</param>
+    /// <param name="filePaths">Full paths to files or folders in the same parent directory.</param>
+    /// <param name="screenX">Screen X coordinate (physical pixels) for the menu position.</param>
+    /// <param name="screenY">Screen Y coordinate (physical pixels) for the menu position.</param>
+    /// <returns>The result of showing the menu.</returns>
+    public static NativeMenuResult ShowContextMenu(
+        IntPtr hwnd,
+        IReadOnlyList<string> filePaths,
+        int screenX,
+        int screenY)
+    {
+        if (hwnd == IntPtr.Zero || filePaths is null || filePaths.Count == 0)
         {
             return NativeMenuResult.Failed;
         }
 
-        IntPtr pidlFull = IntPtr.Zero;
-        IntPtr pidlChild = IntPtr.Zero;
+        var normalizedPaths = new List<string>(filePaths.Count);
+        string? commonParent = null;
+        foreach (string path in filePaths)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                continue;
+            }
+
+            string? parent = Path.GetDirectoryName(path);
+            if (string.IsNullOrEmpty(parent))
+            {
+                App.Log($"[ShellContextMenu] Missing parent directory for path={path}");
+                return NativeMenuResult.Failed;
+            }
+
+            if (commonParent is null)
+            {
+                commonParent = parent;
+            }
+            else if (!string.Equals(commonParent, parent, StringComparison.OrdinalIgnoreCase))
+            {
+                App.Log("[ShellContextMenu] Multi-select paths span different parent folders");
+                return NativeMenuResult.Failed;
+            }
+
+            normalizedPaths.Add(path);
+        }
+
+        if (normalizedPaths.Count == 0)
+        {
+            return NativeMenuResult.Failed;
+        }
+
+        var pidlFulls = new IntPtr[normalizedPaths.Count];
+        var pidlChildren = new IntPtr[normalizedPaths.Count];
         IntPtr pShellFolderPtr = IntPtr.Zero;
         IntPtr pContextMenuPtr = IntPtr.Zero;
         IntPtr hMenu = IntPtr.Zero;
@@ -329,21 +380,43 @@ public static class ShellContextMenuHelper
 
         try
         {
-            // Step 1: Parse file path → PIDL
-            int hr = SHParseDisplayName(filePath, IntPtr.Zero, out pidlFull, 0, out _);
-            if (hr != 0 || pidlFull == IntPtr.Zero)
-            {
-                App.Log($"[ShellContextMenu] SHParseDisplayName failed: hr=0x{hr:X8}, path={filePath}");
-                return NativeMenuResult.Failed;
-            }
-
-            // Step 2: Bind to parent IShellFolder + get child PIDL
             Guid iidShellFolder = IID_IShellFolder;
-            hr = SHBindToParent(pidlFull, ref iidShellFolder, out pShellFolderPtr, out pidlChild);
-            if (hr != 0 || pShellFolderPtr == IntPtr.Zero || pidlChild == IntPtr.Zero)
+
+            for (int i = 0; i < normalizedPaths.Count; i++)
             {
-                App.Log($"[ShellContextMenu] SHBindToParent failed: hr=0x{hr:X8}");
-                return NativeMenuResult.Failed;
+                string filePath = normalizedPaths[i];
+
+                // Step 1: Parse file path → PIDL
+                int parseHr = SHParseDisplayName(filePath, IntPtr.Zero, out pidlFulls[i], 0, out _);
+                if (parseHr != 0 || pidlFulls[i] == IntPtr.Zero)
+                {
+                    App.Log($"[ShellContextMenu] SHParseDisplayName failed: hr=0x{parseHr:X8}, path={filePath}");
+                    return NativeMenuResult.Failed;
+                }
+
+                // Step 2: Bind to parent IShellFolder + get child PIDL
+                IntPtr folderPtr = IntPtr.Zero;
+                int bindHr = SHBindToParent(pidlFulls[i], ref iidShellFolder, out folderPtr, out pidlChildren[i]);
+                if (bindHr != 0 || folderPtr == IntPtr.Zero || pidlChildren[i] == IntPtr.Zero)
+                {
+                    App.Log($"[ShellContextMenu] SHBindToParent failed: hr=0x{bindHr:X8}");
+                    if (folderPtr != IntPtr.Zero)
+                    {
+                        try { Marshal.Release(folderPtr); } catch { }
+                    }
+
+                    return NativeMenuResult.Failed;
+                }
+
+                if (pShellFolderPtr == IntPtr.Zero)
+                {
+                    pShellFolderPtr = folderPtr;
+                }
+                else
+                {
+                    // Same parent folder is required; keep the first IShellFolder and release extras.
+                    try { Marshal.Release(folderPtr); } catch { }
+                }
             }
 
             shellFolder = (IShellFolder)Marshal.GetObjectForIUnknown(pShellFolderPtr);
@@ -351,8 +424,13 @@ public static class ShellContextMenuHelper
             // Step 3: Get IContextMenu
             Guid iidContextMenu = IID_IContextMenu;
             uint reserved = 0;
-            IntPtr[] apidl = [pidlChild];
-            hr = shellFolder.GetUIObjectOf(hwnd, 1, apidl, ref iidContextMenu, ref reserved, out pContextMenuPtr);
+            int hr = shellFolder.GetUIObjectOf(
+                hwnd,
+                (uint)pidlChildren.Length,
+                pidlChildren,
+                ref iidContextMenu,
+                ref reserved,
+                out pContextMenuPtr);
             if (hr != 0 || pContextMenuPtr == IntPtr.Zero)
             {
                 App.Log($"[ShellContextMenu] GetUIObjectOf failed: hr=0x{hr:X8}");
@@ -457,13 +535,16 @@ public static class ShellContextMenuHelper
             try { if (pContextMenuPtr != IntPtr.Zero) Marshal.Release(pContextMenuPtr); } catch { }
             try { if (pShellFolderPtr != IntPtr.Zero) Marshal.Release(pShellFolderPtr); } catch { }
 
-            // 6. Free the full PIDL.
+            // 6. Free the full PIDLs.
             //    CRITICAL: pidlChild from SHBindToParent is a pointer INTO pidlFull,
             //    NOT a separately allocated PIDL. We must NOT ILFree(pidlChild).
-            //    Only free pidlFull.
-            if (pidlFull != IntPtr.Zero)
+            //    Only free each pidlFull.
+            for (int i = 0; i < pidlFulls.Length; i++)
             {
-                try { ILFree(pidlFull); } catch { }
+                if (pidlFulls[i] != IntPtr.Zero)
+                {
+                    try { ILFree(pidlFulls[i]); } catch { }
+                }
             }
         }
     }

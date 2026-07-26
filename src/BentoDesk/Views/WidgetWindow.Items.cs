@@ -220,112 +220,13 @@ public sealed partial class WidgetWindow
         }
 
         var selectedItems = GetSelectedItems();
-        bool isMultiSelection = selectedItems.Count > 1;
-
-        if (isMultiSelection)
+        if (selectedItems.Count == 0)
         {
-            var multiFlyout = CreateMultiSelectionFlyout();
-            ShowFlyoutWithElevation(multiFlyout, element, e.GetPosition(element));
-            e.Handled = true;
-            return;
+            selectedItems = [item];
         }
 
-        var flyout = new MenuFlyout();
-
-        var openItem = CreateFileContextCommand("Widget.Open", "\uE8E5");
-        openItem.Click += (_, _) =>
-        {
-            flyout.Hide();
-            OpenItem(item);
-        };
-        flyout.Items.Add(openItem);
-
-        flyout.Items.Add(new MenuFlyoutSeparator());
-
-        var cutItem = CreateFileContextCommand("Common.Cut", "\uE8C6");
-        cutItem.Click += async (_, _) =>
-        {
-            flyout.Hide();
-            await CopySelectionToClipboardAsync(cut: true);
-        };
-        flyout.Items.Add(cutItem);
-
-        var copyItem = CreateFileContextCommand("Common.Copy", "\uE8C8");
-        copyItem.Click += async (_, _) =>
-        {
-            flyout.Hide();
-            await CopySelectionToClipboardAsync(cut: false);
-        };
-        flyout.Items.Add(copyItem);
-
-        var renameItem = CreateFileContextCommand("Common.Rename", "\uE8AC");
-        renameItem.Click += async (_, _) =>
-        {
-            flyout.Hide();
-            await StartItemRenameAsync(item);
-        };
-        flyout.Items.Add(renameItem);
-
-        flyout.Items.Add(new MenuFlyoutSeparator());
-
-        var copyPathItem = CreateFileContextCommand("Widget.CopyPath", "\uE8C8");
-        copyPathItem.Click += (_, _) =>
-        {
-            flyout.Hide();
-            CopySelectedPathsToClipboard();
-        };
-        flyout.Items.Add(copyPathItem);
-
-        var showItem = CreateFileContextCommand("Widget.ShowInExplorer", "\uE838");
-        showItem.Click += (_, _) =>
-        {
-            flyout.Hide();
-            ViewModel.ShowInExplorerCommand.Execute(item);
-        };
-        flyout.Items.Add(showItem);
-
-        if (CanMoveItemsBackToDesktop())
-        {
-            flyout.Items.Add(new MenuFlyoutSeparator());
-            var moveBackToDesktopItem = CreateFileContextCommand("Widget.MoveBackToDesktop", "\uE74A");
-            moveBackToDesktopItem.Click += async (_, _) =>
-            {
-                flyout.Hide();
-                try
-                {
-                    int movedCount = await ViewModel.MoveItemsBackToDesktopAsync([item], useShellProgress: true);
-                    ShowStatusToast(movedCount > 0
-                        ? _localizationService.Format("Widget.MovedBackToDesktop", movedCount)
-                        : _localizationService.T("Widget.NoItemsMoved"));
-                }
-                catch (Exception ex)
-                {
-                    await ShowErrorDialogAsync(_localizationService.T("Widget.MoveBackToDesktopFailed"), ex.Message);
-                }
-            };
-            flyout.Items.Add(moveBackToDesktopItem);
-        }
-
-        var deleteItem = CreateFileContextCommand("Common.Delete", "\uE74D");
-        deleteItem.Click += async (_, _) =>
-        {
-            flyout.Hide();
-            await DeleteSelectedItemsAsync();
-        };
-        flyout.Items.Add(new MenuFlyoutSeparator());
-        flyout.Items.Add(deleteItem);
-
-        ShowFlyoutWithElevation(flyout, element, e.GetPosition(element));
+        ShowNativeFileContextMenu(selectedItems);
         e.Handled = true;
-    }
-
-    private MenuFlyoutItem CreateFileContextCommand(string localizationKey, string glyph)
-    {
-        return new MenuFlyoutItem
-        {
-            Text = _localizationService.T(localizationKey),
-            Icon = new FontIcon { Glyph = glyph }
-        };
     }
 
     private async void ItemsView_KeyDown(object sender, KeyRoutedEventArgs e)
