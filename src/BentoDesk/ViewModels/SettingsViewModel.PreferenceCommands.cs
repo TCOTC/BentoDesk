@@ -71,6 +71,7 @@ public partial class SettingsViewModel
             }
 
             App.Current?.GlobalHotkeyService?.RefreshRegistration();
+            App.Current?.DesktopDoubleClickService?.RefreshRegistration();
             App.Current?.UpdateTrayIcon();
             RefreshGlobalHotkeyState();
             _themeService.RefreshAppearance();

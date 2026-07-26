@@ -186,6 +186,52 @@ public static class WidgetLayerService
         }
     }
 
+    /// <summary>
+    /// Finds the desktop icon ListView without sending Progman <c>0x052C</c>.
+    /// Safe for hot paths such as mouse hooks.
+    /// </summary>
+    public static IntPtr FindDesktopIconListView()
+    {
+        IntPtr defView = FindExistingDesktopIconView();
+        if (defView == IntPtr.Zero)
+        {
+            return IntPtr.Zero;
+        }
+
+        return FindDesktopIconListViewChild(defView);
+    }
+
+    public static bool AreDesktopIconsVisible()
+    {
+        IntPtr listView = FindDesktopIconListView();
+        return listView != IntPtr.Zero && Win32Helper.IsWindowVisible(listView);
+    }
+
+    public static bool SetDesktopIconsVisible(bool visible)
+    {
+        IntPtr listView = FindDesktopIconListView();
+        if (listView == IntPtr.Zero || !Win32Helper.IsWindow(listView))
+        {
+            App.Log("[WidgetLayer] SetDesktopIconsVisible skipped: desktop list view not found");
+            return false;
+        }
+
+        bool currentlyVisible = Win32Helper.IsWindowVisible(listView);
+        if (currentlyVisible == visible)
+        {
+            return true;
+        }
+
+        // ShowWindow 的返回值表示“之前是否可见”，不能当作成功与否。
+        _ = Win32Helper.ShowWindow(
+            listView,
+            visible ? Win32Helper.SW_SHOWNOACTIVATE : Win32Helper.SW_HIDE);
+        bool nowVisible = Win32Helper.IsWindowVisible(listView);
+        bool ok = nowVisible == visible;
+        App.Log($"[WidgetLayer] SetDesktopIconsVisible visible={visible} ok={ok} hwnd=0x{listView.ToInt64():X}");
+        return ok;
+    }
+
     public static bool UsesDesktopPinnedMode()
     {
         var settings = App.Current?.SettingsService?.Settings;
@@ -308,34 +354,14 @@ public static class WidgetLayerService
 
     private static IntPtr FindDesktopIconView()
     {
-        if (s_cachedDesktopIconView != IntPtr.Zero && Win32Helper.IsWindow(s_cachedDesktopIconView))
-        {
-            return s_cachedDesktopIconView;
-        }
-
-        // First: check if a WorkerW already hosts SHELLDLL_DefView. This avoids
-        // sending 0x052C again, which can disrupt DWM composition and cause the
-        // desktop wallpaper to disappear (especially after display/DPI changes).
-        IntPtr existingDefView = IntPtr.Zero;
-        Win32Helper.EnumWindows((hWnd, _) =>
-        {
-            IntPtr defView = FindDesktopIconViewChild(hWnd);
-            if (defView != IntPtr.Zero)
-            {
-                existingDefView = defView;
-                return false; // stop enumeration
-            }
-
-            return true;
-        }, IntPtr.Zero);
-
+        IntPtr existingDefView = FindExistingDesktopIconView();
         if (existingDefView != IntPtr.Zero)
         {
-            s_cachedDesktopIconView = existingDefView;
-            return s_cachedDesktopIconView;
+            return existingDefView;
         }
 
         // No existing WorkerW found: send 0x052C to Progman to spawn one.
+        // Only used by DesktopPinned attach paths — never from mouse-hook hot paths.
         IntPtr progman = Win32Helper.FindWindow("Progman", null);
         if (progman != IntPtr.Zero)
         {
@@ -351,32 +377,69 @@ public static class WidgetLayerService
             IntPtr progmanDefView = FindDesktopIconViewChild(progman);
             if (progmanDefView != IntPtr.Zero)
             {
-                s_cachedDesktopIconView = progmanDefView;
-                return s_cachedDesktopIconView;
+                lock (s_desktopLayerLock)
+                {
+                    s_cachedDesktopIconView = progmanDefView;
+                }
+
+                return progmanDefView;
             }
         }
 
         // Last resort: enum again after spawning.
-        IntPtr workerDefView = IntPtr.Zero;
+        IntPtr workerDefView = FindExistingDesktopIconView(forceRescan: true);
+        return workerDefView;
+    }
+
+    /// <summary>
+    /// Locates an already-existing <c>SHELLDLL_DefView</c> without sending <c>0x052C</c>.
+    /// </summary>
+    private static IntPtr FindExistingDesktopIconView(bool forceRescan = false)
+    {
+        if (!forceRescan &&
+            s_cachedDesktopIconView != IntPtr.Zero &&
+            Win32Helper.IsWindow(s_cachedDesktopIconView))
+        {
+            return s_cachedDesktopIconView;
+        }
+
+        // Prefer an existing WorkerW/Progman DefView. Avoid 0x052C, which can disrupt
+        // DWM composition and cause the desktop wallpaper to disappear.
+        IntPtr existingDefView = IntPtr.Zero;
         Win32Helper.EnumWindows((hWnd, _) =>
         {
             IntPtr defView = FindDesktopIconViewChild(hWnd);
             if (defView != IntPtr.Zero)
             {
-                workerDefView = defView;
-                return false;
+                existingDefView = defView;
+                return false; // stop enumeration
             }
 
             return true;
         }, IntPtr.Zero);
 
-        s_cachedDesktopIconView = workerDefView;
-        return s_cachedDesktopIconView;
+        lock (s_desktopLayerLock)
+        {
+            s_cachedDesktopIconView = existingDefView;
+        }
+
+        return existingDefView;
     }
 
     private static IntPtr FindDesktopIconViewChild(IntPtr windowHandle)
     {
         return Win32Helper.FindWindowEx(windowHandle, IntPtr.Zero, "SHELLDLL_DefView", null);
+    }
+
+    private static IntPtr FindDesktopIconListViewChild(IntPtr defView)
+    {
+        IntPtr listView = Win32Helper.FindWindowEx(defView, IntPtr.Zero, "SysListView32", "FolderView");
+        if (listView != IntPtr.Zero)
+        {
+            return listView;
+        }
+
+        return Win32Helper.FindWindowEx(defView, IntPtr.Zero, "SysListView32", null);
     }
 
     private sealed record DesktopLayerAttachment(IntPtr OriginalOwner);

@@ -48,6 +48,22 @@ public partial class SettingsViewModel
         _settingsService.SaveDebounced();
     }
 
+    partial void OnDoubleClickDesktopToHideAllChanged(bool value)
+    {
+        if (_isRestoringDefaults)
+        {
+            return;
+        }
+
+        _settingsService.Settings.DoubleClickDesktopToHideAll = value;
+        _settingsService.SaveDebounced();
+
+        if (App.Current is { } app)
+        {
+            app.DesktopDoubleClickService?.SetEnabled(value);
+        }
+    }
+
     partial void OnResizeSnapEnabledChanged(bool value)
     {
         if (_isRestoringDefaults)

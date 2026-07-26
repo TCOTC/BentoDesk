@@ -89,6 +89,7 @@ public partial class App : Application
     public LocalizationService LocalizationService { get; private set; } = null!;
     public ThemeService ThemeService { get; private set; } = null!;
     public GlobalHotkeyService? GlobalHotkeyService { get; private set; }
+    public DesktopDoubleClickService? DesktopDoubleClickService { get; private set; }
     public WidgetManager? WidgetManager { get; private set; }
     public ResizeGuideOverlayService ResizeGuideOverlay { get; private set; } = null!;
     public NativeAppNotificationService? NativeNotificationService => _nativeNotificationService;
@@ -797,6 +798,34 @@ public partial class App : Application
             WidgetManager = new WidgetManager(SettingsService, FileService, OrganizerService, themeService, localizationService);
             WidgetManager.TrayLayerStateChanged += UpdateTrayLayerStateText;
 
+            if (DesktopDoubleClickService is null)
+            {
+                try
+                {
+                    DesktopDoubleClickService = new DesktopDoubleClickService(
+                        SettingsService,
+                        async visible =>
+                        {
+                            if (WidgetManager is null)
+                            {
+                                return;
+                            }
+
+                            await WidgetManager.SetAllWidgetsVisibleAsync(visible);
+                            if (!visible)
+                            {
+                                UpdateTrayLayerStateText(raised: false);
+                            }
+                        });
+                    DesktopDoubleClickService.RefreshRegistration();
+                    Log("[Init] DesktopDoubleClickService created");
+                }
+                catch (Exception ex)
+                {
+                    Log($"[Init] DesktopDoubleClickService creation failed: {ex}");
+                }
+            }
+
             // Phase 3: Restore widgets
             WidgetManager.SyncStorageFolderEntries();
             await WidgetManager.RestoreWidgetsAsync();
@@ -1323,6 +1352,10 @@ public partial class App : Application
 
         _diagnosticsService?.Dispose();
         _diagnosticsService = null;
+
+        DesktopDoubleClickService?.Dispose();
+        DesktopDoubleClickService = null;
+
         await SettingsService.SaveAsync();
         _nativeNotificationService?.Dispose();
         _nativeNotificationService = null;

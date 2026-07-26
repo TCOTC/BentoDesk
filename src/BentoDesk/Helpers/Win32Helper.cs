@@ -368,9 +368,20 @@ public static partial class Win32Helper
     public const int WM_SYSKEYDOWN = 0x0104;
     public const int WM_SYSKEYUP = 0x0105;
     public const int WM_LBUTTONDOWN = 0x0201;
+    public const int WM_LBUTTONUP = 0x0202;
     public const int WM_RBUTTONDOWN = 0x0204;
     public const int WM_MBUTTONDOWN = 0x0207;
     public const int WM_XBUTTONDOWN = 0x020B;
+
+    public const int SM_CXDOUBLECLK = 36;
+    public const int SM_CYDOUBLECLK = 37;
+
+    public const uint LVM_FIRST = 0x1000;
+    public const uint LVM_HITTEST = LVM_FIRST + 18;
+    public const uint LVHT_ONITEMICON = 0x0002;
+    public const uint LVHT_ONITEMLABEL = 0x0004;
+    public const uint LVHT_ONITEMSTATEICON = 0x0008;
+    public const uint LVHT_ONITEM = LVHT_ONITEMICON | LVHT_ONITEMLABEL | LVHT_ONITEMSTATEICON;
 
     // Window sizing / hit-test messages and codes (borderless window drag + resize).
     public const int WM_GETMINMAXINFO = 0x0024;
@@ -396,6 +407,69 @@ public static partial class Win32Helper
     [LibraryImport("user32.dll")]
     public static partial int GetSystemMetrics(int nIndex);
 
+    [LibraryImport("user32.dll")]
+    public static partial uint GetDoubleClickTime();
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    public const uint ProcessVmOperation = 0x0008;
+    public const uint ProcessVmRead = 0x0010;
+    public const uint ProcessVmWrite = 0x0020;
+    public const uint ProcessQueryInformation = 0x0400;
+    public const uint MemCommit = 0x1000;
+    public const uint MemReserve = 0x2000;
+    public const uint MemRelease = 0x8000;
+    public const uint PageReadWrite = 0x04;
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    public static partial IntPtr OpenProcess(
+        uint desiredAccess,
+        [MarshalAs(UnmanagedType.Bool)] bool inheritHandle,
+        uint processId);
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool CloseHandle(IntPtr handle);
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    public static partial IntPtr VirtualAllocEx(
+        IntPtr hProcess,
+        IntPtr lpAddress,
+        nuint dwSize,
+        uint flAllocationType,
+        uint flProtect);
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool VirtualFreeEx(
+        IntPtr hProcess,
+        IntPtr lpAddress,
+        nuint dwSize,
+        uint dwFreeType);
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool WriteProcessMemory(
+        IntPtr hProcess,
+        IntPtr lpBaseAddress,
+        IntPtr lpBuffer,
+        nuint nSize,
+        out nuint lpNumberOfBytesWritten);
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool ReadProcessMemory(
+        IntPtr hProcess,
+        IntPtr lpBaseAddress,
+        IntPtr lpBuffer,
+        nuint nSize,
+        out nuint lpNumberOfBytesRead);
+
     public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
     public delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
 
@@ -417,6 +491,15 @@ public static partial class Win32Helper
         public uint flags;
         public uint time;
         public IntPtr dwExtraInfo;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct LVHITTESTINFO
+    {
+        public POINT pt;
+        public uint flags;
+        public int iItem;
+        public int iSubItem;
     }
 
     [LibraryImport("user32.dll", SetLastError = true, EntryPoint = "SetWindowsHookExW")]

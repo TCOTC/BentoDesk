@@ -50,6 +50,7 @@ public partial class SettingsViewModel
 
             AutoCheckForUpdates = settings.AutoCheckForUpdates;
             DoubleClickToOpen = settings.DoubleClickToOpen;
+            DoubleClickDesktopToHideAll = settings.DoubleClickDesktopToHideAll;
             DefaultWidth = settings.DefaultWidgetWidth;
             DefaultHeight = settings.DefaultWidgetHeight;
             HideShortcutArrowOverlay = settings.HideShortcutArrowOverlay;

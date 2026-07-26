@@ -726,6 +726,8 @@
     "Settings.Group.Shortcuts.Title": "快捷键",
     "JumpList.OpenStorage": "打开收纳目录",
     "Settings.DoubleClick.Description": "关闭后单击即可打开",
+    "Settings.DoubleClickDesktop.Title": "双击桌面隐藏全部",
+    "Settings.DoubleClickDesktop.Description": "开启后，双击桌面空白处可隐藏全部桌面图标和格子；再次双击可恢复显示",
     "Settings.Music.Group.Motion.Description": "控制封面悬停等细节动效",
     "Onboarding.Step5.HotkeyChange": "更改",
     "Settings.FileStacks.Custom.Rules.Title": "自定义格式规则",

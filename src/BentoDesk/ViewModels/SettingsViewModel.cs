@@ -124,6 +124,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _autoStart;
     [ObservableProperty] private bool _autoCheckForUpdates = true;
     [ObservableProperty] private bool _doubleClickToOpen;
+    [ObservableProperty] private bool _doubleClickDesktopToHideAll;
     [ObservableProperty] private double _defaultWidth;
     [ObservableProperty] private double _defaultHeight;
     [ObservableProperty] private bool _hideShortcutArrowOverlay;
@@ -181,6 +182,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         _autoStart = StartupService.IsEnabled();
         _autoCheckForUpdates = settings.AutoCheckForUpdates;
         _doubleClickToOpen = settings.DoubleClickToOpen;
+        _doubleClickDesktopToHideAll = settings.DoubleClickDesktopToHideAll;
         _defaultWidth = settings.DefaultWidgetWidth;
         _defaultHeight = settings.DefaultWidgetHeight;
         _hideShortcutArrowOverlay = settings.HideShortcutArrowOverlay;

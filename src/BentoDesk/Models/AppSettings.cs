@@ -239,6 +239,11 @@ public class AppSettings
     public bool DoubleClickToOpen { get; set; } = true;
 
     /// <summary>
+    /// Whether double-clicking empty desktop space toggles hiding all desktop icons and widgets.
+    /// </summary>
+    public bool DoubleClickDesktopToHideAll { get; set; }
+
+    /// <summary>
     /// Whether shortcut icons should hide the arrow overlay inside BentoDesk.
     /// </summary>
     public bool HideShortcutArrowOverlay { get; set; } = true;
