@@ -40,6 +40,7 @@ public sealed class ResizeGuideOverlayService
     private SnapEdge? _currentResizeEdge;
     private SnapEdge? _currentTargetEdge;
     private string? _lastDragSnapSignature;
+    private string? _lastResizeSnapSignature;
 
     /// <summary>
     /// Whether a resize session is currently active.
@@ -69,6 +70,7 @@ public sealed class ResizeGuideOverlayService
         _currentTargetRoot = null;
         _currentResizeEdge = null;
         _currentTargetEdge = null;
+        _lastResizeSnapSignature = null;
         IsActive = true;
 
         App.LogVerbose($"[ResizeGuide] BeginResize hwnd=0x{resizingWidgetHwnd.ToInt64():X}");
@@ -187,6 +189,16 @@ public sealed class ResizeGuideOverlayService
 
         // ── Update highlights ────────────────────────────────────────────
 
+        string resizeSnapSignature = snapEdge.HasValue
+            ? $"{snapEdge.Value},{snapCoordinate},{targetHwnd ?? IntPtr.Zero}"
+            : string.Empty;
+        if (resizeSnapSignature == _lastResizeSnapSignature)
+        {
+            return snapped;
+        }
+
+        _lastResizeSnapSignature = resizeSnapSignature;
+
         if (snapEdge.HasValue)
         {
             // Only rebuild the resizing widget's highlight if the edge changed.
@@ -257,6 +269,7 @@ public sealed class ResizeGuideOverlayService
         _currentTargetRoot = null;
         _currentResizeEdge = null;
         _currentTargetEdge = null;
+        _lastResizeSnapSignature = null;
 
         App.LogVerbose("[ResizeGuide] EndResize");
     }

@@ -79,7 +79,10 @@ public sealed partial class WidgetWindow
 
     private void ItemsView_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        UpdateInteractiveSurfaces();
+        // Avoid full item-surface rebuilds on every container size tick.
+        // Collapse/resize already freeze the heavy path; settled size changes
+        // only need list text max-width refresh.
+        UpdateInteractiveSurfaceContainerMetrics();
     }
 
     public void RevealSavedItem(string itemPath)

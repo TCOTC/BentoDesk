@@ -68,6 +68,8 @@ public abstract partial class WidgetWindowBase
     // layout and animation setup (eliminates first-expand stutter).
     private int _deferredExpandBackdropFrames;
     private bool _isShellTransitionActive;
+    private RectInt32? _pendingResizeBounds;
+    private bool _resizeBoundsFlushQueued;
     private bool _isBoundsInteractionActive;
     private bool _isRaisedForExpandedState;
     private bool _isSmartPinnedOpen;
@@ -90,6 +92,9 @@ public abstract partial class WidgetWindowBase
         IsWidgetCollapsedBoundsActive || _targetCollapsed;
 
     protected bool IsCompactArrangementDragActive { get; private set; }
+
+    /// <summary>True while the capsule fold/expand rendering loop is active.</summary>
+    protected bool IsCollapseAnimationActive => _isCollapseAnimationRendering;
 
     internal WidgetCompactViewState CurrentCompactViewState => _compactViewState;
 
@@ -448,7 +453,7 @@ public abstract partial class WidgetWindowBase
         CancelTimer(ref _collapseDragRestoreTimer);
         CancelTimer(ref _compactBoundsSettleTimer);
         CancelTimer(ref _collapseAnimationWatchdogTimer);
-        StopCollapseAnimation();
+        StopCollapseAnimation(releaseLayoutFreeze: true);
         WidgetShellControl.CancelResponsiveLayoutTransition();
 
         WidgetShellControl.CollapseRequested -= WidgetShellControl_CollapseRequested;
@@ -974,7 +979,7 @@ public abstract partial class WidgetWindowBase
 
     private void ApplyCollapsedStateImmediately(bool collapsed)
     {
-        StopCollapseAnimation();
+        StopCollapseAnimation(releaseLayoutFreeze: true);
         WidgetShellControl.CancelResponsiveLayoutTransition();
         _targetCollapsed = collapsed;
         IsWidgetCollapsedBoundsActive = collapsed;
@@ -1182,7 +1187,7 @@ public abstract partial class WidgetWindowBase
         WidgetCompactExpansionAnchor? expansionAnchor = null,
         PointInt32 expansionPivot = default)
     {
-        StopCollapseAnimation();
+        StopCollapseAnimation(releaseLayoutFreeze: true);
         _collapseAnimationAnchor = expansionAnchor;
         _collapseAnimationPivot = expansionPivot;
         double dpiScale = Win32Helper.GetDpiScaleForWindow(HWnd, RootElement.XamlRoot);
@@ -1210,6 +1215,7 @@ public abstract partial class WidgetWindowBase
                 ApplyBackdropPreference();
             }
             MoveWindowWithoutPersisting(to);
+            OnBoundsTransitionStarted();
             CompleteBoundsTransition(collapsed, generation);
             return;
         }
@@ -1228,6 +1234,12 @@ public abstract partial class WidgetWindowBase
             WidgetCompactBoundsCalculator.ResolveMediaCornerRadius(
                 SettingsService.Settings.WidgetCompactMediaCornerMode,
                 cornerPreference));
+
+        // Live HWND interpolation keeps the grow/shrink feel. Item-surface
+        // rebuilds stay frozen via OnBoundsTransitionStarted (L0), which was
+        // the main stutter source — not the window move itself.
+        OnBoundsTransitionStarted();
+
         _isCollapseAnimationRendering = true;
         CompositionTarget.Rendering -= CollapseAnimationRendering;
         CompositionTarget.Rendering += CollapseAnimationRendering;
@@ -1341,6 +1353,8 @@ public abstract partial class WidgetWindowBase
                 ScheduleSmartCollapse(SmartCollapseProbeMs);
             }
         }
+
+        OnBoundsTransitionCompleted();
     }
 
     private void ApplyCompactSurfaceState()
@@ -1777,10 +1791,11 @@ public abstract partial class WidgetWindowBase
         }
     }
 
-    private void StopCollapseAnimation()
+    private void StopCollapseAnimation(bool releaseLayoutFreeze = false)
     {
         CancelTimer(ref _collapseAnimationWatchdogTimer);
-        if (!_isCollapseAnimationRendering && !_isShellTransitionActive)
+        bool wasAnimating = _isCollapseAnimationRendering || _isShellTransitionActive;
+        if (!wasAnimating)
         {
             _collapseAnimationAnchor = null;
             return;
@@ -1795,6 +1810,13 @@ public abstract partial class WidgetWindowBase
             _isShellTransitionActive = false;
         }
         _collapseAnimationAnchor = null;
+
+        // Interrupted transitions release the freeze here; successful completions
+        // release it from CompleteBoundsTransition after the final HWND commit.
+        if (releaseLayoutFreeze)
+        {
+            OnBoundsTransitionCompleted();
+        }
     }
 
     private bool UsesAlignedCompactWidth() =>

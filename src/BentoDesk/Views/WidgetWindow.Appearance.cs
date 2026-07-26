@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using BentoDesk.Helpers;
 using BentoDesk.Models;
 using BentoDesk.Services;
@@ -27,6 +28,8 @@ namespace BentoDesk.Views;
 
 public sealed partial class WidgetWindow
 {
+    private static readonly ConditionalWeakTable<Border, string> InteractiveSurfaceLayoutSignatures = new();
+
     private void OnSettingsChanged()
     {
         if (DispatcherQueue.HasThreadAccess)
@@ -289,6 +292,13 @@ public sealed partial class WidgetWindow
 
     private void ApplyWidgetItemLayout(Border border)
     {
+        string layoutSignature = BuildWidgetItemLayoutSignature(border);
+        if (InteractiveSurfaceLayoutSignatures.TryGetValue(border, out string? cachedSignature) &&
+            string.Equals(cachedSignature, layoutSignature, StringComparison.Ordinal))
+        {
+            return;
+        }
+
         if (IsWithinItemsListView(border))
         {
             border.Width = double.NaN;
@@ -352,6 +362,7 @@ public sealed partial class WidgetWindow
                 }
             }
 
+            InteractiveSurfaceLayoutSignatures.AddOrUpdate(border, layoutSignature);
             return;
         }
 
@@ -397,6 +408,41 @@ public sealed partial class WidgetWindow
                 label.MaxWidth = ViewModel.IconLabelMaxWidth;
             }
         }
+
+        InteractiveSurfaceLayoutSignatures.AddOrUpdate(border, layoutSignature);
+    }
+
+    private string BuildWidgetItemLayoutSignature(Border border)
+    {
+        bool isList = IsWithinItemsListView(border);
+        bool isStackChild = border.DataContext is WidgetItem { IsStackChild: true };
+        if (isList)
+        {
+            return string.Join(
+                '|',
+                "list",
+                isStackChild ? "1" : "0",
+                ViewModel.ListIconSize.ToString("0.###"),
+                ViewModel.ListLabelFontSize.ToString("0.###"),
+                GetListItemTextMaxWidth().ToString("0.#"),
+                ViewModel.ShowListItemDetails ? "1" : "0",
+                ViewModel.ListItemMargin.ToString(),
+                ViewModel.ListItemPadding.ToString(),
+                GetItemSurfaceCornerRadius().ToString());
+        }
+
+        return string.Join(
+            '|',
+            "icon",
+            ViewModel.IconTileWidth.ToString("0.###"),
+            ViewModel.IconTileHeight.ToString("0.###"),
+            ViewModel.IconTileMargin.ToString(),
+            ViewModel.IconTilePadding.ToString(),
+            ViewModel.IconContentSpacing.ToString("0.###"),
+            ViewModel.IconImageSize.ToString("0.###"),
+            ViewModel.IconLabelFontSize.ToString("0.###"),
+            ViewModel.IconLabelMaxWidth.ToString("0.###"),
+            GetItemSurfaceCornerRadius().ToString());
     }
 
     private double GetListItemTextMaxWidth()

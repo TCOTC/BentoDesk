@@ -176,6 +176,17 @@ public abstract partial class WidgetWindowBase : Window
     /// <summary>Called when resize starts (after elevate).</summary>
     protected virtual void OnResizeStart() { }
 
+    /// <summary>
+    /// Called when a capsule bounds transition begins (including zero-duration).
+    /// File widgets use this to freeze expensive item-surface layout work.
+    /// </summary>
+    protected virtual void OnBoundsTransitionStarted() { }
+
+    /// <summary>
+    /// Called when a capsule bounds transition fully completes.
+    /// </summary>
+    protected virtual void OnBoundsTransitionCompleted() { }
+
     /// <summary>Whether to queue backdrop refresh after loading.</summary>
     protected virtual bool SupportsBackdropRefresh => true;
 

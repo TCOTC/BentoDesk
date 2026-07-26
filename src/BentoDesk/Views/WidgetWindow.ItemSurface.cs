@@ -35,6 +35,38 @@ public sealed partial class WidgetWindow
     private SolidColorBrush? _dropTargetItemBorderBrush;
     private bool? _itemSurfaceBrushesAreDark;
     private Windows.UI.Color? _itemSurfaceBrushesAccentColor;
+    private bool _suspendInteractiveSurfaceLayout;
+    private bool _interactiveSurfacesLayoutDirty;
+    private int _interactiveSurfaceLayoutSuspendDepth;
+
+    private void BeginSuspendInteractiveSurfaceLayout()
+    {
+        _interactiveSurfaceLayoutSuspendDepth++;
+        _suspendInteractiveSurfaceLayout = true;
+    }
+
+    private void EndSuspendInteractiveSurfaceLayout()
+    {
+        if (_interactiveSurfaceLayoutSuspendDepth > 0)
+        {
+            _interactiveSurfaceLayoutSuspendDepth--;
+        }
+
+        if (_interactiveSurfaceLayoutSuspendDepth > 0)
+        {
+            return;
+        }
+
+        _suspendInteractiveSurfaceLayout = false;
+        if (!_interactiveSurfacesLayoutDirty)
+        {
+            return;
+        }
+
+        _interactiveSurfacesLayoutDirty = false;
+        UpdateInteractiveSurfaces();
+    }
+
     protected override void ApplySurfaceStyle()
     {
         bool isDark = RootGrid.ActualTheme == ElementTheme.Dark;
@@ -114,6 +146,12 @@ public sealed partial class WidgetWindow
 
     private void UpdateInteractiveSurfaces()
     {
+        if (_suspendInteractiveSurfaceLayout || IsResizing || IsCollapseAnimationActive)
+        {
+            _interactiveSurfacesLayoutDirty = true;
+            return;
+        }
+
         foreach (var border in _interactiveSurfaces.ToArray())
         {
             if (border.XamlRoot is null)
@@ -127,6 +165,70 @@ public sealed partial class WidgetWindow
             ApplyWidgetItemSurfaceState(border, ItemSurfaceState.Normal);
         }
     }
+
+    /// <summary>
+    /// Lightweight SizeChanged path: only refresh list-row text max width.
+    /// Full layout rebuilds are reserved for view-mode / metrics changes.
+    /// </summary>
+    private void UpdateInteractiveSurfaceContainerMetrics()
+    {
+        if (_suspendInteractiveSurfaceLayout || IsResizing || IsCollapseAnimationActive)
+        {
+            _interactiveSurfacesLayoutDirty = true;
+            return;
+        }
+
+        if (ViewModel.ListViewVisibility != Visibility.Visible)
+        {
+            return;
+        }
+
+        double textMaxWidth = GetListItemTextMaxWidth();
+        foreach (var border in _interactiveSurfaces.ToArray())
+        {
+            if (border.XamlRoot is null)
+            {
+                _interactiveSurfaces.Remove(border);
+                continue;
+            }
+
+            if (!IsWithinItemsListView(border) || border.Child is not Grid listGrid)
+            {
+                continue;
+            }
+
+            if (TryGetDescendant<StackPanel>(listGrid, out var textHost, "ListItemTextHost"))
+            {
+                if (!DoubleEquals(textHost.MaxWidth, textMaxWidth))
+                {
+                    textHost.MaxWidth = textMaxWidth;
+                }
+            }
+
+            if (TryGetDescendant<TextBlock>(listGrid, out var label))
+            {
+                if (!DoubleEquals(label.MaxWidth, textMaxWidth))
+                {
+                    label.MaxWidth = textMaxWidth;
+                }
+            }
+
+            if (TryGetDescendant<TextBlock>(listGrid, out var nameText, "ListItemNameText") &&
+                !DoubleEquals(nameText.MaxWidth, textMaxWidth))
+            {
+                nameText.MaxWidth = textMaxWidth;
+            }
+
+            if (TryGetDescendant<TextBlock>(listGrid, out var detailText, "ListItemDetailText") &&
+                !DoubleEquals(detailText.MaxWidth, textMaxWidth))
+            {
+                detailText.MaxWidth = textMaxWidth;
+            }
+        }
+    }
+
+    private static bool DoubleEquals(double left, double right) =>
+        Math.Abs(left - right) < 0.5;
 
     /// <summary>
     /// 仅刷新选中 / 悬停 / 剪切等表面状态，不触发布局与 ToolTip 重建。
@@ -198,10 +300,7 @@ public sealed partial class WidgetWindow
             border.BorderThickness = borderThickness;
         }
 
-        if (border.Opacity != opacity)
-        {
-            border.Opacity = opacity;
-        }
+        WidgetItemSurfaceCompositionHelper.ApplyOpacity(border, opacity);
     }
 
     private void ResetItemSurfaceBrushCache()

@@ -267,6 +267,8 @@ public abstract partial class WidgetWindowBase
         RectInt32 initialBounds = GetActualWindowBounds();
         InitialWindowPos = new PointInt32(initialBounds.X, initialBounds.Y);
         InitialWindowSize = new SizeInt32(initialBounds.Width, initialBounds.Height);
+        _pendingResizeBounds = initialBounds;
+        _resizeBoundsFlushQueued = false;
         element.CapturePointer(e.Pointer);
         App.Current.ResizeGuideOverlay.BeginResize(HWnd, RootElement);
         e.Handled = true;
@@ -308,12 +310,7 @@ public abstract partial class WidgetWindowBase
                 ResizeDirection,
                 limits.MinWidth,
                 limits.MaxWidth);
-            ApplyWindowBounds(
-                compactSnapped.X,
-                compactSnapped.Y,
-                compactSnapped.Width,
-                compactSnapped.Height,
-                persist: false);
+            QueueLiveResizeBounds(compactSnapped);
             e.Handled = true;
             return;
         }
@@ -349,7 +346,7 @@ public abstract partial class WidgetWindowBase
         var proposed = new RectInt32(newX, newY, newWidth, newHeight);
         var snapped = App.Current.ResizeGuideOverlay.UpdateGuidesAndSnap(proposed, ResizeDirection);
         snapped = AnchorExpandedResizeBounds(snapped);
-        ApplyWindowBounds(snapped.X, snapped.Y, snapped.Width, snapped.Height, persist: false);
+        QueueLiveResizeBounds(snapped);
         e.Handled = true;
     }
 
@@ -363,7 +360,7 @@ public abstract partial class WidgetWindowBase
         IsResizing = false;
         element.ReleasePointerCapture(e.Pointer);
         App.Current.ResizeGuideOverlay.EndResize();
-        PersistCompletedWidgetResize(GetActualWindowBounds());
+        CommitLiveResizeBounds(persist: true);
         ResizeDirection = string.Empty;
         EndWidgetBoundsInteraction();
         OnResizeEnd();
@@ -388,13 +385,59 @@ public abstract partial class WidgetWindowBase
         IsResizing = false;
         DragCaptureElement = null;
         App.Current?.ResizeGuideOverlay.EndResize();
-        PersistCompletedWidgetResize(GetActualWindowBounds());
+        CommitLiveResizeBounds(persist: true);
         ResizeDirection = string.Empty;
         EndWidgetBoundsInteraction();
         OnResizeEnd();
         DisplayChangeWatcher?.ResumeRestore();
         QueueBackdropRefresh();
         e.Handled = true;
+    }
+
+    /// <summary>
+    /// Coalesce pointer-move resize updates onto the next Composition frame so
+    /// the widget still tracks the cursor live, without issuing multiple
+    /// SetWindowPos calls within a single VSync interval.
+    /// </summary>
+    private void QueueLiveResizeBounds(RectInt32 bounds)
+    {
+        _pendingResizeBounds = bounds;
+        if (_resizeBoundsFlushQueued)
+        {
+            return;
+        }
+
+        _resizeBoundsFlushQueued = true;
+        CompositionTarget.Rendering += FlushLiveResizeBoundsOnRendering;
+    }
+
+    private void FlushLiveResizeBoundsOnRendering(object? sender, object args)
+    {
+        CompositionTarget.Rendering -= FlushLiveResizeBoundsOnRendering;
+        _resizeBoundsFlushQueued = false;
+        if (!IsResizing || _pendingResizeBounds is not { } bounds)
+        {
+            return;
+        }
+
+        ApplyWindowBounds(bounds.X, bounds.Y, bounds.Width, bounds.Height, persist: false);
+    }
+
+    private void CommitLiveResizeBounds(bool persist)
+    {
+        if (_resizeBoundsFlushQueued)
+        {
+            CompositionTarget.Rendering -= FlushLiveResizeBoundsOnRendering;
+            _resizeBoundsFlushQueued = false;
+        }
+
+        RectInt32 bounds = _pendingResizeBounds ?? GetActualWindowBounds();
+        _pendingResizeBounds = null;
+        ApplyWindowBounds(bounds.X, bounds.Y, bounds.Width, bounds.Height, persist: false);
+        if (persist)
+        {
+            PersistCompletedWidgetResize(bounds);
+        }
     }
 
     protected InputSystemCursorShape GetResizeCursorShapeForCurrentState(string? direction)
