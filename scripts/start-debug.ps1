@@ -5,9 +5,6 @@ param(
     [ValidateSet("x64", "ARM64")]
     [string]$Platform = "x64",
 
-    [ValidateSet("Direct", "Store")]
-    [string]$Distribution = "Direct",
-
     [ValidateSet("win-x64", "win-arm64")]
     [string]$RuntimeIdentifier,
 
@@ -46,7 +43,6 @@ if ($Build.IsPresent) {
         -c $Configuration `
         -p:Platform=$Platform `
         -p:RuntimeIdentifier=$RuntimeIdentifier `
-        -p:BentoDeskDistribution=$Distribution `
         -v:minimal
 
     if ($LASTEXITCODE -ne 0) {

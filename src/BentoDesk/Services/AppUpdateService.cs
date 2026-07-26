@@ -52,7 +52,6 @@ public sealed class AppUpdateService : IAppUpdateService
     public event Action<AppUpdateCheckResult>? CheckCompleted;
 
     public string ManifestUrl => _manifestUrl;
-    public AppUpdateDeliveryKind DeliveryKind => AppUpdateDeliveryKind.DirectInstaller;
 
     public async Task<AppUpdateCheckResult> CheckForUpdatesAsync(CancellationToken cancellationToken = default)
     {

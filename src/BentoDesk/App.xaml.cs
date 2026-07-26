@@ -102,7 +102,6 @@ public partial class App : Application
 
     public bool IsStartupMode { get; set; }
 
-    public AppDistributionService DistributionService { get; } = AppDistributionService.Current;
     public ServiceProvider Services { get; private set; } = null!;
     public SettingsService SettingsService { get; private set; } = null!;
     public BentoDeskDataBackupService DataBackupService { get; private set; } = null!;
@@ -130,8 +129,7 @@ public partial class App : Application
 
     public App()
     {
-        // Register AUMID early so the taskbar button and Jump List work
-        // for both packaged (MSIX) and unpackaged (Direct) distributions.
+        // Register AUMID early so the taskbar button and Jump List work.
         JumpListService.RegisterAppUserModelId();
 
         Log("App() constructor start");
@@ -190,11 +188,9 @@ public partial class App : Application
         QuickCaptureService = Services.GetRequiredService<QuickCaptureService>();
         ResizeGuideOverlay = Services.GetRequiredService<ResizeGuideOverlayService>();
 
-        StartupService.Configure(StartupServiceFactory.Create(DistributionService));
         DirectStartupService.TryRemoveLegacyStartupShortcutSafe();
         AppUpdateService.CheckCompleted += OnUpdateCheckCompleted;
         UnhandledException += OnUnhandledException;
-        Log($"Distribution channel={DistributionService.ChannelName} packaged={DistributionService.IsPackaged}");
         Log($"Process integrity {GetProcessIntegrityReport()} pid={Environment.ProcessId} processPath={Environment.ProcessPath ?? "unknown"} baseDir={AppContext.BaseDirectory}");
         Log($"Process parent {GetParentProcessReport()} commandLine={Environment.CommandLine}");
         Log($"UAC {GetUacPolicyReport()}");
@@ -920,11 +916,6 @@ public partial class App : Application
 
     private void ScheduleBackgroundUpdateCheck()
     {
-        if (DistributionService.IsMicrosoftStore)
-        {
-            return;
-        }
-
         if (!SettingsService.Settings.AutoCheckForUpdates)
         {
             return;

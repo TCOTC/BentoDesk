@@ -1,18 +1,13 @@
 namespace BentoDesk.Services;
 
 /// <summary>
-/// Compatibility facade for startup registration. The concrete implementation is selected by app distribution channel.
+/// Compatibility facade for registry-based startup registration.
 /// </summary>
 public static class StartupService
 {
-    private static IStartupService s_current = new DirectStartupService();
+    private static readonly IStartupService s_current = new DirectStartupService();
 
     public static IStartupService Current => s_current;
-
-    public static void Configure(IStartupService startupService)
-    {
-        s_current = startupService;
-    }
 
     /// <summary>
     /// Check if BentoDesk is registered for auto-start.

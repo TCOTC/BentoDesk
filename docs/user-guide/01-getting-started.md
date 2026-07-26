@@ -26,13 +26,11 @@ BentoDesk 不需要以管理员身份运行。不要在快捷方式兼容性设�
 
 ## 下载安装包
 
-Direct 安装包可以从官网或 GitHub Release 获取。
+安装包可以从官网或 GitHub Release 获取。
 
 - 官网：<https://github.com/TCOTC/BentoDesk>
 - GitHub Release：<https://github.com/TCOTC/BentoDesk/releases/tag/v1.3.0>
 - 文件名：`BentoDesk_Setup_1.3.0_x64.exe`
-
-Microsoft Store 渠道由商店负责安装和更新。两个渠道的核心功能一致，但更新方式和部分渠道展示内容可能不同。
 
 从 GitHub 下载时，可以同时下载 `.sha256` 校验文件。BentoDesk 1.3.0 x64 正式安装包的 SHA-256 为
 

@@ -138,7 +138,7 @@ Windows 给了我们一张桌面，却没有真正教我们怎样整理它。
 
 一点点就够了。
 
-BentoDesk 已经开源，官网和 GitHub 提供免费安装包；Microsoft Store 也可以搜索到付费版本，主要面向习惯商店安装更新或愿意支持项目的用户。
+BentoDesk 已经开源，官网和 GitHub 提供免费安装包。
 
 官网：<https://github.com/TCOTC/BentoDesk>
 

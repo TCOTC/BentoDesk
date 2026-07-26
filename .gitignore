@@ -55,9 +55,6 @@ bentodesk-site/out/
 # Local backup patches
 backups/
 
-# Local Microsoft Store listing artboards
-store-assets-html/
-
 # Development debug screenshots and scripts
 shots/
 

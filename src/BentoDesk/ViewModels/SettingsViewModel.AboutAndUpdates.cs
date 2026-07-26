@@ -17,23 +17,17 @@ public partial class SettingsViewModel
         Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ??
         "1.0.2";
     public string AboutVersionText => _localizationService.Format("Settings.About.VersionWithChannel", AppVersion, DistributionChannelText);
-    public string DistributionChannelText => _localizationService.T(IsStoreUpdateDelivery
-        ? "Settings.About.Channel.Store"
-        : "Settings.About.Channel.Direct");
+    public string DistributionChannelText => _localizationService.T("Settings.About.Channel.Direct");
     public string OpenSourceRepositoryUrl => RepositoryUrl;
     public string OfficialWebsiteDisplayText => OfficialWebsiteUrl.Replace("https://", string.Empty).TrimEnd('/');
     public string OfficialWebsiteLink => OfficialWebsiteUrl;
     public string DomesticMirrorDownloadUrl => AppUpdateService.DefaultManualDownloadUrl;
     public string AboutDeveloperText => _localizationService.T("Settings.About.DeveloperName");
-    public Visibility DonationCardVisibility => IsDirectInstallerUpdateDelivery ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility DonationCardVisibility => Visibility.Visible;
     public ImageSource? DonationWechatImageSource =>
-        IsDirectInstallerUpdateDelivery
-            ? _donationWechatImageSource ??= new BitmapImage(new Uri("ms-appx:///Assets/donation-wechat.png"))
-            : null;
+        _donationWechatImageSource ??= new BitmapImage(new Uri("ms-appx:///Assets/donation-wechat.png"));
     public ImageSource? DonationAlipayImageSource =>
-        IsDirectInstallerUpdateDelivery
-            ? _donationAlipayImageSource ??= new BitmapImage(new Uri("ms-appx:///Assets/donation-alipay.png"))
-            : null;
+        _donationAlipayImageSource ??= new BitmapImage(new Uri("ms-appx:///Assets/donation-alipay.png"));
     public string OpenSourceRepositoryDisplayText =>
         _localizationService.Format(
             "Settings.About.Developer",
@@ -51,24 +45,20 @@ public partial class SettingsViewModel
     // Aliases for XAML binding compatibility
     public Visibility UpdateFallbackVisibility => ManualUpdateFallbackVisibility;
     public bool CanOpenUpdateFallback => CanOpenManualUpdateDownload;
-    public Visibility InstallUpdateButtonVisibility => IsDirectInstallerUpdateDelivery ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility InstallUpdateButtonVisibility => Visibility.Visible;
     public Visibility UpdateReminderBadgeVisibility =>
         _availableUpdateManifest is not null ? Visibility.Visible : Visibility.Collapsed;
     public bool CanCheckForUpdates => !IsCheckingForUpdates && !IsDownloadingUpdate;
     public bool CanDownloadUpdate => _availableUpdateManifest is not null && !IsCheckingForUpdates && !IsDownloadingUpdate;
     public bool CanOpenManualUpdateDownload =>
-        IsDirectInstallerUpdateDelivery &&
         !string.IsNullOrWhiteSpace(ManualUpdateDownloadUrl) &&
         (_showManualUpdateFallback || HasManifestManualDownloadUrl(_availableUpdateManifest));
     public bool CanInstallUpdate =>
-        IsDirectInstallerUpdateDelivery &&
         !IsCheckingForUpdates &&
         !IsDownloadingUpdate &&
         !string.IsNullOrWhiteSpace(_downloadedUpdateInstallerPath) &&
         File.Exists(_downloadedUpdateInstallerPath);
-    public string UpdateDownloadActionText => _localizationService.T(IsStoreUpdateDelivery
-        ? "Settings.Update.StoreInstall"
-        : "Settings.Update.Download");
+    public string UpdateDownloadActionText => _localizationService.T("Settings.Update.Download");
     public string UpdateFallbackActionText => _localizationService.T("Settings.Update.ManualDownload");
     public string UpdateProgressText => $"{Math.Clamp(UpdateProgressValue, 0, 100):0}%";
 
@@ -101,9 +91,6 @@ public partial class SettingsViewModel
         }
     }
     public bool IsOneClickActionEnabled => !IsCheckingForUpdates && !IsDownloadingUpdate;
-
-    private bool IsStoreUpdateDelivery => _appUpdateService.DeliveryKind == AppUpdateDeliveryKind.MicrosoftStore;
-    private bool IsDirectInstallerUpdateDelivery => _appUpdateService.DeliveryKind == AppUpdateDeliveryKind.DirectInstaller;
 
     public void RefreshCachedUpdateState()
     {
@@ -185,12 +172,8 @@ public partial class SettingsViewModel
         _downloadedUpdateInstallerPath = null;
         IsDownloadingUpdate = true;
         UpdateProgressValue = 0;
-        UpdateStatusText = IsStoreUpdateDelivery
-            ? _localizationService.T("Settings.Update.Status.StoreInstalling")
-            : _localizationService.Format("Settings.Update.Status.Downloading", _availableUpdateManifest.Version);
-        UpdateDetailText = IsStoreUpdateDelivery
-            ? _localizationService.T("Settings.Update.Detail.StoreInstalling")
-            : _localizationService.T("Settings.Update.Detail.Downloading");
+        UpdateStatusText = _localizationService.Format("Settings.Update.Status.Downloading", _availableUpdateManifest.Version);
+        UpdateDetailText = _localizationService.T("Settings.Update.Detail.Downloading");
         NotifyUpdateActionPropertiesChanged();
 
         var progress = new Progress<AppUpdateDownloadProgress>(downloadProgress =>
@@ -202,17 +185,6 @@ public partial class SettingsViewModel
         try
         {
             var result = await _appUpdateService.DownloadUpdateAsync(_availableUpdateManifest, progress, _updateOperationCts.Token);
-            if (result.Success && IsStoreUpdateDelivery)
-            {
-                _availableUpdateManifest = null;
-                _downloadedUpdateInstallerPath = null;
-                _showManualUpdateFallback = false;
-                UpdateProgressValue = 100;
-                UpdateStatusText = _localizationService.T("Settings.Update.Status.StoreInstallComplete");
-                UpdateDetailText = _localizationService.T("Settings.Update.Detail.StoreInstallComplete");
-                return;
-            }
-
             if (result.Success && !string.IsNullOrWhiteSpace(result.FilePath))
             {
                 _downloadedUpdateInstallerPath = result.FilePath;
@@ -265,14 +237,10 @@ public partial class SettingsViewModel
             _availableUpdateManifest = result.Manifest;
             _downloadedUpdateInstallerPath = null;
             _showManualUpdateFallback = false;
-            UpdateStatusText = IsStoreUpdateDelivery
-                ? _localizationService.T("Settings.Update.Status.StoreAvailable")
-                : _localizationService.Format("Settings.Update.Status.Available", result.Manifest.Version);
+            UpdateStatusText = _localizationService.Format("Settings.Update.Status.Available", result.Manifest.Version);
             string summary = result.Manifest.GetLocalizedSummary(_localizationService.CurrentCultureName);
             UpdateDetailText = string.IsNullOrWhiteSpace(summary)
-                ? _localizationService.T(IsStoreUpdateDelivery
-                    ? "Settings.Update.Detail.StoreAvailable"
-                    : "Settings.Update.Detail.Available")
+                ? _localizationService.T("Settings.Update.Detail.Available")
                 : summary;
         }
         else if (result.Status == AppUpdateCheckStatus.UpToDate)
@@ -287,7 +255,7 @@ public partial class SettingsViewModel
         {
             _availableUpdateManifest = null;
             _downloadedUpdateInstallerPath = null;
-            _showManualUpdateFallback = IsDirectInstallerUpdateDelivery;
+            _showManualUpdateFallback = true;
             UpdateStatusText = _localizationService.T("Settings.Update.Status.Failed");
             UpdateDetailText = _localizationService.T("Settings.Update.Detail.InvalidManifest");
         }
@@ -295,7 +263,7 @@ public partial class SettingsViewModel
         {
             _availableUpdateManifest = null;
             _downloadedUpdateInstallerPath = null;
-            _showManualUpdateFallback = IsDirectInstallerUpdateDelivery;
+            _showManualUpdateFallback = true;
             UpdateStatusText = _localizationService.T("Settings.Update.Status.Failed");
             UpdateDetailText = string.IsNullOrWhiteSpace(result.ErrorMessage)
                 ? _localizationService.T("Settings.Update.Detail.Failed")
@@ -307,7 +275,7 @@ public partial class SettingsViewModel
 
     private void ApplyDownloadFailure(AppUpdateDownloadResult result)
     {
-        _showManualUpdateFallback = IsDirectInstallerUpdateDelivery;
+        _showManualUpdateFallback = true;
         UpdateStatusText = _localizationService.T("Settings.Update.Status.Failed");
         UpdateDetailText = result.FailureKind switch
         {
@@ -325,26 +293,6 @@ public partial class SettingsViewModel
         if (string.IsNullOrWhiteSpace(errorMessage))
         {
             return _localizationService.T("Settings.Update.Detail.Failed");
-        }
-
-        if (errorMessage.Contains("STORE_NOT_PACKAGED", StringComparison.OrdinalIgnoreCase))
-        {
-            return _localizationService.T("Settings.Update.Detail.StoreNotPackaged");
-        }
-
-        if (errorMessage.Contains("STORE_CANCELED", StringComparison.OrdinalIgnoreCase))
-        {
-            return _localizationService.T("Settings.Update.Detail.StoreCanceled");
-        }
-
-        if (errorMessage.Contains("STORE_INSTALL_FAILED", StringComparison.OrdinalIgnoreCase))
-        {
-            return _localizationService.T("Settings.Update.Detail.StoreInstallFailed");
-        }
-
-        if (errorMessage.Contains("STORE_UNAVAILABLE", StringComparison.OrdinalIgnoreCase))
-        {
-            return _localizationService.T("Settings.Update.Detail.StoreUnavailable");
         }
 
         if (errorMessage.Contains("404", StringComparison.OrdinalIgnoreCase) ||
@@ -431,9 +379,7 @@ public partial class SettingsViewModel
 
     private string GetReadyUpdateDetailText()
     {
-        return _localizationService.T(IsStoreUpdateDelivery
-            ? "Settings.Update.Detail.StoreReady"
-            : "Settings.Update.Detail.Ready");
+        return _localizationService.T("Settings.Update.Detail.Ready");
     }
 
     /// <summary>

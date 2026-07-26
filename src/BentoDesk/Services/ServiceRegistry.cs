@@ -34,9 +34,8 @@ public static class ServiceRegistry
         services.AddSingleton<WeatherService>();
         services.AddSingleton<CitySearchService>();
 
-        // ── Update (factory-based) ───────────────────────────────────────
-        services.AddSingleton<IAppUpdateService>(_ =>
-            AppUpdateServiceFactory.Create(AppDistributionService.Current));
+        // ── Update ───────────────────────────────────────────────────────
+        services.AddSingleton<IAppUpdateService, AppUpdateService>();
 
         return services;
     }

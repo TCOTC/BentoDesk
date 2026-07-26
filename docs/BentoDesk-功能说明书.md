@@ -22,12 +22,7 @@ BentoDesk 是一款 Windows 11 桌面整理工具。它不替换你的桌面，�
 
 ### 安装包
 
-BentoDesk 提供两种分发渠道：
-
-- **Direct 渠道**：从官网或 GitHub Releases 下载 Inno Setup 构建的 exe 安装包（如 `BentoDesk_Setup_1.3.0_x64.exe`）。
-- **Store 渠道**：通过 Microsoft Store 安装 MSIX 包。
-
-两个渠道功能一致，差异仅在于打包方式和更新机制。Direct 渠道自带独立更新器，Store 渠道由商店管理更新。
+从官网或 GitHub Releases 下载 Inno Setup 构建的 exe 安装包（如 `BentoDesk_Setup_1.3.0_x64.exe`）。安装包自带独立更新器，可在应用内检查并安装新版本。
 
 ### 安装过程
 
@@ -546,7 +541,7 @@ BentoDesk 提供两种格子层级模式（设置 → 交互中配置）：
 | GitHub 仓库 | 链接到开源仓库 |
 | 官网 | 链接到产品官网 |
 | 公众号二维码 | 关注渠道 |
-| 捐赠二维码 | 仅 Direct 渠道显示，Store 渠道会隐藏此项 |
+| 捐赠二维码 | 微信 / 支付宝捐赠入口 |
 
 > 📸 **[配图 24]** 关于页截图。
 
@@ -635,7 +630,7 @@ BentoDesk 的设计哲学是"不替换桌面，只补一层"。意思是：桌�
 
 ### 分发
 
-通过 `BentoDeskDistribution` 编译变量切换 Direct / Store 渠道，控制捐赠二维码、更新机制等渠道差异。
+通过 Inno Setup 安装包分发，应用内更新由 `BentoDesk.Updater` 与安装包覆盖安装完成。
 
 ### 项目规模
 

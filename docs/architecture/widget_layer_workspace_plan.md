@@ -158,16 +158,14 @@ public List<WidgetWorkspace> WidgetWorkspaces { get; set; } = [];
 1. 全局快捷键：显示/隐藏当前工作区。
 2. 工作区快捷键：切换并显示目标工作区。
 
-## Store 版本注意事项
+## 桌面固定层注意事项
 
 桌面固定层需要使用 Win32 窗口 owner 和 Z-order 能力。`SetWindowLongPtr(GWLP_HWNDPARENT)`、`SetWindowPos` 是公开 Win32 API，但 `Progman` / `WorkerW` / `SHELLDLL_DefView` 桌面容器行为不是微软承诺给普通业务应用的稳定 API。
 
 因此建议：
 
-1. Direct 版先开放桌面固定层实验功能。
-2. Store 版初期默认隐藏或关闭该实验功能。
-3. Store 包在开放前需要单独验证 WACK、安装、运行和审核风险。
-4. 设置页需要给用户明确说明该模式会改变 BentoDesk 与 Windows 桌面的贴合方式，并可随时关闭。
+1. 先以实验功能开放桌面固定层。
+2. 设置页需要给用户明确说明该模式会改变 BentoDesk 与 Windows 桌面的贴合方式，并可随时关闭。
 
 ## 当前阶段状态
 

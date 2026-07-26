@@ -19,23 +19,11 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <EnableMsixTooling>true</EnableMsixTooling>
     <AppxPackage>false</AppxPackage>
-    <BentoDeskDistribution Condition="'$(BentoDeskDistribution)' == ''">Direct</BentoDeskDistribution>
-    <DefineConstants Condition="'$(BentoDeskDistribution)' == 'Store'">$(DefineConstants);BENTODESK_STORE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationIcon>Assets\bentodesk.ico</ApplicationIcon>
     <!-- Debug 日常开发默认跳过 Updater，加速 Ctrl+R / watch；Release 与发布仍会构建。可用 -p:BentoDeskBuildUpdater=true 强制开启。 -->
     <BentoDeskBuildUpdater Condition="'$(BentoDeskBuildUpdater)' == '' and '$(Configuration)' == 'Debug'">false</BentoDeskBuildUpdater>
     <BentoDeskBuildUpdater Condition="'$(BentoDeskBuildUpdater)' == ''">true</BentoDeskBuildUpdater>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(BentoDeskDistribution)' == 'Store'">
-    <WindowsPackageType>MSIX</WindowsPackageType>
-    <DefaultLanguage>zh-CN</DefaultLanguage>
-    <AppxPackageSigningEnabled Condition="'$(AppxPackageSigningEnabled)' == ''">false</AppxPackageSigningEnabled>
-    <UapAppxPackageBuildMode Condition="'$(UapAppxPackageBuildMode)' == ''">SideloadOnly</UapAppxPackageBuildMode>
-    <AppxPackage Condition="'$(BentoDeskCreateMsixPackage)' == 'true'">true</AppxPackage>
-    <GenerateAppxPackageOnBuild Condition="'$(BentoDeskCreateMsixPackage)' == 'true'">true</GenerateAppxPackageOnBuild>
-    <AppxBundle Condition="'$(BentoDeskCreateMsixPackage)' == 'true' and '$(AppxBundle)' == ''">Never</AppxBundle>
   </PropertyGroup>
 
   <ItemGroup>
@@ -72,10 +60,10 @@
     <Content Include="Assets\wechat-qrcode.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Assets\donation-wechat.png" Condition="'$(BentoDeskDistribution)' != 'Store'">
+    <Content Include="Assets\donation-wechat.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Assets\donation-alipay.png" Condition="'$(BentoDeskDistribution)' != 'Store'">
+    <Content Include="Assets\donation-alipay.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\SettingsNavIcons\*.svg">
@@ -84,7 +72,6 @@
     <Content Include="Assets\WidgetTitleIcons\*.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Assets\Store\*.png" />
     <EmbeddedResource Include="Assets\Cities\cities.json" />
     <EmbeddedResource Include="Strings\zh-CN.json" />
   </ItemGroup>
@@ -106,14 +93,14 @@
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
   </PropertyGroup>
 
-  <Target Name="BuildBentoDeskUpdater" BeforeTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskDistribution)' != 'Store' and '$(BentoDeskBuildUpdater)' == 'true'">
+  <Target Name="BuildBentoDeskUpdater" BeforeTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskBuildUpdater)' == 'true'">
     <MSBuild
       Projects="..\BentoDesk.Updater\BentoDesk.Updater.csproj"
       Targets="Build"
       Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=$(RuntimeIdentifier)" />
   </Target>
 
-  <Target Name="CopyBentoDeskUpdater" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskDistribution)' != 'Store' and '$(BentoDeskBuildUpdater)' == 'true'">
+  <Target Name="CopyBentoDeskUpdater" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskBuildUpdater)' == 'true'">
     <ItemGroup>
       <BentoDeskUpdaterOutput Include="..\BentoDesk.Updater\bin\$(Platform)\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\BentoDesk.Updater.*" Condition="'$(RuntimeIdentifier)' != ''" />
       <BentoDeskUpdaterOutput Include="..\BentoDesk.Updater\bin\$(Platform)\$(Configuration)\$(TargetFramework)\BentoDesk.Updater.*" Condition="'$(RuntimeIdentifier)' == ''" />
@@ -121,32 +108,11 @@
     <Copy SourceFiles="@(BentoDeskUpdaterOutput)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
   </Target>
 
-  <Target Name="PublishBentoDeskUpdater" AfterTargets="Publish" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskDistribution)' != 'Store' and '$(BentoDeskBuildUpdater)' == 'true'">
+  <Target Name="PublishBentoDeskUpdater" AfterTargets="Publish" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskBuildUpdater)' == 'true'">
     <MSBuild
       Projects="..\BentoDesk.Updater\BentoDesk.Updater.csproj"
       Targets="Publish"
       Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=$(SelfContained);PublishSingleFile=false;PublishDir=$(PublishDir)" />
-  </Target>
-
-  <Target Name="RemoveStoreRestrictedAssetsFromPri"
-          BeforeTargets="_GenerateProjectPriConfigurationFiles;_GenerateProjectPriFileCore"
-          Condition="'$(BentoDeskDistribution)' == 'Store'">
-    <ItemGroup>
-      <Image Remove="Assets\donation-wechat.png;Assets\donation-alipay.png" />
-      <Content Remove="Assets\donation-wechat.png;Assets\donation-alipay.png" />
-      <None Remove="Assets\donation-wechat.png;Assets\donation-alipay.png" />
-      <PRIResource Remove="Assets\donation-wechat.png;Assets\donation-alipay.png" />
-    </ItemGroup>
-  </Target>
-
-  <Target Name="RemoveStoreRestrictedAssetsFromAppxPayload"
-          AfterTargets="_ComputeAppxPackagePayload"
-          BeforeTargets="_GenerateAppxPackageRecipe;_GenerateAppxPackageFile"
-          Condition="'$(BentoDeskDistribution)' == 'Store'">
-    <ItemGroup>
-      <AppxPackagePayload Remove="@(AppxPackagePayload)"
-                          Condition="'%(AppxPackagePayload.TargetPath)' == 'Assets\donation-wechat.png' Or '%(AppxPackagePayload.TargetPath)' == 'Assets\donation-alipay.png'" />
-    </ItemGroup>
   </Target>
 
 </Project>

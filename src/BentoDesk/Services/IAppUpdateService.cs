@@ -2,19 +2,12 @@ using BentoDesk.Models;
 
 namespace BentoDesk.Services;
 
-public enum AppUpdateDeliveryKind
-{
-    DirectInstaller,
-    MicrosoftStore
-}
-
 public interface IAppUpdateService
 {
     AppUpdateCheckResult? LastCheckResult { get; }
     DateTime? LastCheckTimeUtc { get; }
     event Action<AppUpdateCheckResult>? CheckCompleted;
     string ManifestUrl { get; }
-    AppUpdateDeliveryKind DeliveryKind { get; }
 
     Task<AppUpdateCheckResult> CheckForUpdatesAsync(CancellationToken cancellationToken = default);
     Task<AppUpdateCheckResult> CheckForUpdatesAsync(string currentVersion, CancellationToken cancellationToken = default);
