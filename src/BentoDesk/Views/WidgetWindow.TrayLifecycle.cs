@@ -34,14 +34,21 @@ public sealed partial class WidgetWindow
         App.LogVerbose($"[ZOrder] Widget PushToBottom hwnd=0x{_hWnd.ToInt64():X}");
     }
 
-    public void ShowPreparedAtDesktopLayer(bool persistVisibility = true)
+    public void ShowPreparedAtDesktopLayer(bool persistVisibility = true, bool revealWindow = true)
     {
-        LogTrayWindow("ShowPreparedAtDesktopLayer");
+        LogTrayWindow($"ShowPreparedAtDesktopLayer reveal={revealWindow}");
+        // Essential anti-flash: Win32 alpha=0 hides the whole HWND (including Mica)
+        // while AppWindow.Show may briefly sit above other apps. Attach first, then
+        // clear alpha only after the next dispatcher tick.
+        _trayAnimation.CloakWindowForTrayShow();
+        Win32Helper.SetTemporaryWindowAlpha(_hWnd, 0);
         _trayAnimation.PrepareHiddenState();
+        PushToBottom();
+        // Show(false): default AppWindow.Show() activates and steals focus from other apps.
+        _appWindow.Show(false);
         Win32Helper.ShowWindow(_hWnd, Win32Helper.SW_SHOWNOACTIVATE);
-        _appWindow.Show();
-        _trayAnimation.PrepareHiddenState();
-        _trayAnimation.RevealWindowForTrayShow();
+        PushToBottom();
+
         Visible = true;
         ViewModel.Config.IsVisible = true;
         if (persistVisibility)
@@ -49,8 +56,47 @@ public sealed partial class WidgetWindow
             _settingsService.SaveDebounced();
         }
 
-        QueueBackdropRefresh();
-        PushToBottom();
+        if (revealWindow)
+        {
+            FinishDesktopLayerShow();
+        }
+    }
+
+    /// <summary>
+    /// After Show+attach: stay alpha-hidden through one dispatcher tick plus a short
+    /// settle (AppWindow reorders asynchronously), then restore visuals and clear alpha.
+    /// </summary>
+    private void FinishDesktopLayerShow(Action? beforeVisible = null)
+    {
+        if (!DispatcherQueue.TryEnqueue(async () =>
+            {
+                if (!Visible)
+                {
+                    return;
+                }
+
+                PushToBottom();
+                _trayAnimation.RevealWindowForTrayShow();
+                beforeVisible?.Invoke();
+                PushToBottom();
+                // AppWindow.Show side effects often land after the first tick.
+                await Task.Delay(32);
+                if (!Visible)
+                {
+                    return;
+                }
+
+                PushToBottom();
+                Win32Helper.ClearTemporaryWindowAlpha(_hWnd);
+                QueueBackdropRefresh();
+            }))
+        {
+            PushToBottom();
+            _trayAnimation.RevealWindowForTrayShow();
+            beforeVisible?.Invoke();
+            Win32Helper.ClearTemporaryWindowAlpha(_hWnd);
+            QueueBackdropRefresh();
+        }
     }
 
     public void SetTrayAnimationOffsetOverride(double? offsetX, double? offsetY)
@@ -67,30 +113,9 @@ public sealed partial class WidgetWindow
 
     public void ShowPreparedRaisedFromTray(bool persistVisibility = true)
     {
+        // Desktop-fixed layer: "raise" is show-at-desktop-layer, not topmost.
         LogTrayWindow("ShowPreparedRaisedFromTray");
-        _trayAnimation.PrepareHiddenState();
-        _appWindow.Show();
-        Win32Helper.ShowWindow(_hWnd, Win32Helper.SW_SHOWNOACTIVATE);
-        _trayAnimation.PrepareHiddenState();
-        _trayAnimation.RevealWindowForTrayShow();
-        HoldTemporaryTopMost();
-        Visible = true;
-        ViewModel.Config.IsVisible = true;
-        if (persistVisibility)
-        {
-            _settingsService.SaveDebounced();
-        }
-
-        QueueBackdropRefresh();
-
-        DispatcherQueue.TryEnqueue(async () =>
-        {
-            await Task.Delay(60);
-            if (Visible)
-            {
-                HoldTemporaryTopMost();
-            }
-        });
+        ShowPreparedAtDesktopLayer(persistVisibility);
     }
 
     public void EnsureRaisedFromTrayTopMost()
@@ -174,11 +199,15 @@ public sealed partial class WidgetWindow
         LogTrayWindow($"CompleteShowWithoutAnimation gen={animationGeneration}");
         _trayAnimation.Stop();
         SetTrayAnimationOffsetOverride(null, null);
-        _trayAnimation.RestoreVisualState();
-        _trayAnimation.RestoreWindowPosition();
-        _trayAnimation.RevealWindowForTrayShow();
-
-        QueueItemContainerTransitionRestore(animationGeneration);
+        // Do not restore on-screen visuals before FinishDesktopLayerShow clears alpha.
+        Win32Helper.SetTemporaryWindowAlpha(_hWnd, 0);
+        PushToBottom();
+        FinishDesktopLayerShow(() =>
+        {
+            _trayAnimation.RestoreVisualState();
+            _trayAnimation.RestoreWindowPosition();
+            QueueItemContainerTransitionRestore(animationGeneration);
+        });
     }
 
     public WidgetTrayBatchAnimationEntry? BeginSharedTrayShowAnimation()
@@ -441,16 +470,7 @@ public sealed partial class WidgetWindow
     public void RevealFromTray(bool autoRestore = true)
     {
         PrepareTrayShowAnimation();
-        ElevateForInteraction();
-        _trayAnimation.PrepareHiddenState();
-        Win32Helper.ShowWindow(_hWnd, Win32Helper.SW_SHOWNOACTIVATE);
-        base.Activate();
-        _trayAnimation.PrepareHiddenState();
-        _trayAnimation.RevealWindowForTrayShow();
-        Visible = true;
-        ViewModel.Config.IsVisible = true;
-        _settingsService.SaveDebounced();
-        QueueBackdropRefresh();
+        ShowPreparedAtDesktopLayer();
         PlayTrayRaiseAnimationAfterFirstFrame();
 
         if (!autoRestore)
@@ -458,6 +478,7 @@ public sealed partial class WidgetWindow
             return;
         }
 
+        // Keep layer pinned; timer only re-asserts desktop attachment if needed.
         _autoRestoreTimer?.Stop();
         _autoRestoreTimer = DispatcherQueue.CreateTimer();
         _autoRestoreTimer.IsRepeating = false;

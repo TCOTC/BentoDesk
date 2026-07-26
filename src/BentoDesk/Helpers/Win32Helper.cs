@@ -121,6 +121,26 @@ public static partial class Win32Helper
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool SetForegroundWindow(IntPtr hWnd);
 
+    /// <summary>
+    /// Best-effort restore of the previously focused top-level window after
+    /// BentoDesk briefly activates a host window during startup.
+    /// </summary>
+    public static void TryRestoreForegroundWindow(IntPtr previousForeground)
+    {
+        if (previousForeground == IntPtr.Zero || !IsWindow(previousForeground))
+        {
+            return;
+        }
+
+        IntPtr current = GetForegroundWindow();
+        if (current == previousForeground)
+        {
+            return;
+        }
+
+        SetForegroundWindow(previousForeground);
+    }
+
     [LibraryImport("user32.dll")]
     public static partial IntPtr WindowFromPoint(POINT point);
 
@@ -627,6 +647,56 @@ public static partial class Win32Helper
         bool r2 = SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, 0, 0,
             SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
         App.LogVerbose($"[ZOrder] SetWindowToBottom hwnd=0x{hWnd.ToInt64():X} r1={r1} r2={r2}");
+    }
+
+    /// <summary>
+    /// Temporarily hide an HWND via layered alpha (covers Mica/backdrop, unlike
+    /// composition opacity). Call <see cref="ClearTemporaryWindowAlpha"/> after
+    /// z-order has settled so acrylic/mica styles can apply normally again.
+    /// </summary>
+    public static void SetTemporaryWindowAlpha(IntPtr hWnd, byte alpha)
+    {
+        if (hWnd == IntPtr.Zero || !IsWindow(hWnd))
+        {
+            return;
+        }
+
+        int exStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
+        if ((exStyle & WS_EX_LAYERED) == 0)
+        {
+            SetWindowLong(hWnd, GWL_EXSTYLE, exStyle | WS_EX_LAYERED);
+        }
+
+        SetLayeredWindowAttributes(hWnd, 0, alpha, LWA_ALPHA);
+    }
+
+    /// <summary>
+    /// Restore full opacity and drop temporary <c>WS_EX_LAYERED</c> so system
+    /// backdrops (Mica/Acrylic) keep working.
+    /// </summary>
+    public static void ClearTemporaryWindowAlpha(IntPtr hWnd)
+    {
+        if (hWnd == IntPtr.Zero || !IsWindow(hWnd))
+        {
+            return;
+        }
+
+        int exStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
+        if ((exStyle & WS_EX_LAYERED) == 0)
+        {
+            return;
+        }
+
+        SetLayeredWindowAttributes(hWnd, 0, 255, LWA_ALPHA);
+        SetWindowLong(hWnd, GWL_EXSTYLE, exStyle & ~WS_EX_LAYERED);
+        SetWindowPos(
+            hWnd,
+            IntPtr.Zero,
+            0,
+            0,
+            0,
+            0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_FRAMECHANGED);
     }
 
     /// <summary>

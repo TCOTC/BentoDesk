@@ -31,101 +31,11 @@ public sealed partial class WidgetManager
     public async Task<bool?> RaiseWidgetsFromTrayAsync()
     {
         using var perfScope = PerformanceLogger.Measure("WidgetManager.RaiseWidgetsFromTray");
-        if (WidgetLayerService.UsesDesktopPinnedMode())
-        {
-            App.LogVerbose("[TrayBatch] Raise redirected to desktop-pinned show");
-            await SetAllWidgetsVisibleAsync(true);
-            return false;
-        }
-
-        var now = DateTime.UtcNow;
-        double sinceLastToggleMs = (now - _lastTrayLayerToggleUtc).TotalMilliseconds;
-        App.LogVerbose(
-            $"[TrayBatch] Raise requested raised={_widgetsRaisedFromTray} toggling={_isTogglingWidgetsDesktopLayer} " +
-            $"sinceLastMs={sinceLastToggleMs:F0} loadedFile={_widgets.Count} loadedContent={_contentWidgets.Count}");
-        // ⭐ 移除 320ms 节流限制，确保即时响应
-        if (_isTogglingWidgetsDesktopLayer)
-        {
-            App.LogVerbose("[TrayBatch] Raise ignored reason=busy");
-            return null;
-        }
-
-        _isTogglingWidgetsDesktopLayer = true;
-        _lastTrayLayerToggleUtc = now;
-        try
-        {
-            _trayBatchAnimationDriver.Cancel();
-            var candidates = _settingsService.Settings.Widgets
-                .Where(IsSessionCandidate)
-                .ToList();
-            App.LogVerbose($"[TrayBatch] Raise candidates={candidates.Count} widgets={FormatWidgetList(candidates)}");
-
-            var windowsToRaise = new List<IDesktopWidgetWindow>();
-            foreach (var widget in candidates)
-            {
-                try
-                {
-                    var window = await PrepareWidgetForBatchShowAsync(widget, showRaisedWhileInitializing: true);
-                    if (window is null)
-                    {
-                        continue;
-                    }
-
-                    windowsToRaise.Add(window);
-                }
-                catch (Exception ex)
-                {
-                    App.Log($"[WidgetManager] Failed to prepare widget for tray raise '{widget.Name}' ({widget.Id}): {ex}");
-                }
-            }
-
-            App.LogVerbose($"[TrayBatch] Raise prepared={windowsToRaise.Count}/{candidates.Count}");
-            var windowsToAnimate = windowsToRaise
-                .Where(window => !window.Visible)
-                .ToList();
-            PrepareTrayShowAnimations(windowsToAnimate);
-
-            _widgetsRaisedFromTray = windowsToRaise.Count > 0;
-            var shownWindows = new List<IDesktopWidgetWindow>();
-            foreach (var window in windowsToRaise)
-            {
-                try
-                {
-                    if (window.Visible)
-                    {
-                        window.EnsureRaisedFromTrayTopMost();
-                    }
-                    else
-                    {
-                        window.ShowPreparedRaisedFromTray(persistVisibility: false);
-                    }
-
-                    shownWindows.Add(window);
-                }
-                catch (Exception ex)
-                {
-                    App.Log($"[WidgetManager] Failed to show prepared widget from tray {FormatHostWindow(window)}: {ex}");
-                }
-            }
-
-            _foregroundAtRaiseTime = Win32Helper.GetForegroundWindow();
-            _suppressTrayLayerRestoreUntilUtc = DateTime.UtcNow.AddMilliseconds(160);
-            PlayPreparedTrayShowAnimations(windowsToAnimate);
-            SetWidgetsRaisedFromTray(shownWindows.Count > 0);
-            // Release the raised group once the foreground leaves BentoDesk (e.g. the
-            // user clicks another app window). Without the monitor the widgets stay
-            // topmost until the next toggle, covering whatever the user clicks.
-            StartTrayLayerRestoreMonitor(shownWindows.Count > 0);
-            QueueTrayRaiseTopMostConfirmation(shownWindows);
-            ActivateLastRaisedWindow(shownWindows);
-            SaveBatchVisibilityState();
-            App.LogVerbose($"[TrayBatch] Raise completed raised={_widgetsRaisedFromTray} prepared={windowsToRaise.Count} shown={shownWindows.Count} animated={windowsToAnimate.Count}");
-            return _widgetsRaisedFromTray;
-        }
-        finally
-        {
-            _isTogglingWidgetsDesktopLayer = false;
-        }
+        // Desktop-fixed layer: tray/hotkey “raise” shows widgets at the desktop layer
+        // (no temporary topmost session).
+        App.LogVerbose("[TrayBatch] Raise redirected to desktop-pinned show");
+        await SetAllWidgetsVisibleAsync(true);
+        return false;
     }
 
     private async Task<IDesktopWidgetWindow?> PrepareWidgetForBatchShowAsync(
@@ -403,48 +313,6 @@ public sealed partial class WidgetManager
             (int)Math.Round(window.RestingAnimationBounds.Top));
         var displayArea = DisplayArea.GetFromPoint(point, DisplayAreaFallback.Primary);
         return displayArea.WorkArea;
-    }
-
-    private static void ActivateLastRaisedWindow(IReadOnlyList<IDesktopWidgetWindow> windows)
-    {
-        if (windows.LastOrDefault() is not { } window)
-        {
-            return;
-        }
-
-        try
-        {
-            window.ActivateRaisedFromTrayBatch();
-        }
-        catch (Exception ex)
-        {
-            App.Log($"[WidgetManager] Failed to activate raised widget {FormatHostWindow(window)}: {ex}");
-        }
-    }
-
-    private void QueueTrayRaiseTopMostConfirmation(IReadOnlyList<IDesktopWidgetWindow> windows)
-    {
-        if (windows.Count == 0)
-        {
-            return;
-        }
-
-        long generation = ++_trayRaiseBatchGeneration;
-        ConfirmTrayRaiseTopMost(windows, generation);
-    }
-
-    private void ConfirmTrayRaiseTopMost(IReadOnlyList<IDesktopWidgetWindow> windows, long generation)
-    {
-        if (generation != _trayRaiseBatchGeneration || !_widgetsRaisedFromTray)
-        {
-            return;
-        }
-
-        var visibleWindows = windows.Where(window => window.Visible).ToList();
-        IntPtr activeHandle = visibleWindows.LastOrDefault()?.WindowHandle ?? IntPtr.Zero;
-        WidgetLayerService.BringGroupTemporarilyToFront(
-            visibleWindows.Select(window => window.WindowHandle).ToList(),
-            activeHandle);
     }
 
     private void SaveBatchVisibilityState()

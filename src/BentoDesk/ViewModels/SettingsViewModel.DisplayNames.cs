@@ -212,15 +212,6 @@ public partial class SettingsViewModel
         };
     }
 
-    public string GetWidgetLayerModeDisplayName(string mode)
-    {
-        return SettingsService.NormalizeWidgetLayerModeSetting(mode) switch
-        {
-            SettingsService.WidgetLayerModeDesktopPinned => _localizationService.T("Settings.WidgetLayerMode.DesktopPinned"),
-            _ => _localizationService.T("Settings.WidgetLayerMode.Dynamic")
-        };
-    }
-
     public string GetMusicDisplayModeDisplayName(string mode)
     {
         return SettingsService.NormalizeMusicDisplayMode(mode) switch

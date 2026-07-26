@@ -463,14 +463,6 @@ set => WidgetOpacity = Math.Clamp(1.0 - value / 100d, SettingsService.MinWidgetO
 
     public string[] AvailableWidgetTitleIconModeDisplayNames => _cachedWidgetTitleIconModeDisplayNames ??= AvailableWidgetTitleIconModes.Select(GetWidgetTitleIconModeDisplayName).ToArray();
 
-    public string[] AvailableWidgetLayerModes { get; } =
-    [
-        SettingsService.WidgetLayerModeDynamic,
-        SettingsService.WidgetLayerModeDesktopPinned
-    ];
-
-    public string[] AvailableWidgetLayerModeDisplayNames => _cachedWidgetLayerModeDisplayNames ??= AvailableWidgetLayerModes.Select(GetWidgetLayerModeDisplayName).ToArray();
-
     public string[] AvailableManagedDropActions { get; } =
     [
         SettingsService.ManagedDropActionCopy,

@@ -240,7 +240,8 @@ public sealed partial class ContentWidgetWindow
 
     private void ShowWithoutActivation(bool persistVisibility)
     {
-        AppWindow.Show();
+        // Show(false): default AppWindow.Show() activates and steals focus from other apps.
+        AppWindow.Show(false);
         Win32Helper.ShowWindow(HWnd, Win32Helper.SW_SHOWNOACTIVATE);
         Visible = true;
         _config.IsVisible = true;

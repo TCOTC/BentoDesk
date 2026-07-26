@@ -81,8 +81,6 @@ public sealed class SettingsService
 
     public static bool SupportsMaterialIntensity(string? materialType) =>
         IsMicaMaterial(materialType) || IsAcrylicMaterial(materialType);
-    public const string WidgetLayerModeDynamic = "Dynamic";
-    public const string WidgetLayerModeDesktopPinned = "DesktopPinned";
     public const string WidgetChromeModeStandard = WidgetChromeModeNames.Standard;
     public const string WidgetChromeModeCompact = WidgetChromeModeNames.Compact;
     public const string WidgetChromeModeOverlay = WidgetChromeModeNames.Overlay;
@@ -252,7 +250,6 @@ public sealed class SettingsService
         settings.WidgetAnimationSpeed = WidgetAnimationSpeedStandard;
         settings.WidgetAnimationSlideDirection = WidgetAnimationSlideDirectionRight;
         settings.WidgetAnimationEasingIntensity = WidgetAnimationEasingStandard;
-        settings.WidgetLayerMode = WidgetLayerModeDynamic;
         settings.DisplayWidgetChromeMode = WidgetChromeModeOverlay;
         settings.InteractiveWidgetChromeMode = WidgetChromeModeStandard;
         settings.WidgetCollapseBehavior = WidgetCollapseBehaviorSmart;
@@ -708,13 +705,6 @@ settings.FocusClickedWidgetOnRaise = false;
                  settings.WidgetAnimationSlideDirection != WidgetAnimationSlideDirectionNone)
         {
             settings.WidgetAnimationSlideDirection = WidgetAnimationSlideDirectionNone;
-            changed = true;
-        }
-
-        string normalizedLayerMode = NormalizeWidgetLayerModeSetting(settings.WidgetLayerMode);
-        if (!string.Equals(settings.WidgetLayerMode, normalizedLayerMode, StringComparison.Ordinal))
-        {
-            settings.WidgetLayerMode = normalizedLayerMode;
             changed = true;
         }
 
@@ -1298,13 +1288,6 @@ settings.FocusClickedWidgetOnRaise = false;
         return selected.Count == 0
             ? [WidgetHoverActionMore]
             : selected;
-    }
-
-    public static string NormalizeWidgetLayerModeSetting(string? value)
-    {
-        return string.Equals(value, WidgetLayerModeDesktopPinned, StringComparison.Ordinal)
-            ? WidgetLayerModeDesktopPinned
-            : WidgetLayerModeDynamic;
     }
 
     private static bool NormalizeAppearanceSettings(AppSettings settings)

@@ -35,22 +35,12 @@ public abstract partial class WidgetWindowBase
 
     protected void HoldTemporaryTopMost()
     {
-        if (WidgetLayerService.UsesDesktopPinnedMode())
-        {
-            IsAtDesktopLayer = true;
-            KeepRaisedUntilDeactivate = false;
-            RestoreDesktopLayerWhenIdle = false;
-            WidgetLayerService.MoveToDesktopBottom(HWnd);
-            App.LogVerbose($"[ZOrder] {LogPrefix} HoldTemporaryTopMost skipped pinned hwnd=0x{HWnd.ToInt64():X}");
-            return;
-        }
-
-        IsAtDesktopLayer = false;
-        KeepRaisedUntilDeactivate = true;
+        // Desktop-fixed layer only: keep the window attached, never temporarily topmost.
+        IsAtDesktopLayer = true;
+        KeepRaisedUntilDeactivate = false;
         RestoreDesktopLayerWhenIdle = false;
-        WidgetLayerService.HoldTemporaryTopMost(HWnd);
-        App.LogVerbose($"[ZOrder] {LogPrefix} HoldTemporaryTopMost hwnd=0x{HWnd.ToInt64():X}");
-        StartTopMostSafetyTimer();
+        WidgetLayerService.MoveToDesktopBottom(HWnd);
+        App.LogVerbose($"[ZOrder] {LogPrefix} HoldTemporaryTopMost pinned hwnd=0x{HWnd.ToInt64():X}");
     }
 
     protected void StartTopMostSafetyTimer()

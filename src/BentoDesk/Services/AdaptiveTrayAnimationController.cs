@@ -138,6 +138,7 @@ public sealed class AdaptiveTrayAnimationController
         }
         else
         {
+            App.Log($"[Adaptive] CloakWindow failed hresult=0x{result:X8} hwnd=0x{_windowHandle.ToInt64():X}");
             _log($"[Adaptive] CloakWindow failed hresult=0x{result:X8}");
         }
     }

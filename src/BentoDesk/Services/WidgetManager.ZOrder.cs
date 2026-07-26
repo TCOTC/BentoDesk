@@ -20,12 +20,9 @@ public sealed partial class WidgetManager
     private DispatcherQueueTimer? _trayLayerRestoreTimer;
     private DispatcherQueueTimer? _trayMouseSamplerTimer;
     private bool _widgetsRaisedFromTray;
-    private bool _isTogglingWidgetsDesktopLayer;
-    private string _lastWidgetLayerMode;
-    private DateTime _lastTrayLayerToggleUtc = DateTime.MinValue;
     private DateTime _suppressTrayLayerRestoreUntilUtc = DateTime.MinValue;
     private bool _hasBentoDeskForegroundSinceRaise;
-    private IntPtr _foregroundAtRaiseTime;
+    private IntPtr _foregroundAtRaiseTime = IntPtr.Zero;
 
     // ── 50ms mouse sampler (方案 B) ──
     // Uses the HIGH bit of GetAsyncKeyState (global physical state) instead of
@@ -60,17 +57,11 @@ public sealed partial class WidgetManager
 
     public void ActivateAllVisibleWidgetsFromTitle(IntPtr activeHwnd)
     {
-        if (WidgetLayerService.UsesDesktopPinnedMode())
+        // Desktop-fixed layer: title activation only reorders peers within the desktop layer.
+        if (activeHwnd != IntPtr.Zero)
         {
-            return;
+            WidgetLayerService.BringAbovePeerWidgets(activeHwnd);
         }
-
-        var handles = GetLoadedDesktopWindows()
-            .Where(window => window.Visible)
-            .Select(window => window.WindowHandle)
-            .ToList();
-        WidgetLayerService.BringGroupTemporarilyToFront(handles, activeHwnd);
-        App.LogVerbose($"[ZOrder] TitleActivatedAll active=0x{activeHwnd.ToInt64():X}");
     }
 
     public bool RequestRestoreRaisedWidgetsToDesktopLayer(string reason = "interaction-ended")
@@ -105,7 +96,6 @@ public sealed partial class WidgetManager
     {
         if (!_widgetsRaisedFromTray ||
             generation != _trayRaiseBatchGeneration ||
-            _isTogglingWidgetsDesktopLayer ||
             IsWidgetInteractionActive ||
             DateTime.UtcNow < _suppressTrayLayerRestoreUntilUtc)
         {
@@ -259,8 +249,7 @@ public sealed partial class WidgetManager
             return;
         }
 
-        if (_isTogglingWidgetsDesktopLayer ||
-            DateTime.UtcNow < _suppressTrayLayerRestoreUntilUtc)
+        if (DateTime.UtcNow < _suppressTrayLayerRestoreUntilUtc)
         {
             return;
         }

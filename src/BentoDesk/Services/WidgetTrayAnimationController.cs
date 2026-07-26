@@ -142,6 +142,8 @@ public sealed class WidgetTrayAnimationController
         }
         else
         {
+            // Always surface cloak failures — composition opacity cannot hide Mica.
+            App.Log($"[TrayAnim] CloakWindow failed hresult=0x{result:X8} hwnd=0x{_windowHandle.ToInt64():X}");
             _log($"CloakWindow failed hresult=0x{result:X8}");
         }
     }

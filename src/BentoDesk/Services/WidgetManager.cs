@@ -40,7 +40,7 @@ internal interface IDesktopWidgetWindow
     void PreviewCompactArrangement(Windows.Graphics.RectInt32 bounds);
     void SetTrayAnimationOffsetOverride(double? offsetX, double? offsetY);
     void PrepareTrayShowAnimation();
-    void ShowPreparedAtDesktopLayer(bool persistVisibility = true);
+    void ShowPreparedAtDesktopLayer(bool persistVisibility = true, bool revealWindow = true);
     void ShowPreparedRaisedFromTray(bool persistVisibility = true);
     void PlayTrayShowAnimation();
     void CompleteTrayShowWithoutAnimation();
@@ -274,7 +274,6 @@ public sealed partial class WidgetManager
         {
             _lastFeatureWidgetEnabledStates[kind] = FeatureWidgetSettings.IsEnabled(_settingsService.Settings, kind);
         }
-        _lastWidgetLayerMode = SettingsService.NormalizeWidgetLayerModeSetting(_settingsService.Settings.WidgetLayerMode);
         _settingsService.SettingsChanged += OnSettingsChanged;
         _settingsService.AppearancePreviewChanged += ApplyAppearancePreview;
         _themeService.AppearanceChanged += ApplyAppearancePreview;
@@ -319,7 +318,6 @@ public sealed partial class WidgetManager
 
     private void OnSettingsChanged()
     {
-        ApplyWidgetLayerModeIfChanged();
         ApplyCapsuleArrangementIfChanged();
 
         foreach (var kind in FeatureWidgetSettings.FeatureKinds)
@@ -333,48 +331,6 @@ public sealed partial class WidgetManager
 
             _lastFeatureWidgetEnabledStates[kind] = enabled;
             ApplyFeatureWidgetEnabledState(kind, enabled);
-        }
-    }
-
-    private void ApplyWidgetLayerModeIfChanged()
-    {
-        string layerMode = SettingsService.NormalizeWidgetLayerModeSetting(_settingsService.Settings.WidgetLayerMode);
-        if (string.Equals(layerMode, _lastWidgetLayerMode, StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        string previousMode = _lastWidgetLayerMode;
-        _lastWidgetLayerMode = layerMode;
-        WidgetLayerService.InvalidateDesktopIconViewCache();
-        App.Log($"[WidgetManager] Widget layer mode changed {previousMode}->{layerMode}");
-        RefreshVisibleWidgetDesktopLayers("layer-mode-changed");
-    }
-
-    public void RefreshVisibleWidgetDesktopLayers(string reason)
-    {
-        if (!HasUiThreadAccess())
-        {
-            App.UiDispatcherQueue.TryEnqueue(() => RefreshVisibleWidgetDesktopLayers(reason));
-            return;
-        }
-
-        App.Log($"[WidgetManager] Refresh visible widget desktop layers reason={reason}");
-        foreach (var window in GetLoadedDesktopWindows())
-        {
-            if (!window.Visible)
-            {
-                continue;
-            }
-
-            try
-            {
-                window.ForceRestoreDesktopLayerFromManager();
-            }
-            catch (Exception ex)
-            {
-                App.Log($"[WidgetManager] Failed to refresh widget desktop layer {FormatHostWindow(window)}: {ex}");
-            }
         }
     }
 
@@ -713,7 +669,7 @@ public sealed partial class WidgetManager
             contentWindow.PrepareTrayShowAnimation();
             if (reveal)
             {
-                contentWindow.ShowPreparedRaisedFromTray();
+                contentWindow.ShowPreparedAtDesktopLayer();
                 contentWindow.PlayTrayShowAnimation();
             }
             else
@@ -1019,18 +975,6 @@ public sealed partial class WidgetManager
                _widgetRegistry.IsAvailableForSession(widget, _settingsService.Settings);
     }
 
-    private void QueueTrayRaiseTopMostConfirmation(
-        IReadOnlyList<IDesktopWidgetWindow> windows,
-        long generation,
-        TimeSpan delay)
-    {
-        App.UiDispatcherQueue.TryEnqueue(async () =>
-        {
-            await Task.Delay(delay);
-            ConfirmTrayRaiseTopMost(windows, generation);
-        });
-    }
-
     private static bool CanCreateWidgetWindowOnCurrentThread()
     {
         return App.UiDispatcherQueue is not null;
@@ -1058,9 +1002,7 @@ public sealed partial class WidgetManager
 
     private void RestoreRaisedWidgetsToDesktopLayer(bool force)
     {
-        if (!force &&
-            (_isTogglingWidgetsDesktopLayer ||
-             DateTime.UtcNow < _suppressTrayLayerRestoreUntilUtc))
+        if (!force && DateTime.UtcNow < _suppressTrayLayerRestoreUntilUtc)
         {
             App.LogVerbose($"[TrayBatch] RestoreDesktopLayer skipped force={force} reason=busy-or-suppressed");
             return;
@@ -1263,8 +1205,8 @@ public sealed partial class WidgetManager
             window.PrepareTrayShowAnimation();
             if (!keepPreparedForAnimation)
             {
-                window.Activate();
-                window.PushToBottom();
+                // Stay cloaked through InitializeAsync; CompleteTrayShowWithoutAnimation reveals.
+                window.ShowPreparedAtDesktopLayer(persistVisibility: false, revealWindow: false);
             }
             else if (showRaisedWhileInitializing)
             {
@@ -1396,18 +1338,18 @@ public sealed partial class WidgetManager
             window.PrepareTrayShowAnimation();
             if (!keepPreparedForAnimation)
             {
-                window.ShowPreparedAtDesktopLayer();
+                window.ShowPreparedAtDesktopLayer(revealWindow: false);
                 window.CompleteTrayShowWithoutAnimation();
             }
             else if (showRaisedWhileInitializing)
             {
-                window.ShowPreparedRaisedFromTray();
+                window.ShowPreparedAtDesktopLayer();
                 return Task.FromResult(window);
             }
 
             if (revealAfterCreate)
             {
-                window.ShowPreparedRaisedFromTray();
+                window.ShowPreparedAtDesktopLayer();
                 window.PlayTrayShowAnimation();
             }
         }

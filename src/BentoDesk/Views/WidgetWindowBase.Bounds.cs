@@ -46,11 +46,16 @@ public abstract partial class WidgetWindowBase
         int style = Win32Helper.GetWindowLong(HWnd, Win32Helper.GWL_STYLE);
         style &= ~(Win32Helper.WS_CAPTION | Win32Helper.WS_BORDER | Win32Helper.WS_DLGFRAME | Win32Helper.WS_THICKFRAME);
         Win32Helper.SetWindowLong(HWnd, Win32Helper.GWL_STYLE, style);
+        // IntPtr.Zero is HWND_TOP — always pass SWP_NOZORDER with FRAMECHANGED.
         Win32Helper.SetWindowPos(
             HWnd,
             IntPtr.Zero,
             0, 0, 0, 0,
-            Win32Helper.SWP_NOMOVE | Win32Helper.SWP_NOSIZE | Win32Helper.SWP_NOACTIVATE | Win32Helper.SWP_FRAMECHANGED);
+            Win32Helper.SWP_NOMOVE |
+            Win32Helper.SWP_NOSIZE |
+            Win32Helper.SWP_NOACTIVATE |
+            Win32Helper.SWP_NOZORDER |
+            Win32Helper.SWP_FRAMECHANGED);
 
         AppWindow.IsShownInSwitchers = false;
         ExtendsContentIntoTitleBar = false;
@@ -132,6 +137,12 @@ public abstract partial class WidgetWindowBase
             else
             {
                 AppWindow.MoveAndResize(bounds);
+            }
+
+            // AppWindow.MoveAndResize can lift the HWND out of the desktop band.
+            if (IsAtDesktopLayer)
+            {
+                WidgetLayerService.MoveToDesktopBottom(HWnd);
             }
         }
         finally

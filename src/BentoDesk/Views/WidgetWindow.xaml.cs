@@ -462,24 +462,8 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
             return;
         }
 
-        if (args.WindowActivationState != WindowActivationState.PointerActivated ||
-            !Visible ||
-            !_isAtDesktopLayer ||
-            _isDragging ||
-            _isResizing ||
-            WidgetLayerService.UsesDesktopPinnedMode() ||
-            (App.Current.WidgetManager is { WidgetsRaisedFromTray: true }))
-        {
-            App.LogVerbose($"[ZOrder] Widget PointerActivated BLOCKED hwnd=0x{_hWnd.ToInt64():X} visible={Visible} atDesktop={_isAtDesktopLayer} raised={App.Current.WidgetManager?.WidgetsRaisedFromTray}");
-            return;
-        }
-
-        App.Log($"[ZOrder] Widget PointerActivated→Elevate hwnd=0x{_hWnd.ToInt64():X}");
-        _isAtDesktopLayer = false;
-        _keepRaisedUntilDeactivate = true;
-        _restoreDesktopLayerWhenIdle = false;
-        PlayTrayRaiseAnimation();
-        StartTopMostSafetyTimer();
+        // Desktop-fixed layer: pointer activation must not lift widgets above other apps.
+        App.LogVerbose($"[ZOrder] Widget PointerActivated BLOCKED hwnd=0x{_hWnd.ToInt64():X} visible={Visible} atDesktop={_isAtDesktopLayer}");
     }
 
     private void QueueRestoreDesktopLayerIfForegroundLeavesBentoDesk()

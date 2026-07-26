@@ -78,7 +78,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private string _selectedDisplayWidgetChromeMode = SettingsService.WidgetChromeModeOverlay;
     private string _selectedInteractiveWidgetChromeMode = SettingsService.WidgetChromeModeStandard;
     private string _selectedWidgetTitleIconMode = SettingsService.WidgetTitleIconModeColor;
-    private string _selectedWidgetLayerMode = SettingsService.WidgetLayerModeDynamic;
     private string _selectedManagedDropAction = SettingsService.ManagedDropActionMove;
     private string _selectedMusicDisplayMode = SettingsService.MusicDisplayModeAuto;
     private bool _useSystemAccentColor;
@@ -113,7 +112,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private string[]? _cachedDisplayWidgetChromeModeDisplayNames;
     private string[]? _cachedInteractiveWidgetChromeModeDisplayNames;
     private string[]? _cachedWidgetTitleIconModeDisplayNames;
-    private string[]? _cachedWidgetLayerModeDisplayNames;
     private string[]? _cachedManagedDropActionDisplayNames;
     private string[]? _cachedMusicDisplayModeDisplayNames;
 
@@ -309,7 +307,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
             _selectedDisplayWidgetChromeMode = NormalizeWidgetChromeModeSetting(settings.DisplayWidgetChromeMode, WidgetChromeMode.Overlay);
             _selectedInteractiveWidgetChromeMode = NormalizeWidgetChromeModeSetting(settings.InteractiveWidgetChromeMode, WidgetChromeMode.Standard);
             _selectedWidgetTitleIconMode = NormalizeWidgetTitleIconModeSetting(settings.WidgetTitleIconMode);
-            _selectedWidgetLayerMode = SettingsService.NormalizeWidgetLayerModeSetting(settings.WidgetLayerMode);
             IconSize = settings.IconSize;
             TextSize = settings.TextSize;
             LayoutDensityScale = settings.LayoutDensityScale;

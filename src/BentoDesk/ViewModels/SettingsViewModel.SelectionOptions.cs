@@ -84,9 +84,6 @@ public partial class SettingsViewModel
     public IReadOnlyList<SettingsOption> AvailableWidgetTitleIconModeOptions =>
         CreateSelectionOptions(AvailableWidgetTitleIconModes, AvailableWidgetTitleIconModeDisplayNames);
 
-    public IReadOnlyList<SettingsOption> AvailableWidgetLayerModeOptions =>
-        CreateSelectionOptions(AvailableWidgetLayerModes, AvailableWidgetLayerModeDisplayNames);
-
     public IReadOnlyList<SettingsOption> AvailableManagedDropActionOptions =>
         CreateSelectionOptions(AvailableManagedDropActions, AvailableManagedDropActionDisplayNames);
 
@@ -149,7 +146,6 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(AvailableDisplayWidgetChromeModeOptions));
         OnPropertyChanged(nameof(AvailableInteractiveWidgetChromeModeOptions));
         OnPropertyChanged(nameof(AvailableWidgetTitleIconModeOptions));
-        OnPropertyChanged(nameof(AvailableWidgetLayerModeOptions));
         OnPropertyChanged(nameof(AvailableManagedDropActionOptions));
         OnPropertyChanged(nameof(AvailableMusicDisplayModeOptions));
         OnPropertyChanged(nameof(AvailableFileStackGroupByOptions));

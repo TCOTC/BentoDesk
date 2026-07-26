@@ -130,6 +130,8 @@ public partial class App
         ThemeService.TrackWindow(_trayWindow);
 
         // Activate 才会完成 XAML / 托盘控件初始化；窗口已移到屏外且无标题栏，再同步 Hide，避免小窗闪现。
+        // 记录并恢复前台窗口，避免托盘宿主 Activate 抢走用户当前应用的焦点。
+        IntPtr previousForeground = Win32Helper.GetForegroundWindow();
         _trayWindow.Activate();
 
         if (!_trayIcon.IsCreated)
@@ -138,6 +140,7 @@ public partial class App
         }
 
         HideTrayHostWindow(_trayWindow);
+        Win32Helper.TryRestoreForegroundWindow(previousForeground);
 
         try
         {
@@ -168,7 +171,7 @@ public partial class App
             presenter.IsMinimizable = false;
         }
 
-        // 移到屏外，即便 Activate 抢到一帧也不会被看到。
+        // 移到屏外，即使 Activate 抢到一帧也不会被看到。
         appWindow.MoveAndResize(new Windows.Graphics.RectInt32(-32000, -32000, 1, 1));
 
         var hwnd = WindowNative.GetWindowHandle(trayWindow);

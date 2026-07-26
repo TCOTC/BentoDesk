@@ -733,6 +733,8 @@ public partial class App : Application
 
         using var perfScope = PerformanceLogger.Measure("App.OnLaunched", $"startup={IsStartupLaunch(args.Arguments)}");
         Log("OnLaunched start");
+        // Preserve the user's focused app across tray/widget host initialization.
+        IntPtr foregroundAtLaunch = Win32Helper.GetForegroundWindow();
 
         try
         {
@@ -849,6 +851,7 @@ public partial class App : Application
             }
 
             await WidgetManager.RestoreWidgetsAsync();
+            Win32Helper.TryRestoreForegroundWindow(foregroundAtLaunch);
 
             // Install the low-level mouse hook only after the critical startup path settles.
             try

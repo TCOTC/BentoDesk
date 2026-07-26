@@ -386,20 +386,25 @@ IsHideAnimationRunning = false;
             profile.ShowStartScale);
     }
 
-    public void ShowPreparedAtDesktopLayer(bool persistVisibility = true)
+    public void ShowPreparedAtDesktopLayer(bool persistVisibility = true, bool revealWindow = true)
     {
-        ShowWithoutActivation(persistVisibility);
+        // Essential anti-flash: alpha=0 over the whole HWND while Show+attach settles.
+        TrayAnimation.CloakWindowForTrayShow();
+        Win32Helper.SetTemporaryWindowAlpha(HWnd, 0);
         TrayAnimation.PrepareHiddenState();
-        TrayAnimation.RevealWindowForTrayShow();
         PushToBottom();
+        ShowWithoutActivation(persistVisibility);
+        PushToBottom();
+        if (revealWindow)
+        {
+            FinishDesktopLayerShow();
+        }
     }
 
     public void ShowPreparedRaisedFromTray(bool persistVisibility = true)
     {
-        ShowWithoutActivation(persistVisibility);
-        TrayAnimation.PrepareHiddenState();
-        TrayAnimation.RevealWindowForTrayShow();
-        HoldTemporaryTopMost();
+        // Desktop-fixed layer: "raise" is show-at-desktop-layer, not topmost.
+        ShowPreparedAtDesktopLayer(persistVisibility);
     }
 
     public void PlayTrayShowAnimation()
@@ -413,9 +418,46 @@ IsHideAnimationRunning = false;
         LogTrayWindow($"CompleteShowWithoutAnimation gen={TrayAnimation.Generation}");
         TrayAnimation.Stop();
         SetTrayAnimationOffsetOverride(null, null);
-        TrayAnimation.RestoreVisualState();
-        TrayAnimation.RestoreWindowPosition();
-        TrayAnimation.RevealWindowForTrayShow();
+        Win32Helper.SetTemporaryWindowAlpha(HWnd, 0);
+        PushToBottom();
+        FinishDesktopLayerShow(() =>
+        {
+            TrayAnimation.RestoreVisualState();
+            TrayAnimation.RestoreWindowPosition();
+        });
+    }
+
+    private void FinishDesktopLayerShow(Action? beforeVisible = null)
+    {
+        if (!DispatcherQueue.TryEnqueue(async () =>
+            {
+                if (!Visible)
+                {
+                    return;
+                }
+
+                PushToBottom();
+                TrayAnimation.RevealWindowForTrayShow();
+                beforeVisible?.Invoke();
+                PushToBottom();
+                // AppWindow.Show side effects often land after the first tick.
+                await Task.Delay(32);
+                if (!Visible)
+                {
+                    return;
+                }
+
+                PushToBottom();
+                Win32Helper.ClearTemporaryWindowAlpha(HWnd);
+                ApplyBackdropPreference();
+            }))
+        {
+            PushToBottom();
+            TrayAnimation.RevealWindowForTrayShow();
+            beforeVisible?.Invoke();
+            Win32Helper.ClearTemporaryWindowAlpha(HWnd);
+            ApplyBackdropPreference();
+        }
     }
 
     public bool PrepareTrayHideAnimation(bool persistVisibility = true)

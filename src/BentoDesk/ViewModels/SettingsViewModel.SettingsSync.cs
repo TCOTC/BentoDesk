@@ -113,7 +113,6 @@ public partial class SettingsViewModel
                 settings.InteractiveWidgetChromeMode,
                 WidgetChromeMode.Standard);
             SelectedWidgetTitleIconMode = NormalizeWidgetTitleIconModeSetting(settings.WidgetTitleIconMode);
-            SelectedWidgetLayerMode = SettingsService.NormalizeWidgetLayerModeSetting(settings.WidgetLayerMode);
 
             IconSize = settings.IconSize;
             TextSize = settings.TextSize;
@@ -218,7 +217,6 @@ public partial class SettingsViewModel
             _cachedDisplayWidgetChromeModeDisplayNames = null;
             _cachedInteractiveWidgetChromeModeDisplayNames = null;
             _cachedWidgetTitleIconModeDisplayNames = null;
-            _cachedWidgetLayerModeDisplayNames = null;
             _cachedMusicDisplayModeDisplayNames = null;
             _cachedManagedDropActionDisplayNames = null;
             OnPropertyChanged(nameof(AvailableThemeDisplayNames));
@@ -245,7 +243,6 @@ public partial class SettingsViewModel
             OnPropertyChanged(nameof(AvailableDisplayWidgetChromeModeDisplayNames));
             OnPropertyChanged(nameof(AvailableInteractiveWidgetChromeModeDisplayNames));
             OnPropertyChanged(nameof(AvailableWidgetTitleIconModeDisplayNames));
-            OnPropertyChanged(nameof(AvailableWidgetLayerModeDisplayNames));
             OnPropertyChanged(nameof(AvailableManagedDropActionDisplayNames));
             OnPropertyChanged(nameof(AvailableMusicDisplayModeDisplayNames));
             NotifySelectionOptionsChanged();
@@ -298,7 +295,6 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(SelectedDisplayWidgetChromeModeText));
         OnPropertyChanged(nameof(SelectedInteractiveWidgetChromeModeText));
         OnPropertyChanged(nameof(SelectedWidgetTitleIconModeText));
-        OnPropertyChanged(nameof(SelectedWidgetLayerModeText));
         NotifyHoverButtonActionPropertiesChanged();
         OnPropertyChanged(nameof(HoverButtonActionsSummaryText));
         OnPropertyChanged(nameof(SelectedMusicDisplayModeText));

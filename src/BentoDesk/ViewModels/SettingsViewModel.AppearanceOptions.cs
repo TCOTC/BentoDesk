@@ -575,31 +575,6 @@ public partial class SettingsViewModel
         SettingsService.WidgetHoverActionDelete
     ];
 
-    public string SelectedWidgetLayerMode
-    {
-        get => _selectedWidgetLayerMode;
-        set
-        {
-            string normalizedValue = SettingsService.NormalizeWidgetLayerModeSetting(value);
-            if (!SetProperty(ref _selectedWidgetLayerMode, normalizedValue))
-            {
-                return;
-            }
-
-            if (_isRestoringDefaults || _isApplyingSettingsSnapshot)
-            {
-                return;
-            }
-
-            _settingsService.Settings.WidgetLayerMode = normalizedValue;
-            _settingsService.SaveDebounced();
-            App.Current?.WidgetManager?.RefreshVisibleWidgetDesktopLayers("settings-layer-mode");
-            OnPropertyChanged(nameof(SelectedWidgetLayerModeText));
-        }
-    }
-
-    public string SelectedWidgetLayerModeText => GetWidgetLayerModeDisplayName(SelectedWidgetLayerMode);
-
     [RelayCommand]
     public void ResetDisplayWidgetChromeOverrides()
     {

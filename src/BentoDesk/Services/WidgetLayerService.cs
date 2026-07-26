@@ -4,8 +4,8 @@ using System.Runtime.InteropServices;
 namespace BentoDesk.Services;
 
 /// <summary>
-/// Centralizes desktop widget Z-order operations so future layer modes can be
-/// implemented without duplicating Win32 calls across each widget window type.
+/// Centralizes desktop widget Z-order: widgets stay attached to the desktop
+/// icon layer (above desktop icons, below normal application windows).
 /// </summary>
 public static class WidgetLayerService
 {
@@ -17,160 +17,55 @@ public static class WidgetLayerService
 
     public static void MoveToDesktopBottom(IntPtr windowHandle)
     {
-        if (UsesDesktopPinnedMode() && TryAttachToDesktopIconLayer(windowHandle))
+        if (!TryAttachToDesktopIconLayer(windowHandle))
         {
-            return;
+            FallbackToDesktopBottom(windowHandle);
         }
-
-        DetachFromDesktopIconLayerIfNeeded(windowHandle);
-        Win32Helper.ClearWindowTopMost(windowHandle);
-        Win32Helper.SetWindowToBottom(windowHandle);
     }
 
     public static IntPtr ClearTopMostPreservingForeground(IntPtr windowHandle)
     {
-        if (UsesDesktopPinnedMode())
-        {
-            if (!TryAttachToDesktopIconLayer(windowHandle))
-            {
-                MoveToDynamicDesktopBottom(windowHandle);
-            }
-
-            return Win32Helper.GetForegroundWindow();
-        }
-
-        IntPtr foreground = Win32Helper.GetForegroundWindow();
-        DetachFromDesktopIconLayerIfNeeded(windowHandle);
-
-        // Always clear TopMost and bring the foreground window to front.
-        // Previously this was gated by `wasTopMost`, but raised widgets use
-        // BringWindowTemporarilyToFront (TOPMOST→NOTOPMOST) so they are never
-        // persistently TopMost by the time restore runs — the gate was always
-        // false, causing a "silent restore" (state changed, visual didn't).
-        Win32Helper.ClearWindowTopMost(windowHandle);
-
-        if (foreground != IntPtr.Zero && foreground != windowHandle)
-        {
-            Win32Helper.BringWindowToFront(foreground);
-        }
-
-        return foreground;
+        MoveToDesktopBottom(windowHandle);
+        return Win32Helper.GetForegroundWindow();
     }
 
     public static void ClearTopMost(IntPtr windowHandle)
     {
-        if (UsesDesktopPinnedMode())
-        {
-            if (!TryAttachToDesktopIconLayer(windowHandle))
-            {
-                MoveToDynamicDesktopBottom(windowHandle);
-            }
-
-            return;
-        }
-
-        DetachFromDesktopIconLayerIfNeeded(windowHandle);
-        Win32Helper.ClearWindowTopMost(windowHandle);
+        MoveToDesktopBottom(windowHandle);
     }
 
     public static void HoldTemporaryTopMost(IntPtr windowHandle)
     {
-        if (UsesDesktopPinnedMode())
-        {
-            if (!TryAttachToDesktopIconLayer(windowHandle))
-            {
-                MoveToDynamicDesktopBottom(windowHandle);
-            }
-
-            return;
-        }
-
-        DetachFromDesktopIconLayerIfNeeded(windowHandle);
-        Win32Helper.BringWindowTemporarilyToFront(windowHandle);
+        // Desktop-fixed layer: interaction must not lift widgets above other apps.
+        MoveToDesktopBottom(windowHandle);
     }
 
     public static void BringToFront(IntPtr windowHandle)
     {
-        if (UsesDesktopPinnedMode())
-        {
-            if (!TryAttachToDesktopIconLayer(windowHandle))
-            {
-                MoveToDynamicDesktopBottom(windowHandle);
-            }
-
-            return;
-        }
-
-        DetachFromDesktopIconLayerIfNeeded(windowHandle);
-        Win32Helper.BringWindowToFront(windowHandle);
+        MoveToDesktopBottom(windowHandle);
     }
 
     /// <summary>
-    /// Raises one widget above its peers without activating it. In desktop-pinned
-    /// mode the window remains attached to the desktop icon layer and only its
-    /// sibling order changes.
+    /// Raises one widget above its peers without activating it. The window
+    /// remains attached to the desktop icon layer; only sibling order changes.
     /// </summary>
     public static void BringAbovePeerWidgets(IntPtr windowHandle)
     {
-        if (UsesDesktopPinnedMode())
-        {
-            if (TryAttachToDesktopIconLayer(windowHandle))
-            {
-                Win32Helper.SetWindowPos(
-                    windowHandle,
-                    Win32Helper.HWND_TOP,
-                    0,
-                    0,
-                    0,
-                    0,
-                    Win32Helper.SWP_NOMOVE |
-                        Win32Helper.SWP_NOSIZE |
-                        Win32Helper.SWP_NOACTIVATE |
-                        Win32Helper.SWP_SHOWWINDOW);
-            }
-
-            return;
-        }
-
-        DetachFromDesktopIconLayerIfNeeded(windowHandle);
-        Win32Helper.BringWindowTemporarilyToFront(windowHandle);
-    }
-
-    public static void BringGroupTemporarilyToFront(
-        IReadOnlyList<IntPtr> windowHandles,
-        IntPtr activeWindowHandle)
-    {
-        if (UsesDesktopPinnedMode())
+        if (!TryAttachToDesktopIconLayer(windowHandle))
         {
             return;
         }
 
-        var handles = windowHandles
-            .Where(handle => handle != IntPtr.Zero && Win32Helper.IsWindow(handle))
-            .Distinct()
-            .ToList();
-        if (handles.Count == 0)
-        {
-            return;
-        }
-
-        foreach (IntPtr handle in handles)
-        {
-            DetachFromDesktopIconLayerIfNeeded(handle);
-            Win32Helper.SetWindowTopMost(handle);
-        }
-
-        foreach (IntPtr handle in handles.Where(handle => handle != activeWindowHandle))
-        {
-            Win32Helper.ClearWindowTopMost(handle);
-        }
-
-        IntPtr activeHandle = handles.Contains(activeWindowHandle)
-            ? activeWindowHandle
-            : handles[^1];
-        Win32Helper.ClearWindowTopMost(activeHandle);
-        Win32Helper.BringWindowToFront(activeHandle);
-        Win32Helper.SetForegroundWindow(activeHandle);
+        Win32Helper.SetWindowPos(
+            windowHandle,
+            Win32Helper.HWND_TOP,
+            0,
+            0,
+            0,
+            0,
+            Win32Helper.SWP_NOMOVE |
+                Win32Helper.SWP_NOSIZE |
+                Win32Helper.SWP_NOACTIVATE);
     }
 
     public static void ReleaseWindow(IntPtr windowHandle)
@@ -232,13 +127,6 @@ public static class WidgetLayerService
         return ok;
     }
 
-    public static bool UsesDesktopPinnedMode()
-    {
-        var settings = App.Current?.SettingsService?.Settings;
-        string mode = SettingsService.NormalizeWidgetLayerModeSetting(settings?.WidgetLayerMode);
-        return string.Equals(mode, SettingsService.WidgetLayerModeDesktopPinned, StringComparison.Ordinal);
-    }
-
     private static bool TryAttachToDesktopIconLayer(IntPtr windowHandle)
     {
         if (windowHandle == IntPtr.Zero || !Win32Helper.IsWindow(windowHandle))
@@ -281,6 +169,8 @@ public static class WidgetLayerService
             }
 
             Win32Helper.ClearWindowTopMost(windowHandle);
+            // Do not pass SWP_SHOWWINDOW: callers may still be DWM-cloaked and
+            // will reveal after attach to avoid a z-order flash above other apps.
             Win32Helper.SetWindowPos(
                 windowHandle,
                 Win32Helper.HWND_BOTTOM,
@@ -290,8 +180,7 @@ public static class WidgetLayerService
                 0,
                 Win32Helper.SWP_NOMOVE |
                 Win32Helper.SWP_NOSIZE |
-                Win32Helper.SWP_NOACTIVATE |
-                Win32Helper.SWP_SHOWWINDOW);
+                Win32Helper.SWP_NOACTIVATE);
 
             App.LogVerbose($"[WidgetLayer] DesktopPinned owner attached hwnd=0x{windowHandle.ToInt64():X} defView=0x{desktopIconView.ToInt64():X}");
             return true;
@@ -311,16 +200,8 @@ public static class WidgetLayerService
         }
     }
 
-    private static void MoveToDynamicDesktopBottom(IntPtr windowHandle)
+    private static void FallbackToDesktopBottom(IntPtr windowHandle)
     {
-        // Try to attach to desktop icon layer to prevent Win+D from hiding the window
-        // while maintaining dynamic layer behavior (can be raised on interaction)
-        if (TryAttachToDesktopIconLayer(windowHandle))
-        {
-            return;
-        }
-
-        // Fallback: detach and use NOTOPMOST
         DetachFromDesktopIconLayerIfNeeded(windowHandle);
         Win32Helper.ClearWindowTopMost(windowHandle);
         Win32Helper.SetWindowToBottom(windowHandle);
@@ -361,7 +242,7 @@ public static class WidgetLayerService
         }
 
         // No existing WorkerW found: send 0x052C to Progman to spawn one.
-        // Only used by DesktopPinned attach paths — never from mouse-hook hot paths.
+        // Only used by attach paths — never from mouse-hook hot paths.
         IntPtr progman = Win32Helper.FindWindow("Progman", null);
         if (progman != IntPtr.Zero)
         {
