@@ -46,19 +46,6 @@ public sealed class WidgetContentFactory
             ChromeCategory: WidgetChromeCategory.Display,
             DefaultChromeMode: WidgetChromeMode.Overlay),
         new(
-            WidgetKind.Weather,
-            "Weather",
-            "\uE706",
-            WidgetContentStage.Implemented,
-            CanShowInCreateEntry: false,
-            WidgetContentAvailability.Available,
-            "WidgetContent.Weather.StatusLabel",
-            "WidgetContent.Weather.StatusDescription",
-            HasSettingsPage: true,
-            SettingsSectionTag: "WeatherSettings",
-            ChromeCategory: WidgetChromeCategory.Display,
-            DefaultChromeMode: WidgetChromeMode.Overlay),
-        new(
             WidgetKind.Tags,
             "Tags",
             "\uE8EC",
@@ -213,7 +200,6 @@ public sealed class WidgetContentFactory
         IWidgetContentProvider[] providers =
         [
             new MusicWidgetContentProvider(),
-            new WeatherWidgetContentProvider(),
             new SearchWidgetContentProvider(),
             new PlaceholderWidgetContentProvider(WidgetKind.Tags),
             new PlaceholderWidgetContentProvider(WidgetKind.SystemMonitor)

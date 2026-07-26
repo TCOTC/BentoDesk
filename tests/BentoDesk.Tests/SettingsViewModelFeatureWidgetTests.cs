@@ -20,7 +20,6 @@ public sealed class FeatureWidgetEntryFactoryTests
         Assert.Equal(
         [
             WidgetKind.Music,
-            WidgetKind.Weather,
             WidgetKind.Search
         ], entries.Select(entry => entry.Kind));
         Assert.All(entries, entry =>

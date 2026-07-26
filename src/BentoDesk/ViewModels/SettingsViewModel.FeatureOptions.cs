@@ -363,39 +363,6 @@ set => WidgetOpacity = Math.Clamp(1.0 - value / 100d, SettingsService.MinWidgetO
                     _settingsService.Settings.MusicEnableCoverHoverMotion = true;
                     _settingsService.Settings.MusicDisplayMode = SettingsService.MusicDisplayModeAuto;
                     break;
-                case WidgetKind.Weather:
-                    WeatherAutoLocation = true;
-                    WeatherCityName = string.Empty;
-                    SelectedWeatherTemperatureUnit = SettingsService.WeatherTemperatureUnitCelsius;
-                    SelectedWeatherWindSpeedUnit = SettingsService.WeatherWindSpeedUnitKmh;
-                    SelectedWeatherDefaultView = SettingsService.WeatherDefaultViewToday;
-                    SelectedWeatherSkin = SettingsService.WeatherSkinStandard;
-                    WeatherShowForecast = true;
-                    WeatherShowSunrise = true;
-                    WeatherShowUvIndex = true;
-                    WeatherShowPrecipitation = true;
-                    WeatherShowHumidity = true;
-                    WeatherShowWind = true;
-                    WeatherShowPressure = false;
-                    SelectedWeatherRefreshInterval = 60;
-
-                    _settingsService.Settings.WeatherAutoLocation = true;
-                    _settingsService.Settings.WeatherCityName = string.Empty;
-                    _settingsService.Settings.WeatherLatitude = 0;
-                    _settingsService.Settings.WeatherLongitude = 0;
-                    _settingsService.Settings.WeatherTemperatureUnit = SettingsService.WeatherTemperatureUnitCelsius;
-                    _settingsService.Settings.WeatherWindSpeedUnit = SettingsService.WeatherWindSpeedUnitKmh;
-                    _settingsService.Settings.WeatherDefaultView = SettingsService.WeatherDefaultViewToday;
-                    _settingsService.Settings.WeatherSkin = SettingsService.WeatherSkinStandard;
-                    _settingsService.Settings.WeatherShowForecast = true;
-                    _settingsService.Settings.WeatherShowSunrise = true;
-                    _settingsService.Settings.WeatherShowUvIndex = true;
-                    _settingsService.Settings.WeatherShowPrecipitation = true;
-                    _settingsService.Settings.WeatherShowHumidity = true;
-                    _settingsService.Settings.WeatherShowWind = true;
-                    _settingsService.Settings.WeatherShowPressure = false;
-                    _settingsService.Settings.WeatherRefreshIntervalMinutes = 60;
-                    break;
             }
         }
         finally
@@ -584,6 +551,4 @@ set => WidgetOpacity = Math.Clamp(1.0 - value / 100d, SettingsService.MinWidgetO
         action == SettingsService.ManagedDropActionMove
             ? _localizationService.T("Settings.DropAction.Move")
             : _localizationService.T("Settings.DropAction.Copy");
-
-// ─── Weather Settings Properties ──────────────────────────────
 }

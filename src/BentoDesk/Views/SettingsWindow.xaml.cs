@@ -73,7 +73,6 @@ public sealed partial class SettingsWindow : Window
     private bool _isRefreshingFeatureWidgetList;
     private bool _isSyncingNavigationSelection;
     private bool _isSettingsRootLoaded;
-    private bool _isSelectingCity;
     private bool _isRefreshingBackupSnapshots;
     private string _currentSettingsSection = "General";
     private IReadOnlyDictionary<string, FrameworkElement> _settingsSectionElements = null!;
@@ -99,7 +98,6 @@ public sealed partial class SettingsWindow : Window
             ["ManagedStorage"] = new("ManagedStorage", "Settings.ManagedStorage.PageTitle", "FileStorageSettings", "AppearanceDetail"),
             ["FileStackSettings"] = new("FileStackSettings", "Settings.FileStacks.PageTitle", "AppearanceDetail", "AppearanceDetail"),
             ["MusicSettings"] = new("MusicSettings", "Settings.Music.Title", "FeatureWidgets", "FeatureWidgets"),
-            ["WeatherSettings"] = new("WeatherSettings", "Settings.Weather.Title", "FeatureWidgets", "FeatureWidgets"),
             ["SearchSettings"] = new("SearchSettings", "Settings.Search.Title", "FeatureWidgets", "FeatureWidgets"),
             ["AppearanceMaterialSettings"] = new("AppearanceMaterialSettings", "Settings.Material.Title", "Appearance", "Appearance"),
             ["AppearanceDensitySettings"] = new("AppearanceDensitySettings", "Settings.Density.Title", "Appearance", "Appearance"),

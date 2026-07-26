@@ -257,18 +257,6 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Weather -->
-                        <Border x:Name="Step2WeatherCard" Grid.Row="0" Grid.Column="1" Style="{StaticResource FeatureCard}">
-                            <StackPanel Spacing="8">
-                                <Grid>
-                                    <FontIcon Glyph="&#xE928;" FontSize="20" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" HorizontalAlignment="Left"/>
-                                    <ToggleSwitch x:Name="Step2WeatherToggle" OnContent="" OffContent="" MinWidth="0" HorizontalAlignment="Right" Toggled="Step2Toggle_Toggled"/>
-                                </Grid>
-                                <TextBlock FontSize="13.5" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorPrimaryBrush}" svc:Localized.Key="Onboarding.Step2.WeatherTitle"/>
-                                <TextBlock FontSize="11.5" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" svc:Localized.Key="Onboarding.Step2.WeatherDescription"/>
-                            </StackPanel>
-                        </Border>
-
                         <!-- Search (spans 2 columns) -->
                         <Border x:Name="Step2SearchCard" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource FeatureCard}">
                             <Grid ColumnSpacing="14">

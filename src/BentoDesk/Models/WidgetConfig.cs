@@ -198,9 +198,6 @@ public enum WidgetKind
     /// <summary>File-oriented widget used for references or folder-backed storage.</summary>
     File,
 
-    /// <summary>Reserved for a future weather widget.</summary>
-    Weather,
-
     /// <summary>Reserved for a future tag widget.</summary>
     Tags,
 

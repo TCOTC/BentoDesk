@@ -82,12 +82,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private string _selectedWidgetLayerMode = SettingsService.WidgetLayerModeDynamic;
     private string _selectedManagedDropAction = SettingsService.ManagedDropActionMove;
     private string _selectedMusicDisplayMode = SettingsService.MusicDisplayModeAuto;
-private string _selectedWeatherTemperatureUnit = SettingsService.WeatherTemperatureUnitCelsius;
-private string _selectedWeatherWindSpeedUnit = SettingsService.WeatherWindSpeedUnitKmh;
-private string _selectedWeatherDefaultView = SettingsService.WeatherDefaultViewToday;
-private string _selectedWeatherSkin = SettingsService.WeatherSkinStandard;
-private string _selectedWeatherDataSource = SettingsService.WeatherDataSourceMsn;
-private int _selectedWeatherRefreshInterval = 60;
     private bool _useSystemAccentColor;
     private string _accentColorHex = AccentColorHelper.DefaultAccentColorHex;
     private string _managedStorageRootPath = SettingsService.GetDefaultManagedStorageRootPath();
@@ -126,12 +120,6 @@ private int _selectedWeatherRefreshInterval = 60;
     private string[]? _cachedWidgetLayerModeDisplayNames;
     private string[]? _cachedManagedDropActionDisplayNames;
     private string[]? _cachedMusicDisplayModeDisplayNames;
-private string[]? _cachedWeatherTempUnitDisplayNames;
-private string[]? _cachedWeatherWindUnitDisplayNames;
-private string[]? _cachedWeatherDefaultViewDisplayNames;
-private string[]? _cachedWeatherSkinDisplayNames;
-private string[]? _cachedWeatherDataSourceDisplayNames;
-private string[]? _cachedWeatherRefreshIntervalDisplayNames;
 
     [ObservableProperty] private bool _autoStart;
     [ObservableProperty] private bool _autoCheckForUpdates = true;
@@ -161,16 +149,6 @@ private string[]? _cachedWeatherRefreshIntervalDisplayNames;
     [ObservableProperty] private bool _hideShortcutExtensionWhenShowingFileExtensions = true;
     [ObservableProperty] private bool _musicUseArtworkBackdrop = true;
     [ObservableProperty] private bool _musicEnableCoverHoverMotion = true;
-
-[ObservableProperty] private bool _weatherAutoLocation = true;
-[ObservableProperty] private string _weatherCityName = string.Empty;
-[ObservableProperty] private bool _weatherShowForecast = true;
-[ObservableProperty] private bool _weatherShowSunrise = true;
-[ObservableProperty] private bool _weatherShowUvIndex = true;
-[ObservableProperty] private bool _weatherShowPrecipitation = true;
-[ObservableProperty] private bool _weatherShowHumidity = true;
-[ObservableProperty] private bool _weatherShowWind = true;
-[ObservableProperty] private bool _weatherShowPressure;
 
     [ObservableProperty] private bool _isCheckingForUpdates;
     [ObservableProperty] private bool _isDownloadingUpdate;
@@ -278,39 +256,12 @@ private string[]? _cachedWeatherRefreshIntervalDisplayNames;
         _musicUseArtworkBackdrop = settings.MusicUseArtworkBackdrop;
         _musicEnableCoverHoverMotion = settings.MusicEnableCoverHoverMotion;
         _selectedMusicDisplayMode = SettingsService.NormalizeMusicDisplayMode(settings.MusicDisplayMode);
-_weatherAutoLocation = settings.WeatherAutoLocation;
-_weatherCityName = settings.WeatherCityName;
-_weatherCitySearchText = settings.WeatherCityName;
-_selectedWeatherTemperatureUnit = settings.WeatherTemperatureUnit == SettingsService.WeatherTemperatureUnitFahrenheit
-    ? SettingsService.WeatherTemperatureUnitFahrenheit
-    : SettingsService.WeatherTemperatureUnitCelsius;
-_selectedWeatherWindSpeedUnit = settings.WeatherWindSpeedUnit is SettingsService.WeatherWindSpeedUnitMs or SettingsService.WeatherWindSpeedUnitMph
-    ? settings.WeatherWindSpeedUnit
-    : SettingsService.WeatherWindSpeedUnitKmh;
-_selectedWeatherDefaultView = settings.WeatherDefaultView == SettingsService.WeatherDefaultViewWeek
-    ? SettingsService.WeatherDefaultViewWeek
-    : SettingsService.WeatherDefaultViewToday;
-_selectedWeatherSkin = settings.WeatherSkin == SettingsService.WeatherSkinRich
-    ? SettingsService.WeatherSkinRich
-    : SettingsService.WeatherSkinStandard;
-_weatherShowForecast = settings.WeatherShowForecast;
-_weatherShowSunrise = settings.WeatherShowSunrise;
-_weatherShowUvIndex = settings.WeatherShowUvIndex;
-_weatherShowPrecipitation = settings.WeatherShowPrecipitation;
-_weatherShowHumidity = settings.WeatherShowHumidity;
-_weatherShowWind = settings.WeatherShowWind;
-_weatherShowPressure = settings.WeatherShowPressure;
-_selectedWeatherRefreshInterval = Math.Clamp(
-    settings.WeatherRefreshIntervalMinutes,
-    SettingsService.WeatherRefreshMinMinutes,
-    SettingsService.WeatherRefreshMaxMinutes);
         _managedStorageRootPath = settings.DefaultManagedStorageRootPath;
 
         ApplyCachedUpdateResult();
         RefreshAccentPreview();
         RefreshDragDropPermissionDiagnostic();
-_ = PopulateNearbyPopularCitiesAsync();
-_ = RefreshQuickAccessStateAsync();
+        _ = RefreshQuickAccessStateAsync();
         _settingsService.SettingsChanged += OnSettingsChanged;
         _themeService.AppearanceChanged += OnAppearanceChanged;
         _localizationService.LanguageChanged += OnLanguageChanged;
@@ -337,9 +288,6 @@ _ = RefreshQuickAccessStateAsync();
         _themeService.AppearanceChanged -= OnAppearanceChanged;
         _localizationService.LanguageChanged -= OnLanguageChanged;
         DisposeFileStackSettings();
-        _citySearchCts?.Cancel();
-        _citySearchCts?.Dispose();
-        _citySearchService?.Dispose();
         _lifetimeCts.Dispose();
     }
 

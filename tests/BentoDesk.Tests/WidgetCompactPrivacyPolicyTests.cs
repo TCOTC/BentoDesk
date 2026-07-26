@@ -31,7 +31,7 @@ public sealed class WidgetCompactPrivacyPolicyTests
     [Theory]
     [InlineData(WidgetKind.File, true)]
     [InlineData(WidgetKind.Music, true)]
-    [InlineData(WidgetKind.Weather, false)]
+    [InlineData(WidgetKind.Search, false)]
     public void HidesSensitiveContent_CoversExpectedWidgets(
         WidgetKind widgetKind,
         bool expected)

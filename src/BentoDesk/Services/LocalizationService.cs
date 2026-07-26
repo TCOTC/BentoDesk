@@ -21,11 +21,6 @@ public sealed class LocalizationService
 
     public string CurrentCultureName => LanguageChinese;
 
-    /// <summary>
-    /// Returns a 2-letter language code suitable for weather and location APIs.
-    /// </summary>
-    public string ApiLanguageCode => "zh";
-
     public string T(string key)
     {
         return ZhCn.TryGetValue(key, out string? value) ? value : key;

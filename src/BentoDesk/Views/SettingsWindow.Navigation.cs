@@ -47,7 +47,6 @@ public sealed partial class SettingsWindow
             ["FileStackSettings"] = FileStackSettingsSection,
             ["FeatureWidgets"] = FeatureWidgetsSection,
             ["MusicSettings"] = MusicSettingsSection,
-            ["WeatherSettings"] = WeatherSettingsSection,
             ["SearchSettings"] = SearchSettingsSection,
             ["Interaction"] = InteractionSection,
             ["InteractionHotkeySettings"] = InteractionHotkeySettingsSection,

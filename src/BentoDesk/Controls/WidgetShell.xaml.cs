@@ -652,7 +652,7 @@ public sealed partial class WidgetShell : UserControl
         CompactEmojiIcon.Text = presentation.EmojiIcon;
         CompactEmojiIcon.Visibility = hasEmoji ? Visibility.Visible : Visibility.Collapsed;
 
-        // When an emoji (e.g. weather) is shown, the default widget glyph must be
+        // When an emoji is shown, the default widget glyph must be
         // hidden. We cannot just set CompactTitleIcon.Visibility = Collapsed, because
         // WidgetTitleIcon re-applies Visibility = Visible on its own Loaded /
         // ActualThemeChanged and whenever an appearance property changes. So the hide

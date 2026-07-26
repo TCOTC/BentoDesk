@@ -7,7 +7,6 @@ public sealed class WidgetContentFactoryTests
 {
     [Theory]
     [InlineData(WidgetKind.File, "BentoDesk", WidgetContentStage.Implemented, true, WidgetContentAvailability.Available)]
-    [InlineData(WidgetKind.Weather, "Weather", WidgetContentStage.Implemented, false, WidgetContentAvailability.Available)]
     [InlineData(WidgetKind.Tags, "Tags", WidgetContentStage.Placeholder, false, WidgetContentAvailability.Planned)]
     [InlineData(WidgetKind.Music, "Music", WidgetContentStage.Implemented, false, WidgetContentAvailability.Available)]
     [InlineData(WidgetKind.SystemMonitor, "System Monitor", WidgetContentStage.Placeholder, false, WidgetContentAvailability.Planned)]
@@ -44,7 +43,6 @@ public sealed class WidgetContentFactoryTests
         [
             WidgetKind.File,
             WidgetKind.Music,
-            WidgetKind.Weather,
             WidgetKind.Tags,
             WidgetKind.SystemMonitor,
             WidgetKind.Search
@@ -55,7 +53,6 @@ public sealed class WidgetContentFactoryTests
     [InlineData(WidgetKind.File, WidgetChromeCategory.Interactive, WidgetChromeMode.Standard)]
     [InlineData(WidgetKind.Tags, WidgetChromeCategory.Interactive, WidgetChromeMode.Standard)]
     [InlineData(WidgetKind.Music, WidgetChromeCategory.Display, WidgetChromeMode.Overlay)]
-    [InlineData(WidgetKind.Weather, WidgetChromeCategory.Display, WidgetChromeMode.Overlay)]
     [InlineData(WidgetKind.SystemMonitor, WidgetChromeCategory.Display, WidgetChromeMode.Overlay)]
     [InlineData(WidgetKind.Search, WidgetChromeCategory.Interactive, WidgetChromeMode.Standard)]
     public void GetDescriptor_ReturnsChromeDefaults(
@@ -96,18 +93,15 @@ public sealed class WidgetContentFactoryTests
         Assert.Equal(
         [
             WidgetKind.Music,
-            WidgetKind.Weather,
             WidgetKind.Search
         ], descriptors.Select(descriptor => descriptor.WidgetKind));
         Assert.DoesNotContain(descriptors, descriptor => descriptor.WidgetKind == WidgetKind.File);
         Assert.DoesNotContain(descriptors, descriptor => descriptor.IsPlanned);
         Assert.Contains(descriptors, descriptor => descriptor.WidgetKind == WidgetKind.Music && descriptor.HasImplementedContent);
-        Assert.Contains(descriptors, descriptor => descriptor.WidgetKind == WidgetKind.Weather && descriptor.HasImplementedContent);
     }
 
     [Theory]
     [InlineData(WidgetKind.File, true, false, true, true, false)]
-    [InlineData(WidgetKind.Weather, true, false, false, true, false)]
     [InlineData(WidgetKind.Tags, false, true, false, false, true)]
     [InlineData(WidgetKind.Music, true, false, false, true, false)]
     [InlineData(WidgetKind.SystemMonitor, false, true, false, false, true)]

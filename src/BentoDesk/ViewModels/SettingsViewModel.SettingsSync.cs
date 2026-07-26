@@ -134,36 +134,6 @@ public partial class SettingsViewModel
             MusicEnableCoverHoverMotion = settings.MusicEnableCoverHoverMotion;
             SelectedMusicDisplayMode = SettingsService.NormalizeMusicDisplayMode(settings.MusicDisplayMode);
 
-            WeatherAutoLocation = settings.WeatherAutoLocation;
-            WeatherCityName = settings.WeatherCityName;
-            WeatherCitySearchText = settings.WeatherCityName;
-            SelectedWeatherTemperatureUnit = settings.WeatherTemperatureUnit == SettingsService.WeatherTemperatureUnitFahrenheit
-                ? SettingsService.WeatherTemperatureUnitFahrenheit
-                : SettingsService.WeatherTemperatureUnitCelsius;
-            SelectedWeatherWindSpeedUnit = settings.WeatherWindSpeedUnit is SettingsService.WeatherWindSpeedUnitMs or SettingsService.WeatherWindSpeedUnitMph
-                ? settings.WeatherWindSpeedUnit
-                : SettingsService.WeatherWindSpeedUnitKmh;
-            SelectedWeatherDefaultView = settings.WeatherDefaultView == SettingsService.WeatherDefaultViewWeek
-                ? SettingsService.WeatherDefaultViewWeek
-                : SettingsService.WeatherDefaultViewToday;
-            SelectedWeatherSkin = settings.WeatherSkin == SettingsService.WeatherSkinRich
-                ? SettingsService.WeatherSkinRich
-                : SettingsService.WeatherSkinStandard;
-            SelectedWeatherDataSource = settings.WeatherDataSource == SettingsService.WeatherDataSourceOpenMeteo
-                ? SettingsService.WeatherDataSourceOpenMeteo
-                : SettingsService.WeatherDataSourceMsn;
-            WeatherShowForecast = settings.WeatherShowForecast;
-            WeatherShowSunrise = settings.WeatherShowSunrise;
-            WeatherShowUvIndex = settings.WeatherShowUvIndex;
-            WeatherShowPrecipitation = settings.WeatherShowPrecipitation;
-            WeatherShowHumidity = settings.WeatherShowHumidity;
-            WeatherShowWind = settings.WeatherShowWind;
-            WeatherShowPressure = settings.WeatherShowPressure;
-            SelectedWeatherRefreshInterval = Math.Clamp(
-                settings.WeatherRefreshIntervalMinutes,
-                SettingsService.WeatherRefreshMinMinutes,
-                SettingsService.WeatherRefreshMaxMinutes);
-
             ManagedStorageRootPath = SettingsService.NormalizeManagedStorageRootPath(settings.DefaultManagedStorageRootPath);
             GlobalHotkeyEnabled = settings.GlobalHotkeyEnabled;
         }
@@ -178,7 +148,6 @@ public partial class SettingsViewModel
         RefreshGlobalHotkeyState();
         OnPropertyChanged(nameof(CanEditCustomAccent));
         OnPropertyChanged(nameof(AccentColorDescription));
-        OnPropertyChanged(nameof(WeatherCityNameVisibility));
         OnPropertyChanged(nameof(FeatureWidgetEntries));
         NotifyCapsuleOverridePropertiesChanged();
         _ = RefreshQuickAccessStateAsync();
@@ -220,9 +189,6 @@ public partial class SettingsViewModel
         NotifyDragDropPermissionPropertiesChanged();
         OnPropertyChanged(nameof(FeatureWidgetEntries));
         NotifyCapsuleOverridePropertiesChanged();
-        OnPropertyChanged(nameof(WeatherCitySearchPlaceholder));
-        OnPropertyChanged(nameof(WeatherCityNoResultsText));
-        RefreshWeatherCityPopularCities();
     }
 
     private void RefreshSelectionProperties(bool refreshLocalizedOptions)
@@ -258,11 +224,6 @@ public partial class SettingsViewModel
             _cachedWidgetTitleIconModeDisplayNames = null;
             _cachedWidgetLayerModeDisplayNames = null;
             _cachedMusicDisplayModeDisplayNames = null;
-            _cachedWeatherTempUnitDisplayNames = null;
-            _cachedWeatherWindUnitDisplayNames = null;
-            _cachedWeatherDefaultViewDisplayNames = null;
-            _cachedWeatherSkinDisplayNames = null;
-            _cachedWeatherRefreshIntervalDisplayNames = null;
             _cachedManagedDropActionDisplayNames = null;
             OnPropertyChanged(nameof(AvailableThemeDisplayNames));
             OnPropertyChanged(nameof(AvailableTrayIconStyleDisplayNames));
@@ -291,11 +252,6 @@ public partial class SettingsViewModel
             OnPropertyChanged(nameof(AvailableWidgetLayerModeDisplayNames));
             OnPropertyChanged(nameof(AvailableManagedDropActionDisplayNames));
             OnPropertyChanged(nameof(AvailableMusicDisplayModeDisplayNames));
-            OnPropertyChanged(nameof(AvailableWeatherTemperatureUnitDisplayNames));
-            OnPropertyChanged(nameof(AvailableWeatherWindSpeedUnitDisplayNames));
-            OnPropertyChanged(nameof(AvailableWeatherDefaultViewDisplayNames));
-            OnPropertyChanged(nameof(AvailableWeatherSkinDisplayNames));
-            OnPropertyChanged(nameof(AvailableWeatherRefreshIntervalDisplayNames));
             NotifySelectionOptionsChanged();
         }
 

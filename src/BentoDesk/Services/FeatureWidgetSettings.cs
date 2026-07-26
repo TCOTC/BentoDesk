@@ -10,7 +10,6 @@ public static class FeatureWidgetSettings
     private static readonly WidgetKind[] s_featureKinds =
     [
         WidgetKind.Music,
-        WidgetKind.Weather,
         WidgetKind.Search
     ];
 

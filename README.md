@@ -28,7 +28,6 @@ The x64 installer checks for .NET 10 Runtime x64 and Windows App Runtime 2.2 x64
 
 - **Drag & drop (WeChat + browser)**: Drag files and images directly from WeChat chat windows into grid items. Browser URL drops (images, file links) are automatically downloaded and imported. Files dropped onto folder items transfer into the folder.
 - **Stack group management**: Rename stack groups, reorder them (move up/down), and disable/restore stacking per group — all from the right-click context menu.
-- **Weather data source**: Added MSN Weather (same source as the Windows weather widget) as the default data source, with automatic fallback to Open-Meteo. Selectable in Settings → Weather.
 - **F7 Z-order reliability fix**: Fixed silent restore (state changed but visual didn't) and unreliable cross-process click detection that caused widgets to stay on top or flicker without collapsing.
 - **Search widget refinements**: Added clear-history button; widget now shows only user-opened results (no auto-generated Start Menu shortcuts); live-syncs with search popup.
 - **UI polish**: Fixed swapped tray icon labels (Black/White); hidden collapsed-preview chevron; simplified search placeholder.

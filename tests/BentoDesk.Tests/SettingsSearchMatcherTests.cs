@@ -19,10 +19,10 @@ public sealed class SettingsSearchMatcherTests
     public void DescriptionProvidesFallbackSearchText()
     {
         int score = SettingsSearchMatcher.GetScore(
-            "刷新间隔",
-            "刷新间隔",
-            "功能格子 / 天气",
-            "控制天气数据的刷新频率");
+            "封面悬停",
+            "封面悬停动效",
+            "功能格子 / 音乐",
+            "控制封面悬停时的动效");
 
         Assert.NotEqual(SettingsSearchMatcher.NoMatch, score);
     }
@@ -31,10 +31,10 @@ public sealed class SettingsSearchMatcherTests
     public void MissingTermDoesNotMatch()
     {
         int score = SettingsSearchMatcher.GetScore(
-            "天气 透明度",
-            "刷新间隔",
-            "功能格子 / 天气",
-            "控制天气数据的刷新频率");
+            "音乐 透明度",
+            "封面悬停动效",
+            "功能格子 / 音乐",
+            "控制封面悬停时的动效");
 
         Assert.Equal(SettingsSearchMatcher.NoMatch, score);
     }

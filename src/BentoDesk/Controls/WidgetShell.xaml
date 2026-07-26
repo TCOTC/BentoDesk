@@ -173,7 +173,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- Color field gradient background (weather, todo, etc.) -->
+            <!-- Color field gradient background (todo, etc.) -->
             <Border x:Name="CompactColorField"
                     Grid.ColumnSpan="4"
                     Margin="-8,0,-6,0"

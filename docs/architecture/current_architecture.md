@@ -24,7 +24,7 @@ Current production widget categories:
 - `QuickCapture`: the note and clipboard widget, still using a dedicated window.
 - `Todo`: content-type feature widget using `ContentWidgetWindow`.
 - `Music`: content-type feature widget using `ContentWidgetWindow` and Windows media sessions.
-- `Weather`: content-type feature widget using `ContentWidgetWindow`, Open-Meteo API, and adaptive responsive layouts.
+- `Search`: content-type feature widget using `ContentWidgetWindow` for unified desktop search.
 
 Planned placeholder kinds:
 
@@ -67,7 +67,7 @@ Core widget foundation:
 Window creation routing:
 
 - `WidgetWindowProvider` inside `WidgetManager`: maps a creatable `WidgetKind` to the correct host-window creation path.
-- Current providers: File -> `WidgetWindow`, QuickCapture -> `QuickCaptureWidgetWindow`, Todo/Music -> `ContentWidgetWindow`.
+- Current providers: File -> `WidgetWindow`, QuickCapture -> `QuickCaptureWidgetWindow`, Todo/Music/Search -> `ContentWidgetWindow`.
 - The provider layer is intentionally thin. It centralizes dispatch but does not move host-specific implementation bodies yet.
 
 Shared shell and window helpers:
@@ -83,7 +83,7 @@ Current windows:
 
 - `src/BentoDesk/Views/WidgetWindow.xaml.cs`: file widgets.
 - `src/BentoDesk/Views/QuickCaptureWidgetWindow.xaml.cs`: QuickCapture / note widget.
-- `src/BentoDesk/Views/ContentWidgetWindow.xaml.cs`: Todo, Music, Weather, and future content widgets.
+- `src/BentoDesk/Views/ContentWidgetWindow.xaml.cs`: Todo, Music, Search, and future content widgets.
 
 Current Todo implementation:
 
@@ -105,25 +105,13 @@ Current Music implementation:
 - `src/BentoDesk/Services/MusicVolumeService.cs`
 - `src/BentoDesk/Services/MusicWidgetContentProvider.cs`
 
-Current Weather implementation:
-
-- `src/BentoDesk/Controls/WidgetContents/WeatherWidgetContent.xaml`
-- `src/BentoDesk/Controls/WidgetContents/WeatherWidgetContent.xaml.cs`
-- `src/BentoDesk/Controls/WidgetContents/WeatherWidgetContentAdapter.cs`
-- `src/BentoDesk/ViewModels/WeatherWidgetViewModel.cs`
-- `src/BentoDesk/ViewModels/WeatherWidgetViewModel.DataProcessing.cs`
-- `src/BentoDesk/ViewModels/WeatherWidgetViewModel.RefreshAndLayout.cs`
-- `src/BentoDesk/Services/WeatherService.cs`
-- `src/BentoDesk/Helpers/WeatherCodeMapper.cs`
-- `src/BentoDesk/Helpers/WindowsLocationHelper.cs`
-
 ## WidgetRegistry
 
 `WidgetRegistry` answers whether a kind is known, implemented, creatable, and available in the current session.
 
 Current behavior:
 
-- `File`, `QuickCapture`, `Todo`, `Music`, and `Weather` are creatable/implemented.
+- `File`, `QuickCapture`, `Todo`, `Music`, and `Search` are creatable/implemented.
 - `Tags` and `SystemMonitor` are known but not user-creatable.
 - Feature widget availability is checked through `FeatureWidgetSettings`.
 
@@ -157,7 +145,7 @@ Current providers:
 
 - `TodoWidgetContentProvider`: creates real Todo content.
 - `MusicWidgetContentProvider`: creates real Music content.
-- `WeatherWidgetContentProvider`: creates real Weather content.
+- `SearchWidgetContentProvider`: creates real Search content.
 - `PlaceholderWidgetContentProvider`: creates placeholder content for planned kinds.
 
 Current contract:
@@ -220,7 +208,7 @@ Current production users:
 
 - Todo
 - Music
-- Weather
+- Search
 
 Future likely users:
 
@@ -315,14 +303,14 @@ Current feature kinds:
 - `QuickCapture`
 - `Todo`
 - `Music`
-- `Weather`
+- `Search`
 
 Settings are stored in:
 
 - generic `FeatureWidgetEnabledStates`
 - legacy mirrored fields: `QuickCaptureEnabled`, `TodoEnabled`
 
-The legacy fields are kept for compatibility. Do not add new standalone fields such as `WeatherEnabled`, `TagsEnabled`, or `SystemMonitorEnabled`; use the feature state bag instead.
+The legacy fields are kept for compatibility. Do not add new standalone fields such as `SearchEnabled`, `TagsEnabled`, or `SystemMonitorEnabled`; use the feature state bag instead.
 
 ## WidgetManager
 
@@ -341,7 +329,7 @@ Current handlers:
 - QuickCapture: dedicated window path.
 - Todo: content window path.
 - Music: content window path.
-- Weather: content window path.
+- Search: content window path.
 
 Still intentionally present:
 
@@ -356,7 +344,7 @@ Current state:
 
 - The feature widget list is generated from `SettingsViewModel.FeatureWidgetEntries`.
 - Feature entries are derived from `WidgetContentFactory.GetFeatureWidgetEntryDescriptors()`.
-- Available feature widgets, such as QuickCapture, Todo, Music, and Weather, show toggles.
+- Available feature widgets, such as QuickCapture, Todo, Music, and Search, show toggles.
 - Planned feature widgets, such as Tags and SystemMonitor, are shown as descriptor-driven read-only rows with status text instead of disabled hand-written UI.
 - Toggle state flows through `FeatureWidgetSettings` and `WidgetManager.SetFeatureWidgetEnabledAsync(...)`.
 
@@ -380,7 +368,7 @@ File-widget display settings should contain only file-widget display details:
 - extension display
 - list details
 
-Do not place Todo, QuickCapture, Music, Weather, Tags, or SystemMonitor business settings inside file-widget display settings.
+Do not place Todo, QuickCapture, Music, Search, Tags, or SystemMonitor business settings inside file-widget display settings.
 
 ## Menus
 
@@ -493,9 +481,9 @@ Result:
 
 After changes to Shell, windows, manager, settings, or menus, test at least:
 
-- App starts and restores File, QuickCapture, Todo, Music, and Weather widgets.
+- App starts and restores File, QuickCapture, Todo, Music, and Search widgets.
 - Music widget restores, reads Windows media session state, and keeps system volume control usable.
-- Weather widget restores, fetches location data, and displays current/forecast correctly.
+- Search widget restores and accepts queries as expected.
 - F7 shows/hides all expected widgets.
 - Tray left-click behavior is correct.
 - Tray right-click menu font is correct.

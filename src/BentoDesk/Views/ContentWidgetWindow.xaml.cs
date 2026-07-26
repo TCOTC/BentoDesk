@@ -117,7 +117,6 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
         {
             MusicWidgetContentAdapter music =>
                 CreateMusicCompactPresentation(music, contentMode),
-            WeatherWidgetContentAdapter weather => CreateWeatherCompactPresentation(weather, contentMode),
             SearchWidgetContentAdapter => CreateSearchCompactPresentation(contentMode, localization),
             _ => new WidgetCompactPresentation(
                 _titleViewModel.DisplayName,
@@ -133,8 +132,7 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
         string contentMode,
         LocalizationService localization)
     {
-        // Smart mode gets a dynamic subtitle so the search capsule matches the
-        // height/style of the weather capsules instead of looking
+        // Smart mode gets a dynamic subtitle so the search capsule does not look
         // bare. The subtitle shows the most recent query ("最近：xxx"); when there
         // is no history (or history is disabled / sensitive content is hidden) it
         // falls back to a static hint so the line never appears empty.
@@ -233,66 +231,6 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
             MusicProgress: musicProgress);
     }
 
-    private WidgetCompactPresentation CreateWeatherCompactPresentation(
-        WeatherWidgetContentAdapter weather,
-        string contentMode)
-    {
-        var condition = weather.ViewModel.CurrentCondition;
-        bool isDay = weather.ViewModel.IsDay;
-        bool isAttention = IsCompactWeatherAttentionRequired(weather);
-
-        // Color field based on weather condition
-        var (colorStart, colorEnd) = condition switch
-        {
-            Helpers.WeatherCodeMapper.WeatherCondition.Clear => isDay
-                ? (Windows.UI.Color.FromArgb(0xFF, 0xF5, 0x9E, 0x0B), Windows.UI.Color.FromArgb(0xFF, 0xF9, 0x73, 0x16))
-                : (Windows.UI.Color.FromArgb(0xFF, 0x1E, 0x3A, 0x5F), Windows.UI.Color.FromArgb(0xFF, 0x0F, 0x17, 0x2A)),
-            Helpers.WeatherCodeMapper.WeatherCondition.Cloudy or
-            Helpers.WeatherCodeMapper.WeatherCondition.Fog =>
-                (Windows.UI.Color.FromArgb(0xFF, 0x64, 0x74, 0x8B), Windows.UI.Color.FromArgb(0xFF, 0x47, 0x55, 0x69)),
-            Helpers.WeatherCodeMapper.WeatherCondition.Rain or
-            Helpers.WeatherCodeMapper.WeatherCondition.Drizzle =>
-                (Windows.UI.Color.FromArgb(0xFF, 0x1E, 0x40, 0xAF), Windows.UI.Color.FromArgb(0xFF, 0x1E, 0x3A, 0x5F)),
-            Helpers.WeatherCodeMapper.WeatherCondition.Snow =>
-                (Windows.UI.Color.FromArgb(0xFF, 0x93, 0xC5, 0xFD), Windows.UI.Color.FromArgb(0xFF, 0xBF, 0xDB, 0xFE)),
-            Helpers.WeatherCodeMapper.WeatherCondition.Thunderstorm =>
-                (Windows.UI.Color.FromArgb(0xFF, 0x4C, 0x1D, 0x95), Windows.UI.Color.FromArgb(0xFF, 0x1E, 0x1B, 0x4B)),
-            _ => ((Windows.UI.Color?)null, (Windows.UI.Color?)null)
-        };
-
-        // Particles based on condition
-        var particleKind = condition switch
-        {
-            Helpers.WeatherCodeMapper.WeatherCondition.Rain or
-            Helpers.WeatherCodeMapper.WeatherCondition.Drizzle or
-            Helpers.WeatherCodeMapper.WeatherCondition.Thunderstorm => CompactParticleKind.Rain,
-            Helpers.WeatherCodeMapper.WeatherCondition.Snow => CompactParticleKind.Snow,
-            _ => CompactParticleKind.None
-        };
-
-        return new WidgetCompactPresentation(
-            string.IsNullOrWhiteSpace(weather.ViewModel.CurrentTemperatureText)
-                ? _titleViewModel.DisplayName
-                : weather.ViewModel.CurrentTemperatureText,
-            BuildWeatherCompactSummary(weather, contentMode),
-            _descriptor.DefaultGlyph,
-            string.Empty,
-            UseStackedText: contentMode == SettingsService.WidgetCompactContentModeSmart,
-            EnableMarquee: true,
-            Progress: isAttention ? 1 : null,
-            IsAttention: isAttention,
-            EmojiIcon: Helpers.WeatherCodeMapper.GetEmoji(
-                weather.ViewModel.CurrentWeatherCode, isDay),
-            BackgroundColorStart: colorStart,
-            BackgroundColorEnd: colorEnd,
-            ParticleKind: particleKind,
-            LiveStateKey: string.Join(
-                "|",
-                weather.ViewModel.CurrentTemperatureText,
-                weather.ViewModel.CurrentDescription,
-                weather.ViewModel.PrecipitationText));
-    }
-
     private static double? GetMusicCompactProgress(MusicWidgetContentAdapter music)
     {
         double duration = music.ViewModel.Duration.TotalSeconds;
@@ -305,14 +243,6 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
             : 0;
     }
 
-    private static bool IsCompactWeatherAttentionRequired(WeatherWidgetContentAdapter weather)
-    {
-        int code = weather.ViewModel.CurrentWeatherCode;
-        return code is >= 51 and <= 67 or
-            >= 71 and <= 86 or
-            >= 95 and <= 99;
-    }
-
     private static string NormalizeCompactSingleLine(string? text)
     {
         return string.Join(
@@ -320,27 +250,6 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
             (text ?? string.Empty).Split(
                 (char[]?)null,
                 StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
-    }
-
-    private static string BuildWeatherCompactSummary(
-        WeatherWidgetContentAdapter weather,
-        string contentMode)
-    {
-        if (contentMode == SettingsService.WidgetCompactContentModeMinimal)
-        {
-            return string.Empty;
-        }
-
-        string description = weather.ViewModel.CurrentDescription;
-        if (contentMode != SettingsService.WidgetCompactContentModeSmart ||
-            string.IsNullOrWhiteSpace(weather.ViewModel.PrecipitationText))
-        {
-            return description;
-        }
-
-        return string.IsNullOrWhiteSpace(description)
-            ? weather.ViewModel.PrecipitationText
-            : $"{description} · {weather.ViewModel.PrecipitationText}";
     }
 
     protected override Task OnCompactPrimaryActionRequestedAsync()
@@ -699,7 +608,6 @@ IsHideAnimationRunning = true;
         _compactPresentationSource = content switch
         {
             MusicWidgetContentAdapter music => music.ViewModel,
-            WeatherWidgetContentAdapter weather => weather.ViewModel,
             _ => null
         };
 
@@ -956,7 +864,6 @@ IsHideAnimationRunning = true;
                     var localization = App.Current.LocalizationService;
                     var key = Config.WidgetKind switch
                     {
-                        WidgetKind.Weather => "Weather.Title",
                         WidgetKind.Tags => "Tags.Title",
                         WidgetKind.Music => "Music.Title",
                         WidgetKind.Search => "Search.Title",

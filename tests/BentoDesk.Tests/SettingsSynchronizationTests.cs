@@ -11,7 +11,7 @@ public sealed class SettingsSynchronizationTests
 
         Assert.Equal("zh-CN", localizationService.CurrentCultureName);
         Assert.False(string.IsNullOrWhiteSpace(localizationService.T("Settings.Material.Mica")));
-        Assert.False(string.IsNullOrWhiteSpace(localizationService.T("Weather.Skin.Rich")));
+        Assert.False(string.IsNullOrWhiteSpace(localizationService.T("Music.Title")));
     }
 
     [Fact]
@@ -32,14 +32,14 @@ public sealed class SettingsSynchronizationTests
         settingsService.Settings.WidgetCapsuleBarDirection =
             SettingsService.WidgetCapsuleBarDirectionVertical;
         settingsService.Settings.WidgetCapsuleBarSpacing = 12;
-        settingsService.Settings.WidgetCapsuleBarOrder = ["weather", "music"];
+        settingsService.Settings.WidgetCapsuleBarOrder = ["search", "music"];
         settingsService.Settings.WidgetCapsuleFreePlacements["music"] = new BentoDesk.Models.WidgetCompactPlacement
         {
             X = 120,
             Y = 80,
             PositionAnchor = WidgetPositionAnchors.LeftTop
         };
-        settingsService.Settings.WeatherSkin = SettingsService.WeatherSkinRich;
+        settingsService.Settings.MusicDisplayMode = SettingsService.MusicDisplayModeCover;
 
         await settingsService.SaveAsync();
 
@@ -62,9 +62,9 @@ public sealed class SettingsSynchronizationTests
             SettingsService.WidgetCapsuleBarDirectionVertical,
             reloadedService.Settings.WidgetCapsuleBarDirection);
         Assert.Equal(12d, reloadedService.Settings.WidgetCapsuleBarSpacing);
-        Assert.Equal(new[] { "weather", "music" }, reloadedService.Settings.WidgetCapsuleBarOrder);
+        Assert.Equal(new[] { "search", "music" }, reloadedService.Settings.WidgetCapsuleBarOrder);
         Assert.Equal(120d, reloadedService.Settings.WidgetCapsuleFreePlacements["music"].X);
-        Assert.Equal(SettingsService.WeatherSkinRich, reloadedService.Settings.WeatherSkin);
+        Assert.Equal(SettingsService.MusicDisplayModeCover, reloadedService.Settings.MusicDisplayMode);
     }
 
     [Fact]

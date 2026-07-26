@@ -315,11 +315,6 @@ public sealed partial class WidgetManager
                 SetContentFeatureWidgetEnabledAsync,
                 () => HideAndCloseFeatureWidgetAsync(WidgetKind.Music)),
             new(
-                WidgetKind.Weather,
-                async _ => await CreateSingletonContentFeatureWidgetAsync(WidgetKind.Weather),
-                SetWeatherFeatureWidgetEnabledAsync,
-                () => HideAndCloseFeatureWidgetAsync(WidgetKind.Weather)),
-            new(
                 WidgetKind.Search,
                 async _ => await CreateSingletonContentFeatureWidgetAsync(WidgetKind.Search),
                 SetSearchFeatureWidgetEnabledAsync,
@@ -342,13 +337,6 @@ public sealed partial class WidgetManager
                     request.ShowRaisedWhileInitializing)),
             new(
                 WidgetKind.Music,
-                async request => await CreateContentWidgetFromConfigAsync(
-                    request.Config,
-                    request.KeepPreparedForAnimation,
-                    request.RevealAfterCreate,
-                    request.ShowRaisedWhileInitializing)),
-            new(
-                WidgetKind.Weather,
                 async request => await CreateContentWidgetFromConfigAsync(
                     request.Config,
                     request.KeepPreparedForAnimation,
@@ -1215,7 +1203,6 @@ public sealed partial class WidgetManager
         return kind switch
         {
             WidgetKind.Music => (380, 190),
-            WidgetKind.Weather => (200, 200),
             _ => (
                 _settingsService.Settings.DefaultWidgetWidth,
                 _settingsService.Settings.DefaultWidgetHeight)

@@ -29,7 +29,7 @@
 |---|---|---|
 | `WidgetWindow` | `src/BentoDesk/Views/WidgetWindow.*.cs` | 文件收纳/文件夹映射格子 |
 | `QuickCaptureWidgetWindow` | `src/BentoDesk/Views/QuickCaptureWidgetWindow.*.cs` | 随记格子 |
-| `ContentWidgetWindow` | `src/BentoDesk/Views/ContentWidgetWindow.*.cs` | Todo/音乐/天气等内容型格子 |
+| `ContentWidgetWindow` | `src/BentoDesk/Views/ContentWidgetWindow.*.cs` | 音乐/搜索等内容型格子 |
 
 ---
 

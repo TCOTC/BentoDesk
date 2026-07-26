@@ -42,7 +42,6 @@ public sealed class WidgetCompactBoundsCalculatorTests
     [Theory]
     [InlineData(SettingsService.WidgetCompactContentModeSmart, WidgetKind.File, 42)]
     [InlineData(SettingsService.WidgetCompactContentModeSmart, WidgetKind.Music, 52)]
-    [InlineData(SettingsService.WidgetCompactContentModeSmart, WidgetKind.Weather, 52)]
     [InlineData(SettingsService.WidgetCompactContentModeSmart, WidgetKind.Search, 52)]
     [InlineData(SettingsService.WidgetCompactContentModeSummary, WidgetKind.Music, 42)]
     public void Calculate_UsesContentAppropriateHeight(string contentMode, WidgetKind kind, int expectedHeight)

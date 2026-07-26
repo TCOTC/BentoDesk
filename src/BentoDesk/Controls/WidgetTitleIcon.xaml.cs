@@ -271,7 +271,6 @@ public sealed partial class WidgetTitleIcon : UserControl
         yield return LineManagedStoragePath;
         yield return LineMappedFolderPath;
         yield return LineMusicPath;
-        yield return LineWeatherPath;
         yield return LineTagsPath;
         yield return LineSearchPath;
         yield return LineSystemMonitorPath;
@@ -279,7 +278,6 @@ public sealed partial class WidgetTitleIcon : UserControl
         yield return FilledManagedStoragePath;
         yield return FilledMappedFolderPath;
         yield return FilledMusicPath;
-        yield return FilledWeatherPath;
         yield return FilledTagsPath;
         yield return FilledSearchPath;
         yield return FilledSystemMonitorPath;
@@ -293,7 +291,6 @@ public sealed partial class WidgetTitleIcon : UserControl
                 WidgetTitleIconKind.ManagedStorage => FilledManagedStoragePath,
                 WidgetTitleIconKind.MappedFolder => FilledMappedFolderPath,
                 WidgetTitleIconKind.Music => FilledMusicPath,
-                WidgetTitleIconKind.Weather => FilledWeatherPath,
                 WidgetTitleIconKind.Tags => FilledTagsPath,
                 WidgetTitleIconKind.Search => FilledSearchPath,
                 WidgetTitleIconKind.SystemMonitor => FilledSystemMonitorPath,
@@ -304,7 +301,6 @@ public sealed partial class WidgetTitleIcon : UserControl
                 WidgetTitleIconKind.ManagedStorage => LineManagedStoragePath,
                 WidgetTitleIconKind.MappedFolder => LineMappedFolderPath,
                 WidgetTitleIconKind.Music => LineMusicPath,
-                WidgetTitleIconKind.Weather => LineWeatherPath,
                 WidgetTitleIconKind.Tags => LineTagsPath,
                 WidgetTitleIconKind.Search => LineSearchPath,
                 WidgetTitleIconKind.SystemMonitor => LineSystemMonitorPath,

@@ -14,7 +14,7 @@ public sealed class SettingsViewModelChromeModeTests
         settingsService.Settings.Widgets =
         [
             CreateWidget(WidgetKind.Music, WidgetChromeMode.Standard),
-            CreateWidget(WidgetKind.Weather, WidgetChromeMode.Standard),
+            CreateWidget(WidgetKind.SystemMonitor, WidgetChromeMode.Standard),
             CreateWidget(WidgetKind.File, WidgetChromeMode.Hidden),
             CreateWidget(WidgetKind.Search, WidgetChromeMode.Hidden)
         ];

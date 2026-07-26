@@ -101,7 +101,6 @@ $groups = @{
         'GetDefaultFeatureWidgetSize',
         'CloseLoadedFeatureWidgetWindows',
         'SetContentFeatureWidgetEnabledAsync',
-        'SetWeatherFeatureWidgetEnabledAsync',
         'GetFeatureWidgetEnabledState',
         'IsContentFeatureWidgetKind',
         'SetFeatureWidgetEnabledState',

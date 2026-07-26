@@ -93,24 +93,6 @@ public partial class SettingsViewModel
     public IReadOnlyList<SettingsOption> AvailableMusicDisplayModeOptions =>
         CreateSelectionOptions(AvailableMusicDisplayModes, AvailableMusicDisplayModeDisplayNames);
 
-    public IReadOnlyList<SettingsOption> AvailableWeatherTemperatureUnitOptions =>
-        CreateSelectionOptions(AvailableWeatherTemperatureUnits, AvailableWeatherTemperatureUnitDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableWeatherWindSpeedUnitOptions =>
-        CreateSelectionOptions(AvailableWeatherWindSpeedUnits, AvailableWeatherWindSpeedUnitDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableWeatherDefaultViewOptions =>
-        CreateSelectionOptions(AvailableWeatherDefaultViews, AvailableWeatherDefaultViewDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableWeatherSkinOptions =>
-        CreateSelectionOptions(AvailableWeatherSkins, AvailableWeatherSkinDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableWeatherDataSourceOptions =>
-        CreateSelectionOptions(AvailableWeatherDataSources, AvailableWeatherDataSourceDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableWeatherRefreshIntervalOptions =>
-        CreateSelectionOptions(AvailableWeatherRefreshIntervals, AvailableWeatherRefreshIntervalDisplayNames);
-
     public IReadOnlyList<SettingsOption> AvailableFileStackGroupByOptions =>
         CreateSelectionOptions(AvailableFileStackGroupBys, AvailableFileStackGroupByDisplayNames);
 
@@ -170,12 +152,6 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(AvailableWidgetLayerModeOptions));
         OnPropertyChanged(nameof(AvailableManagedDropActionOptions));
         OnPropertyChanged(nameof(AvailableMusicDisplayModeOptions));
-        OnPropertyChanged(nameof(AvailableWeatherTemperatureUnitOptions));
-        OnPropertyChanged(nameof(AvailableWeatherWindSpeedUnitOptions));
-        OnPropertyChanged(nameof(AvailableWeatherDefaultViewOptions));
-        OnPropertyChanged(nameof(AvailableWeatherSkinOptions));
-        OnPropertyChanged(nameof(AvailableWeatherDataSourceOptions));
-        OnPropertyChanged(nameof(AvailableWeatherRefreshIntervalOptions));
         OnPropertyChanged(nameof(AvailableFileStackGroupByOptions));
         OnPropertyChanged(nameof(AvailableFileStackThresholdOptions));
         OnPropertyChanged(nameof(AvailableFileStackOrderByOptions));

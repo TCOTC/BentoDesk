@@ -51,7 +51,6 @@ public enum WidgetTitleIconKind
     ManagedStorage,
     MappedFolder,
     Music,
-    Weather,
     Tags,
     Search,
     SystemMonitor
@@ -63,7 +62,6 @@ public static class WidgetTitleIconKindNames
     public const string ManagedStorage = nameof(WidgetTitleIconKind.ManagedStorage);
     public const string MappedFolder = nameof(WidgetTitleIconKind.MappedFolder);
     public const string Music = nameof(WidgetTitleIconKind.Music);
-    public const string Weather = nameof(WidgetTitleIconKind.Weather);
     public const string Tags = nameof(WidgetTitleIconKind.Tags);
     public const string Search = nameof(WidgetTitleIconKind.Search);
     public const string SystemMonitor = nameof(WidgetTitleIconKind.SystemMonitor);
@@ -82,7 +80,6 @@ public static class WidgetTitleIconKindNames
             WidgetTitleIconKind.ManagedStorage => ManagedStorage,
             WidgetTitleIconKind.MappedFolder => MappedFolder,
             WidgetTitleIconKind.Music => Music,
-            WidgetTitleIconKind.Weather => Weather,
             WidgetTitleIconKind.Tags => Tags,
             WidgetTitleIconKind.Search => Search,
             WidgetTitleIconKind.SystemMonitor => SystemMonitor,
@@ -101,7 +98,6 @@ public static class WidgetTitleIconKindNames
         {
             WidgetKind.File => ManagedStorage,
             WidgetKind.Music => Music,
-            WidgetKind.Weather => Weather,
             WidgetKind.Tags => Tags,
             WidgetKind.Search => Search,
             WidgetKind.SystemMonitor => SystemMonitor,
@@ -116,7 +112,6 @@ public static class WidgetTitleIconKindNames
             "\uE8B7" => ManagedStorage,
             "\uE71B" => MappedFolder,
             "\uEC4F" => Music,
-            "\uE706" => Weather,
             "\uE8EC" => Tags,
             "\uE721" => Search,
             "\uE9D9" => SystemMonitor,
@@ -131,7 +126,6 @@ public static class WidgetTitleIconKindNames
             WidgetTitleIconKind.ManagedStorage => "WidgetTitleIcon.Label.ManagedStorage",
             WidgetTitleIconKind.MappedFolder => "WidgetTitleIcon.Label.MappedFolder",
             WidgetTitleIconKind.Music => "WidgetTitleIcon.Label.Music",
-            WidgetTitleIconKind.Weather => "WidgetTitleIcon.Label.Weather",
             WidgetTitleIconKind.Tags => "WidgetTitleIcon.Label.Tags",
             WidgetTitleIconKind.Search => "WidgetTitleIcon.Label.Search",
             WidgetTitleIconKind.SystemMonitor => "WidgetTitleIcon.Label.SystemMonitor",
@@ -146,7 +140,6 @@ public static class WidgetTitleIconKindNames
             WidgetTitleIconKind.ManagedStorage => "managed-storage",
             WidgetTitleIconKind.MappedFolder => "mapped-folder",
             WidgetTitleIconKind.Music => "music",
-            WidgetTitleIconKind.Weather => "weather",
             WidgetTitleIconKind.Tags => "tags",
             WidgetTitleIconKind.Search => "search",
             WidgetTitleIconKind.SystemMonitor => "system-monitor",

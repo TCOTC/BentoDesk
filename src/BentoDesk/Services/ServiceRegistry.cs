@@ -28,10 +28,6 @@ public static class ServiceRegistry
         services.AddSingleton<LocalizationService>();
         services.AddSingleton<ThemeService>();
 
-        // ── Weather ──────────────────────────────────────────────────────
-        services.AddSingleton<WeatherService>();
-        services.AddSingleton<CitySearchService>();
-
         // ── Update ───────────────────────────────────────────────────────
         services.AddSingleton<IAppUpdateService, AppUpdateService>();
 

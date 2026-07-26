@@ -21,19 +21,15 @@ public sealed partial class OnboardingWindow
     private void SetupStep2Features()
     {
         Step2MusicToggle.Toggled -= Step2Toggle_Toggled;
-        Step2WeatherToggle.Toggled -= Step2Toggle_Toggled;
         Step2SearchToggle.Toggled -= Step2Toggle_Toggled;
 
         Step2MusicToggle.IsOn = FeatureWidgetSettings.IsEnabled(_settingsService.Settings, WidgetKind.Music);
-        Step2WeatherToggle.IsOn = FeatureWidgetSettings.IsEnabled(_settingsService.Settings, WidgetKind.Weather);
         Step2SearchToggle.IsOn = _settingsService.Settings.SearchHotkeyEnabled;
 
         Step2MusicToggle.Toggled += Step2Toggle_Toggled;
-        Step2WeatherToggle.Toggled += Step2Toggle_Toggled;
         Step2SearchToggle.Toggled += Step2Toggle_Toggled;
 
         UpdateFeatureCardHighlight(Step2MusicCard, Step2MusicToggle.IsOn);
-        UpdateFeatureCardHighlight(Step2WeatherCard, Step2WeatherToggle.IsOn);
         UpdateFeatureCardHighlight(Step2SearchCard, Step2SearchToggle.IsOn);
     }
 
@@ -49,11 +45,6 @@ public sealed partial class OnboardingWindow
         {
             FeatureWidgetSettings.SetEnabled(_settingsService.Settings, WidgetKind.Music, toggle.IsOn);
             card = Step2MusicCard;
-        }
-        else if (toggle == Step2WeatherToggle)
-        {
-            FeatureWidgetSettings.SetEnabled(_settingsService.Settings, WidgetKind.Weather, toggle.IsOn);
-            card = Step2WeatherCard;
         }
         else if (toggle == Step2SearchToggle)
         {

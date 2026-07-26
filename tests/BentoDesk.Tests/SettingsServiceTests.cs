@@ -59,12 +59,12 @@ public sealed class SettingsServiceTests : IDisposable
             [
                 new WidgetConfig
                 {
-                    Id = "weather",
-                    Name = "Weather",
-                    WidgetKind = WidgetKind.Weather,
+                    Id = "music",
+                    Name = "Music",
+                    WidgetKind = WidgetKind.Music,
                     Metadata =
                     {
-                        ["city"] = "Shanghai",
+                        ["source"] = "media",
                         ["unit"] = "metric"
                     }
                 }
@@ -79,8 +79,8 @@ public sealed class SettingsServiceTests : IDisposable
         await service.LoadAsync();
 
         var widget = Assert.Single(service.Settings.Widgets);
-        Assert.Equal(WidgetKind.Weather, widget.WidgetKind);
-        Assert.Equal("Shanghai", widget.Metadata["city"]);
+        Assert.Equal(WidgetKind.Music, widget.WidgetKind);
+        Assert.Equal("media", widget.Metadata["source"]);
         Assert.Equal("metric", widget.Metadata["unit"]);
     }
 

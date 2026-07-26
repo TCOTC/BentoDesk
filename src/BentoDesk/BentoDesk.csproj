@@ -72,7 +72,6 @@
     <Content Include="Assets\WidgetTitleIcons\*.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <EmbeddedResource Include="Assets\Cities\cities.json" />
     <EmbeddedResource Include="Strings\zh-CN.json" />
   </ItemGroup>
 

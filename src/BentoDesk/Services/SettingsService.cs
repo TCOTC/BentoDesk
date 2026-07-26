@@ -218,19 +218,6 @@ public sealed class SettingsService
     public const int MaxRecentOrganizationHistoryCount = 24;
     public const string WidgetTabStylePivot = "Pivot";
     public const string WidgetTabStyleButton = "Button";
-public const string WeatherTemperatureUnitCelsius = "Celsius";
-public const string WeatherTemperatureUnitFahrenheit = "Fahrenheit";
-public const string WeatherWindSpeedUnitKmh = "kmh";
-public const string WeatherWindSpeedUnitMs = "ms";
-public const string WeatherWindSpeedUnitMph = "mph";
-public const string WeatherDefaultViewToday = "Today";
-public const string WeatherDefaultViewWeek = "Week";
-public const string WeatherSkinStandard = "Standard";
-public const string WeatherSkinRich = "Rich";
-public const string WeatherDataSourceMsn = "MSN";
-public const string WeatherDataSourceOpenMeteo = "OpenMeteo";
-public const int WeatherRefreshMinMinutes = 15;
-public const int WeatherRefreshMaxMinutes = 180;
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
@@ -333,23 +320,6 @@ public const int WeatherRefreshMaxMinutes = 180;
         settings.MusicUseArtworkBackdrop = true;
         settings.MusicEnableCoverHoverMotion = true;
         settings.MusicDisplayMode = MusicDisplayModeAuto;
-settings.WeatherAutoLocation = true;
-settings.WeatherCityName = string.Empty;
-settings.WeatherLatitude = 0;
-settings.WeatherLongitude = 0;
-settings.WeatherTemperatureUnit = WeatherTemperatureUnitCelsius;
-settings.WeatherWindSpeedUnit = WeatherWindSpeedUnitKmh;
-settings.WeatherDefaultView = WeatherDefaultViewToday;
-settings.WeatherSkin = WeatherSkinStandard;
-settings.WeatherDataSource = WeatherDataSourceMsn;
-settings.WeatherShowForecast = true;
-settings.WeatherShowSunrise = true;
-settings.WeatherShowUvIndex = true;
-settings.WeatherShowPrecipitation = true;
-settings.WeatherShowHumidity = true;
-settings.WeatherShowWind = true;
-settings.WeatherShowPressure = false;
-settings.WeatherRefreshIntervalMinutes = 60;
         settings.SearchHotkeyEnabled = true;
         settings.SearchHotkeyModifiers = (int)HotkeyModifierKeys.Alt;
         settings.SearchHotkeyKey = 0x44;
@@ -441,8 +411,7 @@ settings.FocusClickedWidgetOnRaise = false;
                 changed |= NormalizeOrganizerSettings(_settings);
                 changed |= NormalizeHotkeySettings(_settings);
                 changed |= NormalizeSearchSettings(_settings);
-                changed |= NormalizeWeatherSettings(_settings);
-changed |= NormalizeDeletionSettings(_settings);
+                changed |= NormalizeDeletionSettings(_settings);
             }
 
             if (changed)
@@ -508,7 +477,6 @@ changed |= NormalizeDeletionSettings(_settings);
                 NormalizeOrganizerSettings(_settings);
                 NormalizeHotkeySettings(_settings);
                 NormalizeSearchSettings(_settings);
-                NormalizeWeatherSettings(_settings);
                 json = JsonSerializer.Serialize(_settings, s_jsonOptions);
             }
 
@@ -1999,68 +1967,6 @@ changed |= NormalizeDeletionSettings(_settings);
         return style == WidgetTabStylePivot
             ? WidgetTabStylePivot
             : WidgetTabStyleButton;
-    }
-
-    internal static bool NormalizeWeatherSettings(AppSettings settings)
-    {
-        bool changed = false;
-
-        string normalizedTempUnit = settings.WeatherTemperatureUnit is WeatherTemperatureUnitFahrenheit
-            ? WeatherTemperatureUnitFahrenheit
-            : WeatherTemperatureUnitCelsius;
-        if (!string.Equals(settings.WeatherTemperatureUnit, normalizedTempUnit, StringComparison.Ordinal))
-        {
-            settings.WeatherTemperatureUnit = normalizedTempUnit;
-            changed = true;
-        }
-
-        string normalizedWindUnit = settings.WeatherWindSpeedUnit is WeatherWindSpeedUnitMs or WeatherWindSpeedUnitMph
-            ? settings.WeatherWindSpeedUnit
-            : WeatherWindSpeedUnitKmh;
-        if (!string.Equals(settings.WeatherWindSpeedUnit, normalizedWindUnit, StringComparison.Ordinal))
-        {
-            settings.WeatherWindSpeedUnit = normalizedWindUnit;
-            changed = true;
-        }
-
-        string normalizedView = settings.WeatherDefaultView is WeatherDefaultViewWeek
-            ? WeatherDefaultViewWeek
-            : WeatherDefaultViewToday;
-        if (!string.Equals(settings.WeatherDefaultView, normalizedView, StringComparison.Ordinal))
-        {
-            settings.WeatherDefaultView = normalizedView;
-            changed = true;
-        }
-
-        string normalizedSkin = settings.WeatherSkin is WeatherSkinRich
-            ? WeatherSkinRich
-            : WeatherSkinStandard;
-        if (!string.Equals(settings.WeatherSkin, normalizedSkin, StringComparison.Ordinal))
-        {
-            settings.WeatherSkin = normalizedSkin;
-            changed = true;
-        }
-
-        string normalizedDataSource = settings.WeatherDataSource is WeatherDataSourceOpenMeteo
-            ? WeatherDataSourceOpenMeteo
-            : WeatherDataSourceMsn;
-        if (!string.Equals(settings.WeatherDataSource, normalizedDataSource, StringComparison.Ordinal))
-        {
-            settings.WeatherDataSource = normalizedDataSource;
-            changed = true;
-        }
-
-        int clampedRefresh = Math.Clamp(
-            settings.WeatherRefreshIntervalMinutes,
-            WeatherRefreshMinMinutes,
-            WeatherRefreshMaxMinutes);
-        if (settings.WeatherRefreshIntervalMinutes != clampedRefresh)
-        {
-            settings.WeatherRefreshIntervalMinutes = clampedRefresh;
-            changed = true;
-        }
-
-        return changed;
     }
 
     private static bool NormalizeDeletionSettings(AppSettings settings)
