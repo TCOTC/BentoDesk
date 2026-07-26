@@ -24,6 +24,8 @@
     <!-- Debug 日常开发默认跳过 Updater，加速 Ctrl+R / watch；Release 与发布仍会构建。可用 -p:BentoDeskBuildUpdater=true 强制开启。 -->
     <BentoDeskBuildUpdater Condition="'$(BentoDeskBuildUpdater)' == '' and '$(Configuration)' == 'Debug'">false</BentoDeskBuildUpdater>
     <BentoDeskBuildUpdater Condition="'$(BentoDeskBuildUpdater)' == ''">true</BentoDeskBuildUpdater>
+    <!-- DesktopGuard 体量小，Debug/Release 默认都构建，保证崩溃恢复路径可用。可用 -p:BentoDeskBuildDesktopGuard=false 关闭。 -->
+    <BentoDeskBuildDesktopGuard Condition="'$(BentoDeskBuildDesktopGuard)' == ''">true</BentoDeskBuildDesktopGuard>
   </PropertyGroup>
 
   <ItemGroup>
@@ -110,6 +112,28 @@
   <Target Name="PublishBentoDeskUpdater" AfterTargets="Publish" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskBuildUpdater)' == 'true'">
     <MSBuild
       Projects="..\BentoDesk.Updater\BentoDesk.Updater.csproj"
+      Targets="Publish"
+      Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=$(SelfContained);PublishSingleFile=false;PublishDir=$(PublishDir)" />
+  </Target>
+
+  <Target Name="BuildBentoDeskDesktopGuard" BeforeTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskBuildDesktopGuard)' == 'true'">
+    <MSBuild
+      Projects="..\BentoDesk.DesktopGuard\BentoDesk.DesktopGuard.csproj"
+      Targets="Build"
+      Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=$(RuntimeIdentifier)" />
+  </Target>
+
+  <Target Name="CopyBentoDeskDesktopGuard" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskBuildDesktopGuard)' == 'true'">
+    <ItemGroup>
+      <BentoDeskDesktopGuardOutput Include="..\BentoDesk.DesktopGuard\bin\$(Platform)\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\BentoDesk.DesktopGuard.*" Condition="'$(RuntimeIdentifier)' != ''" />
+      <BentoDeskDesktopGuardOutput Include="..\BentoDesk.DesktopGuard\bin\$(Platform)\$(Configuration)\$(TargetFramework)\BentoDesk.DesktopGuard.*" Condition="'$(RuntimeIdentifier)' == ''" />
+    </ItemGroup>
+    <Copy SourceFiles="@(BentoDeskDesktopGuardOutput)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="PublishBentoDeskDesktopGuard" AfterTargets="Publish" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskBuildDesktopGuard)' == 'true'">
+    <MSBuild
+      Projects="..\BentoDesk.DesktopGuard\BentoDesk.DesktopGuard.csproj"
       Targets="Publish"
       Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=$(SelfContained);PublishSingleFile=false;PublishDir=$(PublishDir)" />
   </Target>

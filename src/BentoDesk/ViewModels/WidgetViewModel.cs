@@ -228,6 +228,8 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
 
     public bool FollowsDefaultStoragePath => Config.FollowsDefaultStoragePath;
 
+    public bool IsUncategorizedDefault => Config.IsUncategorizedDefault;
+
     public double IconTileWidth
     {
         get => _iconTileWidth;

@@ -89,6 +89,9 @@ public partial class App : Application
     public LocalizationService LocalizationService { get; private set; } = null!;
     public ThemeService ThemeService { get; private set; } = null!;
     public GlobalHotkeyService? GlobalHotkeyService { get; private set; }
+    public DesktopShellIconService? DesktopShellIconService { get; private set; }
+    public DesktopGuardHostService? DesktopGuardHostService { get; private set; }
+    public FreeDesktopService? FreeDesktopService { get; private set; }
     public DesktopDoubleClickService? DesktopDoubleClickService { get; private set; }
     public WidgetManager? WidgetManager { get; private set; }
     public ResizeGuideOverlayService ResizeGuideOverlay { get; private set; } = null!;
@@ -798,14 +801,26 @@ public partial class App : Application
             WidgetManager = new WidgetManager(SettingsService, FileService, OrganizerService, themeService, localizationService);
             WidgetManager.TrayLayerStateChanged += UpdateTrayLayerStateText;
 
+            DesktopShellIconService ??= new DesktopShellIconService(UiDispatcherQueue);
+            DesktopGuardHostService ??= new DesktopGuardHostService();
+            FreeDesktopService ??= new FreeDesktopService(
+                DesktopShellIconService,
+                DesktopGuardHostService);
+            OrganizerService.SetMembershipChangedCallback(() =>
+            {
+                _ = WidgetManager?.RefreshManagedDesktopWidgetsAsync();
+            });
+
             if (DesktopDoubleClickService is null)
             {
                 try
                 {
                     DesktopDoubleClickService = new DesktopDoubleClickService(
                         SettingsService,
+                        DesktopShellIconService,
                         async visible =>
                         {
+                            // No free-icon layer; only toggle BentoDesk widgets.
                             if (WidgetManager is null)
                             {
                                 return;
@@ -826,21 +841,21 @@ public partial class App : Application
                 }
             }
 
-            // Phase 3: Restore widgets
+            // Phase 3: Restore widgets (includes uncategorized default), then hide native desktop icons.
             WidgetManager.SyncStorageFolderEntries();
             await WidgetManager.RestoreWidgetsAsync();
+            try
+            {
+                await FreeDesktopService.StartAsync();
+                Log("[Init] FreeDesktop painted mode started (shell hide + Guard)");
+            }
+            catch (Exception ex)
+            {
+                Log($"[Init] FreeDesktop start failed: {ex}");
+            }
 
             StartNativeNotificationService();
             ShowDataRestoreResultNotification(restoreResult);
-
-            if (SettingsService.Settings.Widgets.Count(widget =>
-                    widget.WidgetKind == WidgetKind.File &&
-                    !widget.IsDisabled &&
-                    !SettingsService.Settings.DeletedWidgetIds.Contains(widget.Id)) == 0 &&
-                !IsStartupMode)
-            {
-                await WidgetManager.CreateManagedWidgetAsync(LocalizationService.T("Widget.DefaultDesktopName"));
-            }
 
             if (!IsStartupMode && !SettingsService.Settings.HasCompletedOnboarding)
             {
@@ -888,6 +903,7 @@ public partial class App : Application
 
             // Invalidate the desktop icon view cache since work areas may have changed
             WidgetLayerService.InvalidateDesktopIconViewCache();
+            DesktopShellIconService?.SyncShellIconState();
 
             // Reposition all widgets to ensure they're on visible screens
             if (WidgetManager is not null)
@@ -1355,6 +1371,15 @@ public partial class App : Application
 
         DesktopDoubleClickService?.Dispose();
         DesktopDoubleClickService = null;
+
+        // Restore native ListView before tearing down Guard.
+        FreeDesktopService?.Stop();
+        FreeDesktopService?.Dispose();
+        FreeDesktopService = null;
+        DesktopGuardHostService?.Dispose();
+        DesktopGuardHostService = null;
+        DesktopShellIconService?.Dispose();
+        DesktopShellIconService = null;
 
         await SettingsService.SaveAsync();
         _nativeNotificationService?.Dispose();

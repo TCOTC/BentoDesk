@@ -217,6 +217,19 @@ public partial class WidgetViewModel
                 return;
             }
 
+            if (IsUncategorizedDefault)
+            {
+                await LoadUncategorizedDesktopAsync();
+                return;
+            }
+
+            if (FollowsDefaultStoragePath)
+            {
+                // Category widgets only refresh claimed desktop paths.
+                await ApplyManagedDesktopFolderChangesAsync(changeBatch);
+                return;
+            }
+
             if (ShouldUseFullReload(changeBatch, MappedFolderPath))
             {
                 await LoadFolderContentsAsync(MappedFolderPath);
@@ -231,7 +244,15 @@ public partial class WidgetViewModel
         catch (Exception ex)
         {
             App.Log($"[FolderRefresh] Incremental refresh failed for '{MappedFolderPath}': {ex}");
-            if (!string.IsNullOrEmpty(MappedFolderPath))
+            if (IsUncategorizedDefault)
+            {
+                await LoadUncategorizedDesktopAsync();
+            }
+            else if (FollowsDefaultStoragePath)
+            {
+                await LoadManagedMembershipAsync();
+            }
+            else if (!string.IsNullOrEmpty(MappedFolderPath))
             {
                 await LoadFolderContentsAsync(MappedFolderPath);
             }
@@ -239,6 +260,53 @@ public partial class WidgetViewModel
         finally
         {
             _folderRefreshGate.Release();
+        }
+    }
+
+    private async Task ApplyManagedDesktopFolderChangesAsync(FolderChangeBatch changeBatch)
+    {
+        bool membershipChanged = false;
+        foreach (var change in changeBatch.Changes)
+        {
+            if (change.ChangeType == WatcherChangeTypes.Deleted)
+            {
+                if (ManagedDesktopMembership.RemoveMembership(Config, change.FullPath))
+                {
+                    RemoveItemByPath(change.FullPath);
+                    membershipChanged = true;
+                }
+
+                continue;
+            }
+
+            if (change.ChangeType == WatcherChangeTypes.Renamed &&
+                !string.IsNullOrWhiteSpace(change.OldFullPath) &&
+                ManagedDesktopMembership.RemoveMembership(Config, change.OldFullPath))
+            {
+                RemoveItemByPath(change.OldFullPath);
+                if (ManagedDesktopMembership.IsOnUserDesktop(change.FullPath))
+                {
+                    ManagedDesktopMembership.AddMembership(Config, change.FullPath);
+                    TransferFileAddedAt(change.OldFullPath, change.FullPath);
+                    await UpsertFolderItemAsync(change.FullPath);
+                }
+
+                membershipChanged = true;
+                continue;
+            }
+
+            // Ignore unrelated desktop creates; uncategorized default widget owns unclaimed files.
+            if (FindItemIndexByPath(change.FullPath) >= 0)
+            {
+                await UpsertFolderItemAsync(change.FullPath);
+            }
+        }
+
+        if (membershipChanged)
+        {
+            SyncConfigItemsOrder();
+            _settingsService.SaveDebounced(notifySubscribers: false);
+            _organizerService.RaiseMembershipChanged();
         }
     }
 

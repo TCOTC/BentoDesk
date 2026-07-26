@@ -478,7 +478,15 @@ public sealed partial class WidgetWindow
             string folderPath = FileService.GetAvailablePath(
                 Path.Combine(ViewModel.MappedFolderPath, _localizationService.T("Widget.NewFolderName")));
             Directory.CreateDirectory(folderPath);
-            await ViewModel.RefreshFromConfigAsync();
+            if (ViewModel.FollowsDefaultStoragePath)
+            {
+                await ViewModel.ImportPathsAsync([folderPath], moveWhenMapped: true);
+            }
+            else
+            {
+                await ViewModel.RefreshFromConfigAsync();
+            }
+
             if (ViewModel.Items.FirstOrDefault(existingItem =>
                     string.Equals(existingItem.Path, folderPath, StringComparison.OrdinalIgnoreCase)) is { } newFolderItem)
             {

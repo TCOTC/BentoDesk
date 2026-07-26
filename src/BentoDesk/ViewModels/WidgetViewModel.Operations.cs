@@ -18,8 +18,20 @@ public partial class WidgetViewModel
         {
             EnsureFolderBackedConfig();
             MappedFolderPath = Config.MappedFolderPath;
-await LoadFolderContentsAsync(MappedFolderPath!);
-await ConfigureFolderWatchersAsync(MappedFolderPath);
+            if (IsUncategorizedDefault)
+            {
+                await LoadUncategorizedDesktopAsync();
+            }
+            else if (FollowsDefaultStoragePath)
+            {
+                await LoadManagedMembershipAsync();
+            }
+            else
+            {
+                await LoadFolderContentsAsync(MappedFolderPath!);
+            }
+
+            await ConfigureFolderWatchersAsync(MappedFolderPath);
         }
         finally
         {
@@ -55,6 +67,26 @@ await ConfigureFolderWatchersAsync(MappedFolderPath);
         MappedFolderPath = Config.MappedFolderPath;
         bool shouldMove = moveWhenMapped ?? ShouldMoveManagedItems();
         var historyEntry = await _organizerService.OrganizeDropAsync(Config, Name, normalizedPaths, shouldMove, useShellProgress);
+
+        if (IsUncategorizedDefault)
+        {
+            await LoadUncategorizedDesktopAsync();
+            return;
+        }
+
+        if (FollowsDefaultStoragePath)
+        {
+            foreach (var destinationPath in historyEntry.Items
+                         .Select(item => item.DestinationPath)
+                         .Where(path => !string.IsNullOrWhiteSpace(path)))
+            {
+                RecordFileAddedAt(destinationPath, DateTimeOffset.Now);
+                await UpsertFolderItemAsync(destinationPath);
+            }
+
+            SyncConfigItemsOrder();
+            return;
+        }
 
         if (shouldMove)
         {
@@ -116,7 +148,7 @@ await ConfigureFolderWatchersAsync(MappedFolderPath);
 
     public async Task<int> MoveItemBackToDesktopAsync(WidgetItem item, bool useShellProgress = false)
     {
-        if (string.IsNullOrWhiteSpace(MappedFolderPath))
+        if (string.IsNullOrWhiteSpace(MappedFolderPath) && !FollowsDefaultStoragePath)
         {
             return 0;
         }
@@ -125,6 +157,11 @@ await ConfigureFolderWatchersAsync(MappedFolderPath);
         if (historyEntry.Items.Any(entry => string.Equals(entry.SourcePath, item.Path, StringComparison.OrdinalIgnoreCase)))
         {
             RemoveItemByPath(item.Path);
+            if (FollowsDefaultStoragePath)
+            {
+                SyncConfigItemsOrder();
+            }
+
             return 1;
         }
 
@@ -133,7 +170,7 @@ await ConfigureFolderWatchersAsync(MappedFolderPath);
 
     public async Task<int> MoveItemsBackToDesktopAsync(IEnumerable<WidgetItem> items, bool useShellProgress = false)
     {
-        if (string.IsNullOrWhiteSpace(MappedFolderPath))
+        if (string.IsNullOrWhiteSpace(MappedFolderPath) && !FollowsDefaultStoragePath)
         {
             return 0;
         }
@@ -162,6 +199,11 @@ await ConfigureFolderWatchersAsync(MappedFolderPath);
             RemoveItemByPath(item.Path);
         }
 
+        if (FollowsDefaultStoragePath)
+        {
+            SyncConfigItemsOrder();
+        }
+
         return movedSourcePaths.Count;
     }
 
@@ -177,9 +219,22 @@ await ConfigureFolderWatchersAsync(MappedFolderPath);
 
         MappedFolderPath = Config.MappedFolderPath;
         OnPropertyChanged(nameof(FollowsDefaultStoragePath));
+        OnPropertyChanged(nameof(IsUncategorizedDefault));
 
-await LoadFolderContentsAsync(MappedFolderPath!, clearIconCacheBeforeHydration: true);
-await ConfigureFolderWatchersAsync(MappedFolderPath);
+        if (IsUncategorizedDefault)
+        {
+            await LoadUncategorizedDesktopAsync(clearIconCacheBeforeHydration: true);
+        }
+        else if (FollowsDefaultStoragePath)
+        {
+            await LoadManagedMembershipAsync(clearIconCacheBeforeHydration: true);
+        }
+        else
+        {
+            await LoadFolderContentsAsync(MappedFolderPath!, clearIconCacheBeforeHydration: true);
+        }
+
+        await ConfigureFolderWatchersAsync(MappedFolderPath);
         UpdateDependentProperties();
     }
 
@@ -206,7 +261,19 @@ await ConfigureFolderWatchersAsync(MappedFolderPath);
                 return;
             }
 
-            await LoadFolderContentsAsync(MappedFolderPath);
+            if (IsUncategorizedDefault)
+            {
+                await LoadUncategorizedDesktopAsync();
+            }
+            else if (FollowsDefaultStoragePath)
+            {
+                await LoadManagedMembershipAsync();
+            }
+            else
+            {
+                await LoadFolderContentsAsync(MappedFolderPath);
+            }
+
             UpdateDependentProperties();
         }
         finally

@@ -432,10 +432,110 @@ public sealed partial class WidgetManager
     /// <summary>
     /// Restore all visible file widgets from saved configuration.
     /// </summary>
+    /// <summary>
+    /// Ensures exactly one active uncategorized inbox widget exists for desktop − claimed files.
+    /// </summary>
+    public async Task EnsureUncategorizedDefaultWidgetAsync()
+    {
+        var settings = _settingsService.Settings;
+        var activeFileWidgets = settings.Widgets
+            .Where(widget =>
+                widget.WidgetKind == WidgetKind.File &&
+                !widget.IsDisabled &&
+                !IsDeleted(widget.Id))
+            .ToList();
+
+        var defaults = activeFileWidgets.Where(widget => widget.IsUncategorizedDefault).ToList();
+        if (defaults.Count > 1)
+        {
+            foreach (var extra in defaults.Skip(1))
+            {
+                extra.IsUncategorizedDefault = false;
+            }
+        }
+
+        WidgetConfig? primary = defaults.FirstOrDefault();
+        if (primary is null)
+        {
+            string legacyDesktopName = _localizationService.T("Widget.DefaultDesktopName");
+            primary = activeFileWidgets.FirstOrDefault(widget =>
+                widget.FollowsDefaultStoragePath &&
+                widget.Items.Count == 0 &&
+                (widget.IsDefaultTitle ||
+                 string.Equals(widget.Name, legacyDesktopName, StringComparison.Ordinal)));
+
+            if (primary is not null)
+            {
+                primary.IsUncategorizedDefault = true;
+            }
+        }
+
+        string uncategorizedName = _localizationService.T("Widget.UncategorizedDefaultName");
+        string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+
+        if (primary is null)
+        {
+            primary = new WidgetConfig
+            {
+                Name = uncategorizedName,
+                IsDefaultTitle = true,
+                WidgetKind = WidgetKind.File,
+                MappedFolderPath = desktopPath,
+                FollowsDefaultStoragePath = true,
+                IsUncategorizedDefault = true,
+                ManagedFolderName = null,
+                BoundsCoordinateVersion = WidgetConfig.CurrentBoundsCoordinateVersion,
+                Width = settings.DefaultWidgetWidth,
+                Height = settings.DefaultWidgetHeight
+            };
+            settings.Widgets.Add(primary);
+            App.Log($"[WidgetManager] Created uncategorized default widget id={primary.Id}");
+        }
+        else
+        {
+            primary.FollowsDefaultStoragePath = true;
+            primary.IsUncategorizedDefault = true;
+            primary.MappedFolderPath = desktopPath;
+            primary.ManagedFolderName = null;
+            if (primary.Items.Count > 0)
+            {
+                primary.Items = [];
+            }
+
+            if (primary.IsDefaultTitle)
+            {
+                primary.Name = uncategorizedName;
+            }
+        }
+
+        await _settingsService.SaveAsync();
+    }
+
+    public async Task RefreshManagedDesktopWidgetsAsync()
+    {
+        var managed = _widgets.Values
+            .Where(entry => entry.ViewModel.FollowsDefaultStoragePath)
+            .ToList();
+
+        foreach (var entry in managed)
+        {
+            try
+            {
+                await entry.ViewModel.RefreshFolderContentsAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log(
+                    $"[WidgetManager] Refresh managed widget failed id={entry.ViewModel.Config.Id}: {ex.Message}");
+            }
+        }
+    }
+
     public async Task RestoreWidgetsAsync()
     {
         // Dedup feature widgets: each kind should only have one config
         DeduplicateFeatureWidgets();
+        await EnsureUncategorizedDefaultWidgetAsync();
 
         var visibleConfigs = _settingsService.Settings.Widgets.Where(widget =>
                 widget.IsVisible &&
@@ -487,17 +587,15 @@ public sealed partial class WidgetManager
         name = string.IsNullOrWhiteSpace(name)
             ? _localizationService.T("Widget.DefaultName")
             : name;
-        string managedFolderName = CreateManagedFolderName(name);
-        string folderPath = BuildManagedFolderPath(managedFolderName);
-        Directory.CreateDirectory(folderPath);
 
         var config = new WidgetConfig
         {
             Name = name,
             WidgetKind = WidgetKind.File,
-            MappedFolderPath = folderPath,
+            // Painted-desktop membership: files stay on the user desktop; no private storage folder.
+            MappedFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
             FollowsDefaultStoragePath = true,
-            ManagedFolderName = managedFolderName,
+            ManagedFolderName = null,
             BoundsCoordinateVersion = WidgetConfig.CurrentBoundsCoordinateVersion,
             Width = _settingsService.Settings.DefaultWidgetWidth,
             Height = _settingsService.Settings.DefaultWidgetHeight
@@ -867,6 +965,8 @@ public sealed partial class WidgetManager
             RemoveMappedWidgetShortcut(config);
         }
 
+        bool wasUncategorizedDefault = config?.IsUncategorizedDefault == true;
+
         _settingsService.RemoveWidgetImmediate(widgetId);
         if (config is not null && FeatureWidgetSettings.IsFeatureWidget(config.WidgetKind))
         {
@@ -876,6 +976,19 @@ public sealed partial class WidgetManager
         _deletedWidgetIds.Remove(widgetId);
         App.Log($"[WidgetManager] Widget delete persisted: {widgetId} kind={config?.WidgetKind} featureEnabled={GetFeatureWidgetEnabledState(config?.WidgetKind)}");
         WidgetRemoved?.Invoke(widgetId);
+
+        if (wasUncategorizedDefault)
+        {
+            await EnsureUncategorizedDefaultWidgetAsync();
+            var replacement = _settingsService.Settings.Widgets.FirstOrDefault(widget =>
+                widget.IsUncategorizedDefault &&
+                !widget.IsDisabled &&
+                !IsDeleted(widget.Id));
+            if (replacement is not null && !_widgets.ContainsKey(replacement.Id))
+            {
+                await CreateWidgetFromConfigAsync(replacement, revealAfterCreate: true);
+            }
+        }
     }
 
     public async Task RenameWidgetAsync(string widgetId, string newName)

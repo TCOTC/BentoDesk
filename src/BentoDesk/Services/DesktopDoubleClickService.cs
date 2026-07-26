@@ -5,18 +5,18 @@ using BentoDesk.Helpers;
 namespace BentoDesk.Services;
 
 /// <summary>
-/// Listens for double-clicks on empty desktop space and toggles hiding
-/// all desktop icons together with all BentoDesk widgets.
+/// Listens for double-clicks on empty desktop space and toggles all BentoDesk widgets.
+/// When painted-desktop mode is active (SysListView32 already hidden), this service
+/// never shows the native icon list — only widget visibility changes.
 /// </summary>
 public sealed class DesktopDoubleClickService : IDisposable
 {
     private readonly SettingsService _settingsService;
-    private readonly Func<bool, Task> _setAllWidgetsVisibleAsync;
+    private readonly DesktopShellIconService _shellIcons;
+    private readonly Func<bool, Task> _setPaintedUiVisibleAsync;
     private readonly Win32Helper.LowLevelMouseProc _mouseHookProc;
     private IntPtr _mouseHookHandle;
-    private IntPtr _hiddenListViewHwnd;
     private bool _isCleared;
-    private bool _iconsHiddenByUs;
     private bool _isInvoking;
     private bool _hasPendingClick;
     private int _pendingClickX;
@@ -25,10 +25,12 @@ public sealed class DesktopDoubleClickService : IDisposable
 
     public DesktopDoubleClickService(
         SettingsService settingsService,
-        Func<bool, Task> setAllWidgetsVisibleAsync)
+        DesktopShellIconService shellIcons,
+        Func<bool, Task> setPaintedUiVisibleAsync)
     {
         _settingsService = settingsService;
-        _setAllWidgetsVisibleAsync = setAllWidgetsVisibleAsync;
+        _shellIcons = shellIcons;
+        _setPaintedUiVisibleAsync = setPaintedUiVisibleAsync;
         _mouseHookProc = MouseHookProc;
     }
 
@@ -59,27 +61,17 @@ public sealed class DesktopDoubleClickService : IDisposable
 
     public async Task RestoreIfNeededAsync()
     {
-        SyncShellIconState();
-
-        if (!_isCleared && !_iconsHiddenByUs)
+        if (!_isCleared)
         {
+            _shellIcons.ReleaseHidden(DesktopShellIconService.HideReason.DoubleClickClear);
             return;
         }
 
         try
         {
-            if (_iconsHiddenByUs)
-            {
-                WidgetLayerService.SetDesktopIconsVisible(true);
-                _iconsHiddenByUs = false;
-                _hiddenListViewHwnd = IntPtr.Zero;
-            }
-
-            if (_isCleared)
-            {
-                await _setAllWidgetsVisibleAsync(true);
-                _isCleared = false;
-            }
+            _shellIcons.ReleaseHidden(DesktopShellIconService.HideReason.DoubleClickClear);
+            await _setPaintedUiVisibleAsync(true);
+            _isCleared = false;
         }
         catch (Exception ex)
         {
@@ -90,13 +82,7 @@ public sealed class DesktopDoubleClickService : IDisposable
     public void Dispose()
     {
         UninstallMouseHook();
-        if (_iconsHiddenByUs)
-        {
-            WidgetLayerService.SetDesktopIconsVisible(true);
-            _iconsHiddenByUs = false;
-            _hiddenListViewHwnd = IntPtr.Zero;
-        }
-
+        _shellIcons.ReleaseHidden(DesktopShellIconService.HideReason.DoubleClickClear);
         _isCleared = false;
     }
 
@@ -212,27 +198,30 @@ public sealed class DesktopDoubleClickService : IDisposable
         _isInvoking = true;
         try
         {
-            SyncShellIconState();
+            _shellIcons.SyncShellIconState();
+            bool paintedMode = _shellIcons.IsPaintedDesktopActive;
 
             if (_isCleared)
             {
-                App.Log("[DesktopDoubleClick] Restoring desktop icons and widgets");
-                WidgetLayerService.SetDesktopIconsVisible(true);
-                _iconsHiddenByUs = false;
-                _hiddenListViewHwnd = IntPtr.Zero;
-                await _setAllWidgetsVisibleAsync(true);
+                App.Log("[DesktopDoubleClick] Restoring widgets");
+                // Painted mode owns ListView hide; do not Show native icons on restore.
+                if (!paintedMode)
+                {
+                    _shellIcons.ReleaseHidden(DesktopShellIconService.HideReason.DoubleClickClear);
+                }
+
+                await _setPaintedUiVisibleAsync(true);
                 _isCleared = false;
                 return;
             }
 
-            App.Log("[DesktopDoubleClick] Hiding desktop icons and widgets");
-            if (WidgetLayerService.SetDesktopIconsVisible(false))
+            App.Log("[DesktopDoubleClick] Hiding widgets");
+            if (!paintedMode)
             {
-                _iconsHiddenByUs = true;
-                _hiddenListViewHwnd = WidgetLayerService.FindDesktopIconListView();
+                _shellIcons.RequestHidden(DesktopShellIconService.HideReason.DoubleClickClear);
             }
 
-            await _setAllWidgetsVisibleAsync(false);
+            await _setPaintedUiVisibleAsync(false);
             _isCleared = true;
         }
         catch (Exception ex)
@@ -245,39 +234,6 @@ public sealed class DesktopDoubleClickService : IDisposable
         }
     }
 
-    /// <summary>
-    /// Explorer 重启后桌面图标会自行恢复，但我们内存中的隐藏标记可能仍在。
-    /// 这里只清除“由我们隐藏图标”的标记，保留 <see cref="_isCleared"/>，
-    /// 以便下一次双击继续走恢复格子的路径。
-    /// </summary>
-    private void SyncShellIconState()
-    {
-        if (!_iconsHiddenByUs)
-        {
-            return;
-        }
-
-        bool hiddenWindowGone =
-            _hiddenListViewHwnd != IntPtr.Zero &&
-            !Win32Helper.IsWindow(_hiddenListViewHwnd);
-        if (hiddenWindowGone)
-        {
-            WidgetLayerService.InvalidateDesktopIconViewCache();
-        }
-
-        bool iconsVisible = WidgetLayerService.AreDesktopIconsVisible();
-        if (!hiddenWindowGone && !iconsVisible)
-        {
-            return;
-        }
-
-        App.Log(
-            $"[DesktopDoubleClick] Shell icon state changed externally " +
-            $"hiddenWindowGone={hiddenWindowGone} iconsVisible={iconsVisible}; clearing iconsHiddenByUs");
-        _iconsHiddenByUs = false;
-        _hiddenListViewHwnd = IntPtr.Zero;
-    }
-
     private static bool IsModifierPressed()
     {
         return Win32Helper.IsKeyPressed(Windows.System.VirtualKey.Control) ||
@@ -285,7 +241,7 @@ public sealed class DesktopDoubleClickService : IDisposable
                Win32Helper.IsKeyPressed(Windows.System.VirtualKey.Shift);
     }
 
-    private static bool IsEmptyDesktopPoint(Win32Helper.POINT point)
+    private bool IsEmptyDesktopPoint(Win32Helper.POINT point)
     {
         IntPtr hwnd = Win32Helper.WindowFromPoint(point);
         if (hwnd == IntPtr.Zero)
@@ -319,11 +275,52 @@ public sealed class DesktopDoubleClickService : IDisposable
 
         if (!TryIsDesktopIconItemAtPoint(listView, point, out bool isOnItem))
         {
-            // 命中测试失败时宁可不触发，避免把图标双击误判成空白双击。
             return false;
         }
 
         return !isOnItem;
+    }
+
+    private static bool IsDesktopShellWindow(IntPtr hwnd)
+    {
+        IntPtr current = hwnd;
+        for (int depth = 0; depth < 8 && current != IntPtr.Zero; depth++)
+        {
+            if (WindowHasClass(current, "Progman") ||
+                WindowHasClass(current, "WorkerW") ||
+                WindowHasClass(current, "SHELLDLL_DefView") ||
+                WindowHasClass(current, "SysListView32"))
+            {
+                return true;
+            }
+
+            current = Win32Helper.GetParent(current);
+        }
+
+        return false;
+    }
+
+    private static bool IsSameOrDescendant(IntPtr ancestor, IntPtr hwnd)
+    {
+        IntPtr current = hwnd;
+        while (current != IntPtr.Zero)
+        {
+            if (current == ancestor)
+            {
+                return true;
+            }
+
+            current = Win32Helper.GetParent(current);
+        }
+
+        return false;
+    }
+
+    private static bool WindowHasClass(IntPtr hwnd, string className)
+    {
+        var buffer = new StringBuilder(256);
+        return Win32Helper.GetClassName(hwnd, buffer, buffer.Capacity) > 0 &&
+               buffer.ToString().Equals(className, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool TryIsDesktopIconItemAtPoint(
@@ -340,7 +337,6 @@ public sealed class DesktopDoubleClickService : IDisposable
         }
 
         // LVM_HITTEST 的 lParam 必须指向目标进程地址空间。
-        // 直接把本进程栈上的 LVHITTESTINFO 指针发给 Explorer 会让 COMCTL32 解引用无效地址并崩溃。
         _ = Win32Helper.GetWindowThreadProcessId(listView, out uint processId);
         if (processId == 0)
         {
@@ -430,54 +426,5 @@ public sealed class DesktopDoubleClickService : IDisposable
 
             _ = Win32Helper.CloseHandle(processHandle);
         }
-    }
-
-    private static bool IsDesktopShellWindow(IntPtr hWnd)
-    {
-        IntPtr current = hWnd;
-        while (current != IntPtr.Zero)
-        {
-            if (WindowHasClass(current, "Progman") ||
-                WindowHasClass(current, "WorkerW") ||
-                WindowHasClass(current, "SHELLDLL_DefView") ||
-                WindowHasClass(current, "SysListView32"))
-            {
-                return true;
-            }
-
-            current = Win32Helper.GetParent(current);
-        }
-
-        IntPtr root = Win32Helper.GetAncestor(hWnd, Win32Helper.GA_ROOT);
-        return WindowHasClass(root, "Progman") || WindowHasClass(root, "WorkerW");
-    }
-
-    private static bool IsSameOrDescendant(IntPtr ancestor, IntPtr hWnd)
-    {
-        IntPtr current = hWnd;
-        while (current != IntPtr.Zero)
-        {
-            if (current == ancestor)
-            {
-                return true;
-            }
-
-            current = Win32Helper.GetParent(current);
-        }
-
-        return false;
-    }
-
-    private static bool WindowHasClass(IntPtr hWnd, string className)
-    {
-        if (hWnd == IntPtr.Zero)
-        {
-            return false;
-        }
-
-        var buffer = new StringBuilder(256);
-        int length = Win32Helper.GetClassName(hWnd, buffer, buffer.Capacity);
-        return length > 0 &&
-               string.Equals(buffer.ToString(), className, StringComparison.Ordinal);
     }
 }

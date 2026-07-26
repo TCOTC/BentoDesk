@@ -103,6 +103,12 @@ public class WidgetConfig
     /// </summary>
     public bool FollowsDefaultStoragePath { get; set; }
 
+    /// <summary>
+    /// Inbox for desktop files not claimed by any other managed widget (desktop − other Items).
+    /// At most one active File widget should have this set.
+    /// </summary>
+    public bool IsUncategorizedDefault { get; set; }
+
     /// <summary>Stable subfolder name used when the widget follows the default managed storage path.</summary>
     public string? ManagedFolderName { get; set; }
 

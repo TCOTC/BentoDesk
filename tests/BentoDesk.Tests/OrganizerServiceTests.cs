@@ -29,7 +29,7 @@ public sealed class OrganizerServiceTests : IDisposable
         string targetDirectory = Directory.CreateDirectory(Path.Combine(_tempRoot, "widget")).FullName;
         string sourcePath = Path.Combine(sourceDirectory, "note.txt");
         File.WriteAllText(sourcePath, "content");
-        var widget = CreateWidget(targetDirectory);
+        var widget = CreateMappedWidget(targetDirectory);
 
         var history = await _organizerService.OrganizeDropAsync(widget, "Widget", [sourcePath], move: true);
 
@@ -53,7 +53,7 @@ public sealed class OrganizerServiceTests : IDisposable
         string targetDirectory = Directory.CreateDirectory(Path.Combine(_tempRoot, "widget")).FullName;
         string sourcePath = Path.Combine(sourceDirectory, "note.txt");
         File.WriteAllText(sourcePath, "content");
-        var widget = CreateWidget(targetDirectory);
+        var widget = CreateMappedWidget(targetDirectory);
 
         var history = await _organizerService.OrganizeDropAsync(widget, "Widget", [sourcePath], move: false);
 
@@ -70,7 +70,7 @@ public sealed class OrganizerServiceTests : IDisposable
         string targetDirectory = Directory.CreateDirectory(Path.Combine(_tempRoot, "widget-notify")).FullName;
         string sourcePath = Path.Combine(sourceDirectory, "note.txt");
         File.WriteAllText(sourcePath, "content");
-        var widget = CreateWidget(targetDirectory);
+        var widget = CreateMappedWidget(targetDirectory);
         int settingsChangedCount = 0;
         _settingsService.SettingsChanged += () => settingsChangedCount++;
 
@@ -87,7 +87,7 @@ public sealed class OrganizerServiceTests : IDisposable
         string targetDirectory = Directory.CreateDirectory(Path.Combine(_tempRoot, "widget")).FullName;
         string sourcePath = Path.Combine(sourceDirectory, "note.txt");
         File.WriteAllText(sourcePath, "content");
-        var widget = CreateWidget(targetDirectory);
+        var widget = CreateMappedWidget(targetDirectory);
         var history = await _organizerService.OrganizeDropAsync(widget, "Widget", [sourcePath], move: true);
 
         bool undone = await _organizerService.UndoLatestAsync();
@@ -100,9 +100,80 @@ public sealed class OrganizerServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task OrganizeDropAsync_ManagedDesktop_KeepsFileOnDesktopAndRecordsMembership()
+    {
+        string sourcePath = Path.Combine(_desktopRoot, "desk-note.txt");
+        File.WriteAllText(sourcePath, "content");
+        var widget = CreateManagedDesktopWidget();
+        _settingsService.Settings.Widgets.Add(widget);
+
+        var history = await _organizerService.OrganizeDropAsync(widget, "Widget", [sourcePath], move: true);
+
+        Assert.True(File.Exists(sourcePath));
+        Assert.Contains(widget.Items, item => item.Path.Equals(sourcePath, StringComparison.OrdinalIgnoreCase));
+        Assert.Equal(sourcePath, Assert.Single(history.Items).DestinationPath);
+    }
+
+    [Fact]
+    public async Task OrganizeDropAsync_ManagedDesktop_MovesOffDesktopSourceThenClaims()
+    {
+        string sourceDirectory = Directory.CreateDirectory(Path.Combine(_tempRoot, "downloads")).FullName;
+        string sourcePath = Path.Combine(sourceDirectory, "dl-note.txt");
+        File.WriteAllText(sourcePath, "content");
+        var widget = CreateManagedDesktopWidget();
+        _settingsService.Settings.Widgets.Add(widget);
+
+        var history = await _organizerService.OrganizeDropAsync(widget, "Widget", [sourcePath], move: true);
+
+        string destinationPath = Assert.Single(history.Items).DestinationPath;
+        Assert.False(File.Exists(sourcePath));
+        Assert.True(File.Exists(destinationPath));
+        Assert.Equal(_desktopRoot, Path.GetDirectoryName(destinationPath));
+        Assert.Contains(widget.Items, item => item.Path.Equals(destinationPath, StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task MoveItemsBackToDesktopAsync_ManagedDesktop_RemovesMembershipOnly()
+    {
+        string sourcePath = Path.Combine(_desktopRoot, "keep.txt");
+        File.WriteAllText(sourcePath, "content");
+        var widget = CreateManagedDesktopWidget();
+        widget.Items.Add(new WidgetItemConfig { Path = sourcePath, SortOrder = 0 });
+        _settingsService.Settings.Widgets.Add(widget);
+
+        var history = await _organizerService.MoveItemsBackToDesktopAsync(widget, "Widget", [sourcePath]);
+
+        Assert.True(File.Exists(sourcePath));
+        Assert.Empty(widget.Items);
+        Assert.Equal(sourcePath, Assert.Single(history.Items).DestinationPath);
+    }
+
+    [Fact]
+    public async Task OrganizeDropAsync_UncategorizedDefault_RemovesOtherMembershipWithoutClaiming()
+    {
+        string sourcePath = Path.Combine(_desktopRoot, "inbox.txt");
+        File.WriteAllText(sourcePath, "content");
+        var category = CreateManagedDesktopWidget();
+        category.Items.Add(new WidgetItemConfig { Path = sourcePath, SortOrder = 0 });
+        var inbox = CreateManagedDesktopWidget();
+        inbox.IsUncategorizedDefault = true;
+        _settingsService.Settings.Widgets.Add(category);
+        _settingsService.Settings.Widgets.Add(inbox);
+
+        await _organizerService.OrganizeDropAsync(inbox, "未分类", [sourcePath], move: true);
+
+        Assert.True(File.Exists(sourcePath));
+        Assert.Empty(category.Items);
+        Assert.Empty(inbox.Items);
+        Assert.DoesNotContain(
+            sourcePath,
+            ManagedDesktopMembership.CollectClaimedPaths(_settingsService.Settings.Widgets));
+    }
+
+    [Fact]
     public async Task MoveItemBackToDesktopAsync_RejectsWidgetsWithoutMappedFolder()
     {
-        var widget = CreateWidget(string.Empty, followsDefaultStoragePath: false);
+        var widget = CreateMappedWidget(string.Empty);
         var item = new WidgetItem
         {
             Path = Path.Combine(_tempRoot, "missing.txt"),
@@ -119,7 +190,7 @@ public sealed class OrganizerServiceTests : IDisposable
         string widgetFolder = Directory.CreateDirectory(Path.Combine(_tempRoot, "mapped")).FullName;
         string sourcePath = Path.Combine(widgetFolder, "mapped-note.txt");
         File.WriteAllText(sourcePath, "content");
-        var widget = CreateWidget(widgetFolder, followsDefaultStoragePath: false);
+        var widget = CreateMappedWidget(widgetFolder);
         var item = new WidgetItem
         {
             Path = sourcePath,
@@ -133,14 +204,25 @@ public sealed class OrganizerServiceTests : IDisposable
         Assert.Equal(_desktopRoot, Path.GetDirectoryName(history.Items.Single().DestinationPath));
     }
 
-    private static WidgetConfig CreateWidget(string folderPath, bool followsDefaultStoragePath = true)
+    private WidgetConfig CreateManagedDesktopWidget()
+    {
+        return new WidgetConfig
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Name = "Managed",
+            MappedFolderPath = _desktopRoot,
+            FollowsDefaultStoragePath = true
+        };
+    }
+
+    private static WidgetConfig CreateMappedWidget(string folderPath)
     {
         return new WidgetConfig
         {
             Id = Guid.NewGuid().ToString("N"),
             Name = "Widget",
             MappedFolderPath = folderPath,
-            FollowsDefaultStoragePath = followsDefaultStoragePath,
+            FollowsDefaultStoragePath = false,
             ManagedFolderName = Path.GetFileName(folderPath)
         };
     }

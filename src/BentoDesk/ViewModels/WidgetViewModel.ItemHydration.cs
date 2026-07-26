@@ -13,23 +13,152 @@ public partial class WidgetViewModel
 {
     private void EnsureFolderBackedConfig()
     {
+        if (Config.FollowsDefaultStoragePath)
+        {
+            EnsureManagedDesktopConfig();
+            return;
+        }
+
         if (!string.IsNullOrWhiteSpace(Config.MappedFolderPath))
         {
             Config.MappedFolderPath = Path.GetFullPath(Config.MappedFolderPath);
             return;
         }
 
+        // No mapped path: use painted-desktop membership mode.
         Config.FollowsDefaultStoragePath = true;
-        Config.ManagedFolderName = string.IsNullOrWhiteSpace(Config.ManagedFolderName)
-            ? CreateAvailableManagedFolderName(Config.Name, Config.Id)
-            : Config.ManagedFolderName;
-        Config.MappedFolderPath = Path.Combine(
-            SettingsService.NormalizeManagedStorageRootPath(_settingsService.Settings.DefaultManagedStorageRootPath),
-            Config.ManagedFolderName);
-        Directory.CreateDirectory(Config.MappedFolderPath);
-        Config.Items.Clear();
-        ResetAddedAtTracking();
-        _settingsService.SaveDebounced();
+        EnsureManagedDesktopConfig();
+    }
+
+    private void EnsureManagedDesktopConfig()
+    {
+        Config.FollowsDefaultStoragePath = true;
+        string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+        if (!string.Equals(Config.MappedFolderPath, desktopPath, StringComparison.OrdinalIgnoreCase))
+        {
+            Config.MappedFolderPath = desktopPath;
+            _settingsService.SaveDebounced();
+        }
+    }
+
+    /// <summary>
+    /// Loads desktop files that are not claimed by any categorizing managed widget.
+    /// </summary>
+    public async Task LoadUncategorizedDesktopAsync(bool clearIconCacheBeforeHydration = false)
+    {
+        using var perfScope = PerformanceLogger.Measure(
+            "WidgetViewModel.LoadUncategorizedDesktop",
+            $"id={Config.Id}");
+
+        var claimed = ManagedDesktopMembership.CollectClaimedPaths(
+            _settingsService.Settings.Widgets,
+            _settingsService.Settings.DeletedWidgetIds);
+
+        var settings = _settingsService.Settings;
+        var (userDesktop, publicDesktop) = FileService.GetDesktopPaths();
+        var userItems = await _fileService.EnumerateDirectoryAsync(
+            userDesktop,
+            hideShortcutArrowOverlay: settings.HideShortcutArrowOverlay,
+            showImageFilesAsIcons: settings.ShowImageFilesAsIcons,
+            showFileExtensions: settings.ShowFileExtensions,
+            hideShortcutExtensionWhenShowingFileExtensions: settings.HideShortcutExtensionWhenShowingFileExtensions,
+            loadIcons: false,
+            loadFolderItemCounts: false);
+
+        List<WidgetItem> publicItems = [];
+        if (!string.IsNullOrWhiteSpace(publicDesktop) && Directory.Exists(publicDesktop))
+        {
+            publicItems = await _fileService.EnumerateDirectoryAsync(
+                publicDesktop,
+                hideShortcutArrowOverlay: settings.HideShortcutArrowOverlay,
+                showImageFilesAsIcons: settings.ShowImageFilesAsIcons,
+                showFileExtensions: settings.ShowFileExtensions,
+                hideShortcutExtensionWhenShowingFileExtensions: settings.HideShortcutExtensionWhenShowingFileExtensions,
+                loadIcons: false,
+                loadFolderItemCounts: false);
+        }
+
+        var freeItems = userItems.Concat(publicItems)
+            .GroupBy(item => item.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.First())
+            .Where(item => !claimed.Contains(Path.GetFullPath(item.Path)))
+            .OrderBy(item => !item.IsFolder)
+            .ThenBy(item => item.Name, NaturalStringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+
+        if (clearIconCacheBeforeHydration)
+        {
+            ClearCurrentItemIconCache();
+        }
+
+        // Inbox does not persist membership Items.
+        if (Config.Items.Count > 0)
+        {
+            Config.Items = [];
+            _settingsService.SaveDebounced(notifySubscribers: false);
+        }
+
+        ApplyPersistedAddedTimes(freeItems);
+        SyncFolderItems(freeItems);
+        SortItems();
+        StartItemHydration();
+    }
+
+    private async Task LoadManagedMembershipAsync(bool clearIconCacheBeforeHydration = false)
+    {
+        using var perfScope = PerformanceLogger.Measure(
+            "WidgetViewModel.LoadManagedMembership",
+            $"id={Config.Id} count={Config.Items.Count}");
+
+        var settings = _settingsService.Settings;
+        var loaded = new List<WidgetItem>();
+        var surviving = new List<WidgetItemConfig>();
+
+        foreach (var configItem in Config.Items
+                     .Where(item => !string.IsNullOrWhiteSpace(item.Path))
+                     .OrderBy(item => item.SortOrder))
+        {
+            string fullPath = Path.GetFullPath(configItem.Path);
+            if (clearIconCacheBeforeHydration)
+            {
+                _fileService.ClearIconCache(
+                    fullPath,
+                    settings.HideShortcutArrowOverlay,
+                    settings.ShowImageFilesAsIcons);
+            }
+
+            var item = await _fileService.TryCreateWidgetItemAsync(
+                fullPath,
+                hideShortcutArrowOverlay: settings.HideShortcutArrowOverlay,
+                showImageFilesAsIcons: settings.ShowImageFilesAsIcons,
+                showFileExtensions: settings.ShowFileExtensions,
+                hideShortcutExtensionWhenShowingFileExtensions: settings.HideShortcutExtensionWhenShowingFileExtensions,
+                loadIcon: false,
+                loadFolderItemCount: false);
+            if (item is null)
+            {
+                continue;
+            }
+
+            item.SortOrder = configItem.SortOrder;
+            loaded.Add(item);
+            surviving.Add(new WidgetItemConfig
+            {
+                Path = fullPath,
+                SortOrder = configItem.SortOrder
+            });
+        }
+
+        if (surviving.Count != Config.Items.Count)
+        {
+            Config.Items = surviving;
+            _settingsService.SaveDebounced(notifySubscribers: false);
+        }
+
+        ApplyPersistedAddedTimes(loaded);
+        SyncFolderItems(loaded);
+        SortItems();
+        StartItemHydration();
     }
 
     private string CreateAvailableManagedFolderName(string displayName, string widgetId)
