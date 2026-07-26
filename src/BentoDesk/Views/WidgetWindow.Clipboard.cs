@@ -143,7 +143,7 @@ public sealed partial class WidgetWindow
                 : [];
     
             ApplyCutState();
-            UpdateInteractiveSurfaces();
+            UpdateInteractiveSurfaceStates();
             ShowStatusToast(cut
                 ? _localizationService.Format("Widget.CutCount", sourcePaths.Length)
                 : _localizationService.Format("Widget.CopyCount", sourcePaths.Length));
@@ -193,6 +193,12 @@ public sealed partial class WidgetWindow
     
         private void ClearItemSelectionCore(bool clearCutState)
         {
+            bool hadSelection = HasItemSelection();
+            if (!hadSelection && !clearCutState)
+            {
+                return;
+            }
+
             if (clearCutState)
             {
                 ClearCutState();
@@ -203,14 +209,14 @@ public sealed partial class WidgetWindow
             {
                 SynchronizeListViewSelection(listView, []);
             }
-    
+
             foreach (var item in ViewModel.Items)
             {
                 item.IsSelected = false;
             }
     
             _lastSelectionAnchorIndex = -1;
-            UpdateInteractiveSurfaces();
+            UpdateInteractiveSurfaceStates();
         }
     
         private void ApplyCutState()
@@ -235,7 +241,7 @@ public sealed partial class WidgetWindow
                 .Where(currentPaths.Contains)
                 .ToArray();
             ApplyCutState();
-            UpdateInteractiveSurfaces();
+            UpdateInteractiveSurfaceStates();
         }
     
         private static bool CanPasteFromClipboard()

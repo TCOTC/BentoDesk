@@ -107,6 +107,15 @@ public sealed partial class WidgetWindow
             return;
         }
 
+        // 路径未变时复用已有 ToolTip，避免选中 / 尺寸等刷新路径反复分配控件树。
+        if (ToolTipService.GetToolTip(border) is ToolTip existingTooltip &&
+            existingTooltip.Content is Border existingContent &&
+            existingContent.Child is TextBlock existingText &&
+            existingText.Text == item.FullPath)
+        {
+            return;
+        }
+
         var tooltipText = new TextBlock
         {
             Text = item.FullPath

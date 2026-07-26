@@ -128,6 +128,24 @@ public sealed partial class WidgetWindow
         }
     }
 
+    /// <summary>
+    /// 仅刷新选中 / 悬停 / 剪切等表面状态，不触发布局与 ToolTip 重建。
+    /// 选中变化等高频路径应优先使用此方法，避免空白点击等操作触发 Measure/Arrange 风暴。
+    /// </summary>
+    private void UpdateInteractiveSurfaceStates()
+    {
+        foreach (var border in _interactiveSurfaces.ToArray())
+        {
+            if (border.XamlRoot is null)
+            {
+                _interactiveSurfaces.Remove(border);
+                continue;
+            }
+
+            ApplyWidgetItemSurfaceState(border, ItemSurfaceState.Normal);
+        }
+    }
+
     private void ApplyWidgetItemSurfaceState(Border border, ItemSurfaceState state)
     {
         if (ReferenceEquals(border, _folderDropTarget) && state != ItemSurfaceState.DropTarget)
@@ -144,7 +162,7 @@ public sealed partial class WidgetWindow
 
         EnsureItemSurfaceBrushCache(isDark, accentColor);
 
-        border.Background = state switch
+        Brush? background = state switch
         {
             ItemSurfaceState.DropTarget => _dropTargetItemSurfaceBrush,
             ItemSurfaceState.Hover when isSelected => _selectedHoverItemSurfaceBrush,
@@ -154,13 +172,33 @@ public sealed partial class WidgetWindow
             _ when isSelected => _selectedItemSurfaceBrush,
             _ => _normalItemSurfaceBrush
         };
-        border.BorderBrush = state == ItemSurfaceState.DropTarget
+        Brush? borderBrush = state == ItemSurfaceState.DropTarget
             ? _dropTargetItemBorderBrush
             : _normalItemBorderBrush;
-        border.BorderThickness = state == ItemSurfaceState.DropTarget
+        var borderThickness = state == ItemSurfaceState.DropTarget
             ? new Thickness(1)
             : new Thickness(0);
-        border.Opacity = isCut ? 0.58 : 1.0;
+        double opacity = isCut ? 0.58 : 1.0;
+
+        if (!ReferenceEquals(border.Background, background))
+        {
+            border.Background = background;
+        }
+
+        if (!ReferenceEquals(border.BorderBrush, borderBrush))
+        {
+            border.BorderBrush = borderBrush;
+        }
+
+        if (border.BorderThickness != borderThickness)
+        {
+            border.BorderThickness = borderThickness;
+        }
+
+        if (border.Opacity != opacity)
+        {
+            border.Opacity = opacity;
+        }
     }
 
     private void ResetItemSurfaceBrushCache()

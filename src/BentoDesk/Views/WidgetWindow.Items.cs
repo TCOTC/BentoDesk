@@ -579,7 +579,7 @@ public sealed partial class WidgetWindow
     {
         _cutClipboardPaths = [];
         ApplyCutState();
-        UpdateInteractiveSurfaces();
+        UpdateInteractiveSurfaceStates();
     }
 
     private static string? TryGetPackageString(DataPackagePropertySetView properties, string key)

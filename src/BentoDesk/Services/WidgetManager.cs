@@ -1056,6 +1056,11 @@ public sealed partial class WidgetManager
                 continue;
             }
 
+            if (!window.HasItemSelection())
+            {
+                continue;
+            }
+
             window.ClearItemSelection();
         }
     }

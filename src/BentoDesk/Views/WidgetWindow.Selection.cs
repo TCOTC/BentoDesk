@@ -70,6 +70,17 @@ public sealed partial class WidgetWindow
         ClearItemSelectionCore(clearCutState: false);
     }
 
+    public bool HasItemSelection()
+    {
+        if (ViewModel.Items.Any(static item => item.IsSelected))
+        {
+            return true;
+        }
+
+        var listView = GetActiveItemsView();
+        return listView is not null && listView.SelectedItems.Count > 0;
+    }
+
     private void ClearOtherWidgetSelections()
     {
         App.Current.WidgetManager?.ClearSelectionsExcept(ViewModel.Config.Id);
@@ -80,13 +91,29 @@ public sealed partial class WidgetWindow
     private void ApplySelectionState(ListViewBase? listView)
     {
         var selectedItems = listView?.SelectedItems.OfType<WidgetItem>().ToHashSet() ?? [];
+        bool anyChanged = false;
+
         foreach (var item in ViewModel.Items)
         {
-            item.IsSelected = selectedItems.Contains(item);
+            bool isSelected = selectedItems.Contains(item);
+            if (item.IsSelected == isSelected)
+            {
+                continue;
+            }
+
+            item.IsSelected = isSelected;
+            anyChanged = true;
         }
 
         ApplyCutState();
-        UpdateInteractiveSurfaces();
+
+        // 选中未变时跳过；有变化时只刷表面状态，避免空白处点击触发布局 / ToolTip 重建。
+        if (!anyChanged)
+        {
+            return;
+        }
+
+        UpdateInteractiveSurfaceStates();
     }
 
     private void ApplySelectionPreview(HashSet<WidgetItem> selectedItems)
@@ -203,8 +230,12 @@ public sealed partial class WidgetWindow
             GetExpandedStack() is { } expandedStack)
         {
             RootGrid.Focus(FocusState.Programmatic);
-            listView.SelectedItems.Clear();
-            ApplySelectionState(listView);
+            if (listView.SelectedItems.Count > 0)
+            {
+                SynchronizeListViewSelection(listView, []);
+                ApplySelectionState(listView);
+            }
+
             e.Handled = true;
             await SetStackExpandedWithAnimationAsync(expandedStack, expanded: false);
             return;
@@ -230,9 +261,11 @@ public sealed partial class WidgetWindow
         _selectionHitTestItems = [];
         _selectionSurfaceByItem = [];
 
-        if (!Win32Helper.IsKeyPressed(Windows.System.VirtualKey.Control))
+        // 无 Ctrl 时清空本格选中；若本就无选中则跳过，避免空白单击反复刷表面。
+        if (!Win32Helper.IsKeyPressed(Windows.System.VirtualKey.Control) &&
+            listView.SelectedItems.Count > 0)
         {
-            listView.SelectedItems.Clear();
+            SynchronizeListViewSelection(listView, []);
             ApplySelectionState(listView);
         }
     }
@@ -380,10 +413,10 @@ public sealed partial class WidgetWindow
 
     private void FinishSelectionRectangle(ListViewBase listView)
     {
-        bool shouldHandle = _selectionPointerPressed || _isBoxSelecting;
+        bool wasBoxSelecting = _isBoxSelecting;
         _selectionPointerPressed = false;
 
-        if (_isBoxSelecting)
+        if (wasBoxSelecting)
         {
             ApplySelectionRectanglePreview();
             SynchronizeListViewSelection(
@@ -400,7 +433,8 @@ public sealed partial class WidgetWindow
         SelectionRectangle.Width = 0;
         SelectionRectangle.Height = 0;
 
-        if (shouldHandle)
+        // 普通空白单击已在 PointerPressed 清选；仅框选结束时需要再同步一次选中态。
+        if (wasBoxSelecting)
         {
             ApplySelectionState(listView);
         }
