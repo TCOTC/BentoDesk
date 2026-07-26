@@ -34,13 +34,6 @@ public sealed partial class WidgetWindow
         App.LogVerbose($"[ZOrder] Widget PushToBottom hwnd=0x{_hWnd.ToInt64():X}");
     }
 
-    public void ClearTopMostOnly()
-    {
-        _isAtDesktopLayer = true;
-        IntPtr foreground = WidgetLayerService.ClearTopMostPreservingForeground(_hWnd);
-        App.LogVerbose($"[ZOrder] Widget ClearTopMostOnly hwnd=0x{_hWnd.ToInt64():X} fg=0x{foreground.ToInt64():X}");
-    }
-
     public void ShowPreparedAtDesktopLayer(bool persistVisibility = true)
     {
         LogTrayWindow("ShowPreparedAtDesktopLayer");
@@ -443,16 +436,6 @@ public sealed partial class WidgetWindow
         QueueItemContainerTransitionRestore(_trayAnimation.Generation);
         _trayAnimation.RestoreWindowPosition();
         LogTrayWindow("CompleteHide");
-    }
-
-    private WidgetTrayAnimationProfile GetTrayAnimationProfile()
-    {
-        return _trayAnimation.CreateProfile(WidgetAnimationSettings.From(_settingsService.Settings));
-    }
-
-    private void LogTrayWindow(string message)
-    {
-        App.LogVerbose(_diagnostics.FormatTrayWindowMessage(message));
     }
 
     public void RevealFromTray(bool autoRestore = true)

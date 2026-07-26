@@ -504,7 +504,7 @@ public sealed class WidgetTrayAnimationController
         return current;
     }
 
-    private void OnRenderingFrame(object sender, object e)
+    private void OnRenderingFrame(object? sender, object e)
     {
         try // ✅ 添加异常保护防止渲染线程崩溃
         {
@@ -687,7 +687,7 @@ public sealed class WidgetTrayAnimationController
         double finalOffsetY,
         bool isShowing,
         long generation,
-        Action completed)
+        Action? completed)
     {
         if (generation != Generation)
         {
@@ -698,7 +698,7 @@ public sealed class WidgetTrayAnimationController
         SetOffsetOverride(null, null);
         RestoreDwmTransitions();
         _log($"AnimateCompleted mode={(isShowing ? "show" : "hide")} gen={generation}");
-        completed();
+        completed?.Invoke();
     }
 
     private void ApplyWindowOffset(double offsetX, double offsetY)

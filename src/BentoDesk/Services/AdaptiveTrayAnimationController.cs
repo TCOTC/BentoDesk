@@ -371,7 +371,7 @@ public sealed class AdaptiveTrayAnimationController
         }
     }
 
-    private void OnRenderingFrame(object sender, object e)
+    private void OnRenderingFrame(object? sender, object e)
     {
         if (!_isRendering || _renderGeneration != Generation)
         {

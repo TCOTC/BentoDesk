@@ -58,7 +58,6 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
     private Windows.Graphics.SizeInt32 _initialWindowSize { get => InitialWindowSize; set => InitialWindowSize = value; }
     private FrameworkElement? _dragCaptureElement { get => DragCaptureElement; set => DragCaptureElement = value; }
 
-    private readonly Microsoft.UI.WindowId _windowId;
     private readonly LocalizationService _localizationSvc;
     private readonly WidgetContentDescriptor _chromeDescriptor;
     private readonly WidgetChromeModeResolver _chromeModeResolver;
@@ -265,8 +264,6 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
         FileWidgetShell.SetDividerMargin(new Thickness(12, 0, 12, 0));
 
         HWnd = WindowNative.GetWindowHandle(this);
-        _windowId = Win32Interop.GetWindowIdFromWindow(HWnd);
-        AppWindow = AppWindow.GetFromWindowId(_windowId);
         Diagnostics = new WidgetWindowDiagnostics("File", ViewModel.Config, () => HWnd);
         
         // ⭐ 使用智能适配器创建动画控制器
@@ -306,7 +303,7 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
 
         Activated += WidgetWindow_Activated;
 
-        _appWindow.Changed += AppWindow_Changed;
+        AppWindow.Changed += OnAppWindowChanged;
         _displayChangeWatcher = new WidgetDisplayChangeWatcher(_hWnd, DispatcherQueue, RestoreBoundsAfterDisplayChange);
 
         foreach (var child in ResizeGrid.Children)
@@ -330,7 +327,7 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
             _localizationService.LanguageChanged -= OnLanguageChanged;
             ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
             ViewModel.Items.CollectionChanged -= ViewModel_ItemsCollectionChanged;
-            _appWindow.Changed -= AppWindow_Changed;
+            AppWindow.Changed -= OnAppWindowChanged;
             _displayChangeWatcher?.Dispose();
             _displayChangeWatcher = null;
             _autoRestoreTimer?.Stop();
@@ -359,94 +356,9 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
         };
     }
 
-    public void RestoreBoundsForCurrentTopology()
-    {
-        _ = TryRestoreBoundsForCurrentTopology(allowHidden: true);
-    }
-
-    private bool TryRestoreBoundsForCurrentTopology(bool allowHidden)
-    {
-        if (_isClosing ||
-            _isHideAnimationRunning)
-        {
-            return true;
-        }
-
-        if (!allowHidden && !Visible)
-        {
-            return true;
-        }
-
-        if (
-            _isDragging ||
-            _isResizing ||
-            _trayAnimation.IsApplyingBounds)
-        {
-            return false;
-        }
-
-        var bounds = ResolveWidgetBoundsForCurrentState();
-        var position = _appWindow.Position;
-        var size = _appWindow.Size;
-        if (position.X == bounds.X &&
-            position.Y == bounds.Y &&
-            size.Width == bounds.Width &&
-            size.Height == bounds.Height)
-        {
-            return true;
-        }
-
-        ApplyWindowBounds(bounds.X, bounds.Y, bounds.Width, bounds.Height, persist: false, updateConfig: true);
-        return true;
-    }
-
-    private bool RestoreBoundsAfterDisplayChange()
-    {
-        InvalidateStableCompactBounds();
-        // For hidden windows: update config coordinates to the correct screen
-        // without actually moving the window. This ensures the widget appears
-        // in the right place when it is next shown.
-        if (!Visible)
-        {
-            var bounds = WidgetPositioningService.ResolveBoundsForCurrentTopology(ViewModel.Config);
-            // Use center point for consistent monitor determination.
-            var center = new Windows.Graphics.PointInt32(
-                bounds.X + Math.Max(1, bounds.Width) / 2,
-                bounds.Y + Math.Max(1, bounds.Height) / 2);
-            var workArea = DisplayArea.GetFromPoint(center, DisplayAreaFallback.Nearest).WorkArea;
-            WidgetPositioningService.CaptureAnchor(ViewModel.Config, bounds, workArea);
-            WidgetPositioningService.UpdateConfigFromPhysicalBounds(ViewModel.Config, bounds, workArea);
-            _settingsService.SaveDebounced();
-            return true;
-        }
-
-        bool restored = TryRestoreBoundsForCurrentTopology(allowHidden: false);
-        if (restored)
-        {
-            RestoreDesktopLayer(force: true);
-        }
-
-        return restored;
-    }
-
     private void OnLanguageChanged()
     {
         ApplyLocalizedText();
-    }
-
-    private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
-    {
-        if (_isApplyingBounds || _trayAnimation.IsApplyingBounds || (!_isDragging && !_isResizing))
-        {
-            return;
-        }
-
-        if (args.DidPositionChange || args.DidSizeChange)
-        {
-            var pos = _appWindow.Position;
-            var size = _appWindow.Size;
-            UpdateConfigBoundsFromPhysical(pos.X, pos.Y, size.Width, size.Height, persist: false);
-        }
     }
 
     private void ApplyLocalizedText()
@@ -533,76 +445,6 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
         ResizeGrid.IsHitTestVisible = !isBusy;
     }
 
-    private void ElevateForInteraction()
-    {
-        if (App.Current.WidgetManager is { WidgetsRaisedFromTray: true })
-        {
-            return;
-        }
-
-        _lastElevateForInteractionUtc = DateTime.UtcNow;
-        HoldTemporaryTopMost();
-        RootGrid.Focus(FocusState.Programmatic);
-    }
-
-    private void HoldTemporaryTopMost()
-    {
-        if (WidgetLayerService.UsesDesktopPinnedMode())
-        {
-            _isAtDesktopLayer = true;
-            _keepRaisedUntilDeactivate = false;
-            _restoreDesktopLayerWhenIdle = false;
-            WidgetLayerService.MoveToDesktopBottom(_hWnd);
-            App.LogVerbose($"[ZOrder] Widget HoldTemporaryTopMost skipped pinned hwnd=0x{_hWnd.ToInt64():X}");
-            return;
-        }
-
-        _isAtDesktopLayer = false;
-        _keepRaisedUntilDeactivate = true;
-        _restoreDesktopLayerWhenIdle = false;
-        WidgetLayerService.HoldTemporaryTopMost(_hWnd);
-        App.LogVerbose($"[ZOrder] Widget HoldTemporaryTopMost hwnd=0x{_hWnd.ToInt64():X} raised={App.Current.WidgetManager?.WidgetsRaisedFromTray}");
-        StartTopMostSafetyTimer();
-    }
-
-    private void StartTopMostSafetyTimer()
-    {
-        if (!Win32Helper.IsWindowTopMost(_hWnd))
-        {
-            _topMostSafetyTimer?.Stop();
-            return;
-        }
-
-        if (_topMostSafetyTimer is null)
-        {
-            _topMostSafetyTimer = DispatcherQueue.CreateTimer();
-            _topMostSafetyTimer.IsRepeating = false;
-            _topMostSafetyTimer.Interval = TimeSpan.FromSeconds(2);
-            _topMostSafetyTimer.Tick += (_, _) =>
-            {
-                _topMostSafetyTimer?.Stop();
-                if (!_isAtDesktopLayer &&
-                    App.Current.WidgetManager is not { WidgetsRaisedFromTray: true })
-                {
-                    if (ShouldDeferDesktopLayerRestore())
-                    {
-                        App.LogVerbose($"[ZOrder] Widget safety timer: defer restore hwnd=0x{_hWnd.ToInt64():X}");
-                        _topMostSafetyTimer?.Start();
-                        return;
-                    }
-
-                    App.Log($"[ZOrder] Widget safety timer: force restore hwnd=0x{_hWnd.ToInt64():X}");
-                    RestoreDesktopLayer(force: true);
-                }
-            };
-        }
-        else
-        {
-            _topMostSafetyTimer.Stop();
-        }
-        _topMostSafetyTimer.Start();
-    }
-
     private void WidgetWindow_Activated(object sender, WindowActivatedEventArgs args)
     {
         DispatcherQueue.TryEnqueue(() => ApplyBackdropPreference());
@@ -685,132 +527,12 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
         RestoreDesktopLayer(force: true);
     }
 
-    private void RestoreDesktopLayer(bool force = false)
-    {
-        if (!force && !_restoreDesktopLayerWhenIdle && _keepRaisedUntilDeactivate)
-        {
-            return;
-        }
-
-        if (!force && (
-            _isDragging ||
-            _isResizing ||
-            TitleEditBox.Visibility == Visibility.Visible ||
-            _deletePending ||
-            _isDeleteWidgetFlyoutOpen ||
-            _isInlineFlyoutOpen))
-        {
-            if (force || _restoreDesktopLayerWhenIdle)
-            {
-                _restoreDesktopLayerWhenIdle = true;
-            }
-
-            return;
-        }
-
-        _topMostSafetyTimer?.Stop();
-        _topMostSafetyTimer = null;
-        _keepRaisedUntilDeactivate = false;
-        _restoreDesktopLayerWhenIdle = false;
-        ClearTopMostOnly();
-        ApplyBackdropPreference();
-    }
-
     private void ForceCancelTransientState()
     {
         _restoreDesktopLayerWhenIdle = true;
         _keepRaisedUntilDeactivate = false;
         _isDeleteWidgetFlyoutOpen = false;
         _isInlineFlyoutOpen = false;
-    }
-
-    private void ApplyWindowBounds(int x, int y, int width, int height, bool persist, bool updateConfig = true)
-    {
-        if (!IsCompactBoundsStateActive && !UsesCompactExpansionGeometry())
-        {
-            var minSize = GetPhysicalMinimumWindowSize(x, y, width, height);
-            width = Math.Max(minSize.Width, width);
-            height = Math.Max(minSize.Height, height);
-        }
-
-        _isApplyingBounds = true;
-        try
-        {
-            var bounds = new Windows.Graphics.RectInt32(x, y, width, height);
-            if (IsCompactBoundsStateActive)
-            {
-                bool moved = Win32Helper.SetWindowPos(
-                    _hWnd,
-                    IntPtr.Zero,
-                    bounds.X,
-                    bounds.Y,
-                    bounds.Width,
-                    bounds.Height,
-                    Win32Helper.SWP_NOZORDER | Win32Helper.SWP_NOACTIVATE);
-                if (!moved)
-                {
-                    _appWindow.MoveAndResize(bounds);
-                }
-            }
-            else
-            {
-                _appWindow.MoveAndResize(bounds);
-            }
-        }
-        finally
-        {
-            _isApplyingBounds = false;
-        }
-
-        if (persist)
-        {
-            CapturePositionAnchor(x, y, width, height);
-            UpdateConfigBoundsFromPhysical(x, y, width, height, persist: true);
-            return;
-        }
-
-        if (updateConfig)
-        {
-            UpdateConfigBoundsFromPhysical(x, y, width, height, persist: false);
-        }
-    }
-
-    private Windows.Graphics.SizeInt32 GetPhysicalMinimumWindowSize(int x, int y, int width, int height)
-    {
-        return WidgetPositioningService.GetPhysicalMinimumSizeForBounds(
-            new Windows.Graphics.RectInt32(x, y, Math.Max(1, width), Math.Max(1, height)));
-    }
-
-    private void CapturePositionAnchor(
-        int x,
-        int y,
-        int width,
-        int height,
-        bool preserveCurrentEdge = false)
-    {
-        var bounds = new Windows.Graphics.RectInt32(x, y, width, height);
-        if (IsCompactBoundsStateActive)
-        {
-            CaptureCompactPlacement(bounds, persist: false);
-            return;
-        }
-
-        // Use the window center point to determine the owning display.
-        // This prevents incorrect anchor capture when the window straddles
-        // two monitors during a cross-screen drag.
-        var center = new Windows.Graphics.PointInt32(
-            x + Math.Max(1, width) / 2,
-            y + Math.Max(1, height) / 2);
-        var workArea = DisplayArea.GetFromPoint(center, DisplayAreaFallback.Nearest).WorkArea;
-        ViewModel.Config.BoundsCoordinateVersion = WidgetConfig.CurrentBoundsCoordinateVersion;
-        if (preserveCurrentEdge)
-        {
-            WidgetPositioningService.CaptureAnchorPreservingCurrentEdge(ViewModel.Config, bounds, workArea);
-        }
-        else
-        {
-            WidgetPositioningService.CaptureAnchor(ViewModel.Config, bounds, workArea);
-        }
     }
 
     protected override void UpdateConfigBoundsFromPhysical(int x, int y, int width, int height, bool persist)
@@ -864,28 +586,6 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
             _emptyStateUpdateQueued = false;
             UpdateEmptyState();
         });
-    }
-
-    private void BeginInteractionLayer(string reason, bool elevate = true)
-    {
-        BeginCompactInteraction();
-        App.Current.WidgetManager?.BeginWidgetInteraction(reason);
-        if (elevate)
-        {
-            ElevateForInteraction();
-        }
-    }
-
-    private void ReleaseInteractionLayer(string reason)
-    {
-        EndCompactInteraction();
-        App.Current.WidgetManager?.EndWidgetInteraction(reason);
-        if (App.Current.WidgetManager?.RequestRestoreRaisedWidgetsToDesktopLayer(reason) == true)
-        {
-            return;
-        }
-
-        RestoreDesktopLayer();
     }
 
     private bool ShouldStartTitleDrag(object? originalSource)

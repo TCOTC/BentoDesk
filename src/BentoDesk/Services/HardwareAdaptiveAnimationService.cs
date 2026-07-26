@@ -40,9 +40,6 @@ public sealed record AdaptiveAnimationConfig(
 /// </summary>
 public sealed class HardwareAdaptiveAnimationService
 {
-    private const int MeasurementWindowMs = 500;
-    private const int MinFrameCountForAccurateMeasurement = 30;
-    
     // VRR 支持检测
     private bool _supportsVRR;
     
@@ -50,13 +47,8 @@ public sealed class HardwareAdaptiveAnimationService
     private const double CpuThresholdHigh = 0.15;
     private const double CpuThresholdMedium = 0.40;
 
-    private readonly DispatcherQueue _dispatcherQueue;
     private readonly Action<string>? _logger;
-    private DateTime _lastMeasureTime;
-    private int _measuredFrameCount;
-    private double _measuredRenderDuration;
     private HardwarePerformanceLevel _cachedLevel;
-    private bool _isMeasuring;
     
     // 新增：屏幕感知相关
     private static readonly Dictionary<IntPtr, int> s_screenCache = new(); // windowHandle -> refreshRate
@@ -67,12 +59,11 @@ public sealed class HardwareAdaptiveAnimationService
 
     public HardwareAdaptiveAnimationService(DispatcherQueue dispatcherQueue, Action<string>? logger = null)
     {
-        _dispatcherQueue = dispatcherQueue;
+        _ = dispatcherQueue;
         _logger = logger;
         
         // 默认初始化为中档性能
         _cachedLevel = HardwarePerformanceLevel.Medium;
-        _lastMeasureTime = DateTime.MinValue;
     }
 
     /// <summary>
@@ -120,36 +111,6 @@ public sealed class HardwareAdaptiveAnimationService
                        $"SourceFPS={sourceRefreshRate}Hz, TargetFPS={targetRefreshRate}Hz, VRR={_supportsVRR}");
         
         return config;
-    }
-
-    /// <summary>
-    /// 性能测量回调 - 简化版：不需要 CompositionTarget
-    /// </summary>
-    private void OnMeasurementRenderingFrame(object sender, object e)
-    {
-        _measuredFrameCount++;
-    }
-
-    // 移除对 CompositionTarget 的引用，改用 Timer 测量
-
-    /// <summary>
-    /// 根据实测帧率判断硬件级别
-    /// </summary>
-    private HardwarePerformanceLevel DetermineHardwareLevel(double measuredFps)
-    {
-        // 在测量窗口内，如果 FPS >= 55 说明硬件能稳定跑满高帧率
-        if (measuredFps >= 55 && _measuredFrameCount >= MinFrameCountForAccurateMeasurement)
-        {
-            return HardwarePerformanceLevel.High;
-        }
-        
-        // 如果 FPS >= 40 说明性能还可以
-        if (measuredFps >= 40)
-        {
-            return HardwarePerformanceLevel.Medium;
-        }
-
-        return HardwarePerformanceLevel.Low;
     }
 
     /// <summary>

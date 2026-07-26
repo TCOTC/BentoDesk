@@ -606,11 +606,11 @@ public sealed partial class MusicWidgetContent : UserControl, IDisposable
         EnsureRecordVinylRotationStoryboard();
         if (shouldRotate)
         {
-            _recordVinylRotationStoryboard.Begin();
+            _recordVinylRotationStoryboard!.Begin();
         }
         else
         {
-            _recordVinylRotationStoryboard.Stop();
+            _recordVinylRotationStoryboard!.Stop();
         }
     }
 
@@ -702,11 +702,11 @@ public sealed partial class MusicWidgetContent : UserControl, IDisposable
         EnsureRecordHorizontalVinylRotationStoryboard();
         if (shouldRotate)
         {
-            _recordHorizontalVinylRotationStoryboard.Begin();
+            _recordHorizontalVinylRotationStoryboard!.Begin();
         }
         else
         {
-            _recordHorizontalVinylRotationStoryboard.Stop();
+            _recordHorizontalVinylRotationStoryboard!.Stop();
         }
     }
 

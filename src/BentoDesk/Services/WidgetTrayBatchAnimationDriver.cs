@@ -105,7 +105,7 @@ public sealed class WidgetTrayBatchAnimationDriver
         _log("[BatchAnim] Cancelled");
     }
 
-    private void OnRenderingFrame(object sender, object e)
+    private void OnRenderingFrame(object? sender, object e)
     {
         try
         {

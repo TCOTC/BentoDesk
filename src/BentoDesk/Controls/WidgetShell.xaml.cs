@@ -862,11 +862,11 @@ public sealed partial class WidgetShell : UserControl
         EnsureCompactVinylRotationStoryboard();
         if (shouldRotate)
         {
-            _compactVinylRotationStoryboard.Begin();
+            _compactVinylRotationStoryboard!.Begin();
         }
         else
         {
-            _compactVinylRotationStoryboard.Stop();
+            _compactVinylRotationStoryboard!.Stop();
         }
     }
 

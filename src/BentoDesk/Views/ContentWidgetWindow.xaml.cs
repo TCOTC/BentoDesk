@@ -66,8 +66,6 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
 
         SettingsService = settingsService;
         HWnd = WindowNative.GetWindowHandle(this);
-        var windowId = Win32Interop.GetWindowIdFromWindow(HWnd);
-        AppWindow = AppWindow.GetFromWindowId(windowId);
         Diagnostics = new WidgetWindowDiagnostics("Content", _config, () => HWnd);
         TrayAnimation = new WidgetTrayAnimationController(
             AppWindow,

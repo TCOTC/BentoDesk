@@ -25,7 +25,6 @@ internal sealed class WidgetDisplayChangeWatcher : IDisposable
     private bool _isSubclassInstalled;
     private int _restoreRetryCount;
     private bool _isSuppressed;
-    private bool _hasPendingRestore;
 
     public WidgetDisplayChangeWatcher(IntPtr hWnd, DispatcherQueue dispatcherQueue, Func<bool> restoreAction)
     {
@@ -41,7 +40,7 @@ internal sealed class WidgetDisplayChangeWatcher : IDisposable
 
     /// <summary>
     /// Temporarily suppress restore operations during drag/resize.
-    /// Pending restores are deferred until <see cref="ResumeRestore"/> is called.
+    /// Display-change messages received while suppressed are ignored.
     /// </summary>
     public void SuppressRestore()
     {
@@ -49,8 +48,8 @@ internal sealed class WidgetDisplayChangeWatcher : IDisposable
     }
 
     /// <summary>
-    /// Resume restore operations. Any pending restore that was suppressed during
-    /// drag/resize is discarded rather than triggered, because the drag/resize end
+    /// Resume restore operations. Display-change messages that arrived while
+    /// suppressed are discarded rather than replayed, because the drag/resize end
     /// handler has already updated the config to match the current physical position.
     /// This prevents the window from jumping to an anchor-resolved position that may
     /// differ from the user's intended drop location after a DPI change during drag.
@@ -63,7 +62,6 @@ internal sealed class WidgetDisplayChangeWatcher : IDisposable
         }
 
         _isSuppressed = false;
-        _hasPendingRestore = false;
     }
 
     public void Dispose()
@@ -92,12 +90,7 @@ internal sealed class WidgetDisplayChangeWatcher : IDisposable
             message == WmSettingChange && IsRelevantSettingChange(wParam, lParam))
         {
             WidgetLayerService.InvalidateDesktopIconViewCache();
-            if (_isSuppressed)
-            {
-                // Defer the restore until ResumeRestore is called
-                _hasPendingRestore = true;
-            }
-            else
+            if (!_isSuppressed)
             {
                 QueueRestore();
             }

@@ -49,19 +49,6 @@ public sealed partial class WidgetWindow
         });
     }
 
-    private void ApplyWindowCornerPreference()
-    {
-        int cornerPreference = _settingsService.Settings.WidgetCornerPreference switch
-        {
-            SettingsService.WidgetCornerPreferenceDefault => Win32Helper.DWMWCP_DEFAULT,
-            SettingsService.WidgetCornerPreferenceSquare => Win32Helper.DWMWCP_DONOTROUND,
-            SettingsService.WidgetCornerPreferenceSmall => Win32Helper.DWMWCP_ROUNDSMALL,
-            _ => Win32Helper.DWMWCP_ROUND
-        };
-
-        Win32Helper.DwmSetWindowAttribute(_hWnd, Win32Helper.DWMWA_WINDOW_CORNER_PREFERENCE, ref cornerPreference, sizeof(int));
-    }
-
     protected override Windows.UI.Color BuildNativeBackdropTintColor(bool isDark)
     {
         var accentColor = App.Current.ThemeService?.GetEffectiveAccentColor()

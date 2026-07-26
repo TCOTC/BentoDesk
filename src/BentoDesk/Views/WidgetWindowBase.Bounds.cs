@@ -204,7 +204,10 @@ public abstract partial class WidgetWindowBase
             return true;
         }
 
-        if (IsDragging || IsResizing || TrayAnimation.IsPositionTransitionActive)
+        if (IsDragging ||
+            IsResizing ||
+            TrayAnimation.IsPositionTransitionActive ||
+            TrayAnimation.IsApplyingBounds)
         {
             return false;
         }

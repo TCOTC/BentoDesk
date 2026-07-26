@@ -120,41 +120,107 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private string[]? _cachedManagedDropActionDisplayNames;
     private string[]? _cachedMusicDisplayModeDisplayNames;
 
-    [ObservableProperty] private bool _autoStart;
-    [ObservableProperty] private bool _autoCheckForUpdates = true;
-    [ObservableProperty] private bool _doubleClickToOpen;
-    [ObservableProperty] private bool _doubleClickDesktopToHideAll;
-    [ObservableProperty] private double _defaultWidth;
-    [ObservableProperty] private double _defaultHeight;
-    [ObservableProperty] private bool _hideShortcutArrowOverlay;
-    [ObservableProperty] private bool _showImageFilesAsIcons;
-    [ObservableProperty] private bool _showHoverButtons = true;
-    [ObservableProperty] private bool _resizeSnapEnabled = true;
-    [ObservableProperty] private bool _showHoverActionLockPosition;
-    [ObservableProperty] private bool _showHoverActionLockSize;
-    [ObservableProperty] private bool _showHoverActionAdd;
-    [ObservableProperty] private bool _showHoverActionMore = true;
-    [ObservableProperty] private bool _showHoverActionDelete = true;
-    [ObservableProperty] private bool _showListItemDetails;
-    [ObservableProperty] private bool _showFileItemPathTooltips = true;
-    [ObservableProperty] private double _widgetOpacity = SettingsService.DefaultWidgetOpacity;
-    [ObservableProperty] private double _widgetMaterialIntensity = SettingsService.DefaultWidgetMaterialIntensity;
-    [ObservableProperty] private double _iconSize = SettingsService.DefaultIconSize;
-    [ObservableProperty] private double _textSize = SettingsService.DefaultTextSize;
-    [ObservableProperty] private double _layoutDensityScale = SettingsService.DefaultLayoutDensityScale;
-    [ObservableProperty] private double _horizontalSpacingScale = SettingsService.DefaultHorizontalSpacingScale;
-    [ObservableProperty] private double _verticalSpacingScale = SettingsService.DefaultVerticalSpacingScale;
-    [ObservableProperty] private double _fileNameWidthScale = SettingsService.DefaultFileNameWidthScale;
-    [ObservableProperty] private bool _showFileExtensions;
-    [ObservableProperty] private bool _hideShortcutExtensionWhenShowingFileExtensions = true;
-    [ObservableProperty] private bool _musicUseArtworkBackdrop = true;
-    [ObservableProperty] private bool _musicEnableCoverHoverMotion = true;
+    [ObservableProperty]
+    public partial bool AutoStart { get; set; }
 
-    [ObservableProperty] private bool _isCheckingForUpdates;
-    [ObservableProperty] private bool _isDownloadingUpdate;
-    [ObservableProperty] private string _updateStatusText = string.Empty;
-    [ObservableProperty] private string _updateDetailText = string.Empty;
-    [ObservableProperty] private double _updateProgressValue;
+    [ObservableProperty]
+    public partial bool AutoCheckForUpdates { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool DoubleClickToOpen { get; set; }
+
+    [ObservableProperty]
+    public partial bool DoubleClickDesktopToHideAll { get; set; }
+
+    [ObservableProperty]
+    public partial double DefaultWidth { get; set; }
+
+    [ObservableProperty]
+    public partial double DefaultHeight { get; set; }
+
+    [ObservableProperty]
+    public partial bool HideShortcutArrowOverlay { get; set; }
+
+    [ObservableProperty]
+    public partial bool ShowImageFilesAsIcons { get; set; }
+
+    [ObservableProperty]
+    public partial bool ShowHoverButtons { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool ResizeSnapEnabled { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool ShowHoverActionLockPosition { get; set; }
+
+    [ObservableProperty]
+    public partial bool ShowHoverActionLockSize { get; set; }
+
+    [ObservableProperty]
+    public partial bool ShowHoverActionAdd { get; set; }
+
+    [ObservableProperty]
+    public partial bool ShowHoverActionMore { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool ShowHoverActionDelete { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool ShowListItemDetails { get; set; }
+
+    [ObservableProperty]
+    public partial bool ShowFileItemPathTooltips { get; set; } = true;
+
+    [ObservableProperty]
+    public partial double WidgetOpacity { get; set; } = SettingsService.DefaultWidgetOpacity;
+
+    [ObservableProperty]
+    public partial double WidgetMaterialIntensity { get; set; } = SettingsService.DefaultWidgetMaterialIntensity;
+
+    [ObservableProperty]
+    public partial double IconSize { get; set; } = SettingsService.DefaultIconSize;
+
+    [ObservableProperty]
+    public partial double TextSize { get; set; } = SettingsService.DefaultTextSize;
+
+    [ObservableProperty]
+    public partial double LayoutDensityScale { get; set; } = SettingsService.DefaultLayoutDensityScale;
+
+    [ObservableProperty]
+    public partial double HorizontalSpacingScale { get; set; } = SettingsService.DefaultHorizontalSpacingScale;
+
+    [ObservableProperty]
+    public partial double VerticalSpacingScale { get; set; } = SettingsService.DefaultVerticalSpacingScale;
+
+    [ObservableProperty]
+    public partial double FileNameWidthScale { get; set; } = SettingsService.DefaultFileNameWidthScale;
+
+    [ObservableProperty]
+    public partial bool ShowFileExtensions { get; set; }
+
+    [ObservableProperty]
+    public partial bool HideShortcutExtensionWhenShowingFileExtensions { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool MusicUseArtworkBackdrop { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool MusicEnableCoverHoverMotion { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsCheckingForUpdates { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsDownloadingUpdate { get; set; }
+
+    [ObservableProperty]
+    public partial string UpdateStatusText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string UpdateDetailText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial double UpdateProgressValue { get; set; }
 
     public SettingsViewModel(
         SettingsService settingsService,
@@ -168,96 +234,106 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         _widgetContentFactory = new WidgetContentFactory(_localizationService);
         _appUpdateService = appUpdateService ?? new AppUpdateService();
         _dragDropPermissionRepairStatusText = string.Empty;
-        _updateStatusText = _localizationService.T("Settings.Update.Status.Ready");
-        _updateDetailText = GetReadyUpdateDetailText();
 
         var settings = settingsService.Settings;
-        _selectedTheme = settings.Theme is ThemeLight or ThemeDark ? settings.Theme : ThemeSystem;
-        _selectedTrayIconStyle = settings.TrayIconStyle is TrayIconStyleColorful or TrayIconStyleBlack or TrayIconStyleWhite
-            ? settings.TrayIconStyle
-            : TrayIconStyleSystem;
+        bool wasRestoringDefaults = _isRestoringDefaults;
+        _isRestoringDefaults = true;
+        try
+        {
+            UpdateStatusText = _localizationService.T("Settings.Update.Status.Ready");
+            UpdateDetailText = GetReadyUpdateDetailText();
 
-        _useSystemAccentColor = !string.Equals(settings.AccentColorMode, ThemeService.AccentModeCustom, StringComparison.OrdinalIgnoreCase);
-        _autoStart = StartupService.IsEnabled();
-        _autoCheckForUpdates = settings.AutoCheckForUpdates;
-        _doubleClickToOpen = settings.DoubleClickToOpen;
-        _doubleClickDesktopToHideAll = settings.DoubleClickDesktopToHideAll;
-        _defaultWidth = settings.DefaultWidgetWidth;
-        _defaultHeight = settings.DefaultWidgetHeight;
-        _hideShortcutArrowOverlay = settings.HideShortcutArrowOverlay;
-        _showImageFilesAsIcons = settings.ShowImageFilesAsIcons;
-        _showHoverButtons = settings.ShowHoverButtons;
-        _resizeSnapEnabled = settings.ResizeSnapEnabled;
-        ApplyHoverButtonActionSelection(settings.WidgetHoverButtonActions);
-        _showListItemDetails = settings.ShowListItemDetails;
-        _showFileItemPathTooltips = settings.ShowFileItemPathTooltips;
-        InitializeFileStackSettings(settings);
-        _widgetOpacity = settings.WidgetOpacity;
-        _widgetMaterialIntensity = settings.WidgetMaterialIntensity;
-        _selectedWidgetCornerPreference = settings.WidgetCornerPreference is CornerDefault or CornerSquare or CornerSmall or CornerRound
-            ? settings.WidgetCornerPreference
-            : CornerSmall;
-        _selectedWidgetMaterialType = settings.WidgetMaterialType is
-            MaterialMica or MaterialMicaAlt or MaterialAcrylic or MaterialAcrylicBase or MaterialSolid
-            ? settings.WidgetMaterialType
-            : MaterialAcrylic;
-        _selectedWidgetBorderColorMode = settings.WidgetBorderColorMode is
-            BorderColorNeutral or BorderColorAccent or BorderColorNone
-                ? settings.WidgetBorderColorMode
-                : BorderColorNeutral;
-        _selectedWidgetBorderStyle = settings.WidgetBorderStyle is BorderThin or BorderMedium or BorderThick
-            ? settings.WidgetBorderStyle
-            : BorderThin;
-        _widgetCapsuleModeEnabled = settings.WidgetCapsuleModeEnabled;
-        _selectedWidgetCompactWidthMode = SettingsService.NormalizeWidgetCompactWidthMode(
-            settings.WidgetCompactWidthMode);
-        _selectedWidgetCapsuleArrangementMode = SettingsService.NormalizeWidgetCapsuleArrangementMode(
-            settings.WidgetCapsuleArrangementMode);
-        _widgetCapsuleBarSpacing = SettingsService.NormalizeWidgetCapsuleBarSpacing(
-            settings.WidgetCapsuleBarSpacing);
-        _selectedWidgetCapsuleBarPlacement = SettingsService.NormalizeWidgetCapsuleBarPlacement(
-            settings.WidgetCapsuleBarPlacement);
-        _selectedWidgetCapsuleBarDirection = SettingsService.NormalizeWidgetCapsuleBarDirection(
-            settings.WidgetCapsuleBarDirection);
-        _widgetCompactHideSensitiveContent = settings.WidgetCompactHideSensitiveContent;
-        _selectedWidgetCollapseBehavior = SettingsService.NormalizeWidgetCollapseBehavior(settings.WidgetCollapseBehavior) == SettingsService.WidgetCollapseBehaviorSmart
-            ? SettingsService.WidgetCollapseBehaviorSmart
-            : SettingsService.WidgetCollapseBehaviorClick;
-        _selectedWidgetCompactContentMode = SettingsService.NormalizeWidgetCompactContentMode(
-            settings.WidgetCompactContentMode);
-        _selectedWidgetCompactAnimationEffect = SettingsService.NormalizeWidgetCompactAnimationEffect(settings.WidgetCompactAnimationEffect);
-        _widgetCompactAnimationDurationMs = SettingsService.NormalizeWidgetCompactAnimationDurationMs(settings.WidgetCompactAnimationDurationMs);
-        _widgetCompactExpandDelayMs = SettingsService.NormalizeWidgetCompactExpandDelayMs(settings.WidgetCompactExpandDelayMs);
-        _widgetCompactCollapseDelayMs = SettingsService.NormalizeWidgetCompactCollapseDelayMs(settings.WidgetCompactCollapseDelayMs);
-        _selectedWidgetCompactHoverResponse = SettingsService.ResolveWidgetCompactHoverResponse(
-            settings.WidgetCompactExpandDelayMs,
-            settings.WidgetCompactCollapseDelayMs);
-        _selectedWidgetCompactMediaCornerMode = SettingsService.NormalizeWidgetCompactMediaCornerMode(settings.WidgetCompactMediaCornerMode);
-        _selectedWidgetAnimationEffect = NormalizeWidgetAnimationEffect(settings.WidgetAnimationEffect);
-        _selectedWidgetAnimationSpeed = NormalizeWidgetAnimationSpeed(settings.WidgetAnimationSpeed);
-        _selectedWidgetAnimationSlideDirection = NormalizeWidgetAnimationSlideDirection(settings.WidgetAnimationSlideDirection);
-        _selectedWidgetAnimationEasingIntensity = NormalizeWidgetAnimationEasingIntensity(settings.WidgetAnimationEasingIntensity);
-        _selectedAnimationPreset = ResolveAnimationPreset();
-        _selectedDisplayWidgetChromeMode = NormalizeWidgetChromeModeSetting(settings.DisplayWidgetChromeMode, WidgetChromeMode.Overlay);
-        _selectedInteractiveWidgetChromeMode = NormalizeWidgetChromeModeSetting(settings.InteractiveWidgetChromeMode, WidgetChromeMode.Standard);
-        _selectedWidgetTitleIconMode = NormalizeWidgetTitleIconModeSetting(settings.WidgetTitleIconMode);
-        _selectedWidgetLayerMode = SettingsService.NormalizeWidgetLayerModeSetting(settings.WidgetLayerMode);
-        _iconSize = settings.IconSize;
-        _textSize = settings.TextSize;
-        _layoutDensityScale = settings.LayoutDensityScale;
-        _horizontalSpacingScale = settings.HorizontalSpacingScale;
-        _verticalSpacingScale = settings.VerticalSpacingScale;
-        _fileNameWidthScale = settings.FileNameWidthScale;
-        _selectedLayoutDensity = SettingsService.ResolveLayoutDensityPreset(settings);
-        _showFileExtensions = settings.ShowFileExtensions;
-        _hideShortcutExtensionWhenShowingFileExtensions = settings.HideShortcutExtensionWhenShowingFileExtensions;
-        _selectedManagedDropAction = settings.ManagedDropAction == SettingsService.ManagedDropActionMove
-            ? SettingsService.ManagedDropActionMove
-            : SettingsService.ManagedDropActionCopy;
-        _musicUseArtworkBackdrop = settings.MusicUseArtworkBackdrop;
-        _musicEnableCoverHoverMotion = settings.MusicEnableCoverHoverMotion;
-        _selectedMusicDisplayMode = SettingsService.NormalizeMusicDisplayMode(settings.MusicDisplayMode);
-        _managedStorageRootPath = settings.DefaultManagedStorageRootPath;
+            _selectedTheme = settings.Theme is ThemeLight or ThemeDark ? settings.Theme : ThemeSystem;
+            _selectedTrayIconStyle = settings.TrayIconStyle is TrayIconStyleColorful or TrayIconStyleBlack or TrayIconStyleWhite
+                ? settings.TrayIconStyle
+                : TrayIconStyleSystem;
+
+            _useSystemAccentColor = !string.Equals(settings.AccentColorMode, ThemeService.AccentModeCustom, StringComparison.OrdinalIgnoreCase);
+            AutoStart = StartupService.IsEnabled();
+            AutoCheckForUpdates = settings.AutoCheckForUpdates;
+            DoubleClickToOpen = settings.DoubleClickToOpen;
+            DoubleClickDesktopToHideAll = settings.DoubleClickDesktopToHideAll;
+            DefaultWidth = settings.DefaultWidgetWidth;
+            DefaultHeight = settings.DefaultWidgetHeight;
+            HideShortcutArrowOverlay = settings.HideShortcutArrowOverlay;
+            ShowImageFilesAsIcons = settings.ShowImageFilesAsIcons;
+            ShowHoverButtons = settings.ShowHoverButtons;
+            ResizeSnapEnabled = settings.ResizeSnapEnabled;
+            ApplyHoverButtonActionSelection(settings.WidgetHoverButtonActions);
+            ShowListItemDetails = settings.ShowListItemDetails;
+            ShowFileItemPathTooltips = settings.ShowFileItemPathTooltips;
+            InitializeFileStackSettings(settings);
+            WidgetOpacity = settings.WidgetOpacity;
+            WidgetMaterialIntensity = settings.WidgetMaterialIntensity;
+            _selectedWidgetCornerPreference = settings.WidgetCornerPreference is CornerDefault or CornerSquare or CornerSmall or CornerRound
+                ? settings.WidgetCornerPreference
+                : CornerSmall;
+            _selectedWidgetMaterialType = settings.WidgetMaterialType is
+                MaterialMica or MaterialMicaAlt or MaterialAcrylic or MaterialAcrylicBase or MaterialSolid
+                ? settings.WidgetMaterialType
+                : MaterialAcrylic;
+            _selectedWidgetBorderColorMode = settings.WidgetBorderColorMode is
+                BorderColorNeutral or BorderColorAccent or BorderColorNone
+                    ? settings.WidgetBorderColorMode
+                    : BorderColorNeutral;
+            _selectedWidgetBorderStyle = settings.WidgetBorderStyle is BorderThin or BorderMedium or BorderThick
+                ? settings.WidgetBorderStyle
+                : BorderThin;
+            _widgetCapsuleModeEnabled = settings.WidgetCapsuleModeEnabled;
+            _selectedWidgetCompactWidthMode = SettingsService.NormalizeWidgetCompactWidthMode(
+                settings.WidgetCompactWidthMode);
+            _selectedWidgetCapsuleArrangementMode = SettingsService.NormalizeWidgetCapsuleArrangementMode(
+                settings.WidgetCapsuleArrangementMode);
+            _widgetCapsuleBarSpacing = SettingsService.NormalizeWidgetCapsuleBarSpacing(
+                settings.WidgetCapsuleBarSpacing);
+            _selectedWidgetCapsuleBarPlacement = SettingsService.NormalizeWidgetCapsuleBarPlacement(
+                settings.WidgetCapsuleBarPlacement);
+            _selectedWidgetCapsuleBarDirection = SettingsService.NormalizeWidgetCapsuleBarDirection(
+                settings.WidgetCapsuleBarDirection);
+            _widgetCompactHideSensitiveContent = settings.WidgetCompactHideSensitiveContent;
+            _selectedWidgetCollapseBehavior = SettingsService.NormalizeWidgetCollapseBehavior(settings.WidgetCollapseBehavior) == SettingsService.WidgetCollapseBehaviorSmart
+                ? SettingsService.WidgetCollapseBehaviorSmart
+                : SettingsService.WidgetCollapseBehaviorClick;
+            _selectedWidgetCompactContentMode = SettingsService.NormalizeWidgetCompactContentMode(
+                settings.WidgetCompactContentMode);
+            _selectedWidgetCompactAnimationEffect = SettingsService.NormalizeWidgetCompactAnimationEffect(settings.WidgetCompactAnimationEffect);
+            _widgetCompactAnimationDurationMs = SettingsService.NormalizeWidgetCompactAnimationDurationMs(settings.WidgetCompactAnimationDurationMs);
+            _widgetCompactExpandDelayMs = SettingsService.NormalizeWidgetCompactExpandDelayMs(settings.WidgetCompactExpandDelayMs);
+            _widgetCompactCollapseDelayMs = SettingsService.NormalizeWidgetCompactCollapseDelayMs(settings.WidgetCompactCollapseDelayMs);
+            _selectedWidgetCompactHoverResponse = SettingsService.ResolveWidgetCompactHoverResponse(
+                settings.WidgetCompactExpandDelayMs,
+                settings.WidgetCompactCollapseDelayMs);
+            _selectedWidgetCompactMediaCornerMode = SettingsService.NormalizeWidgetCompactMediaCornerMode(settings.WidgetCompactMediaCornerMode);
+            _selectedWidgetAnimationEffect = NormalizeWidgetAnimationEffect(settings.WidgetAnimationEffect);
+            _selectedWidgetAnimationSpeed = NormalizeWidgetAnimationSpeed(settings.WidgetAnimationSpeed);
+            _selectedWidgetAnimationSlideDirection = NormalizeWidgetAnimationSlideDirection(settings.WidgetAnimationSlideDirection);
+            _selectedWidgetAnimationEasingIntensity = NormalizeWidgetAnimationEasingIntensity(settings.WidgetAnimationEasingIntensity);
+            _selectedAnimationPreset = ResolveAnimationPreset();
+            _selectedDisplayWidgetChromeMode = NormalizeWidgetChromeModeSetting(settings.DisplayWidgetChromeMode, WidgetChromeMode.Overlay);
+            _selectedInteractiveWidgetChromeMode = NormalizeWidgetChromeModeSetting(settings.InteractiveWidgetChromeMode, WidgetChromeMode.Standard);
+            _selectedWidgetTitleIconMode = NormalizeWidgetTitleIconModeSetting(settings.WidgetTitleIconMode);
+            _selectedWidgetLayerMode = SettingsService.NormalizeWidgetLayerModeSetting(settings.WidgetLayerMode);
+            IconSize = settings.IconSize;
+            TextSize = settings.TextSize;
+            LayoutDensityScale = settings.LayoutDensityScale;
+            HorizontalSpacingScale = settings.HorizontalSpacingScale;
+            VerticalSpacingScale = settings.VerticalSpacingScale;
+            FileNameWidthScale = settings.FileNameWidthScale;
+            _selectedLayoutDensity = SettingsService.ResolveLayoutDensityPreset(settings);
+            ShowFileExtensions = settings.ShowFileExtensions;
+            HideShortcutExtensionWhenShowingFileExtensions = settings.HideShortcutExtensionWhenShowingFileExtensions;
+            _selectedManagedDropAction = settings.ManagedDropAction == SettingsService.ManagedDropActionMove
+                ? SettingsService.ManagedDropActionMove
+                : SettingsService.ManagedDropActionCopy;
+            MusicUseArtworkBackdrop = settings.MusicUseArtworkBackdrop;
+            MusicEnableCoverHoverMotion = settings.MusicEnableCoverHoverMotion;
+            _selectedMusicDisplayMode = SettingsService.NormalizeMusicDisplayMode(settings.MusicDisplayMode);
+            _managedStorageRootPath = settings.DefaultManagedStorageRootPath;
+        }
+        finally
+        {
+            _isRestoringDefaults = wasRestoringDefaults;
+        }
 
         ApplyCachedUpdateResult();
         RefreshAccentPreview();

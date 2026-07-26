@@ -11,7 +11,9 @@ public sealed class LocalizationService
     /// <summary>
     /// Retained for existing subscribers. Language switching is not supported.
     /// </summary>
+#pragma warning disable CS0067 // Event is retained for existing subscribers but never raised.
     public event Action? LanguageChanged;
+#pragma warning restore CS0067
 
     public LocalizationService(SettingsService? _ = null)
     {
