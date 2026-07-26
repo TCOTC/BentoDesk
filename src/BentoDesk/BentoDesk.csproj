@@ -23,6 +23,9 @@
     <DefineConstants Condition="'$(BentoDeskDistribution)' == 'Store'">$(DefineConstants);BENTODESK_STORE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationIcon>Assets\bentodesk.ico</ApplicationIcon>
+    <!-- Debug 日常开发默认跳过 Updater，加速 Ctrl+R / watch；Release 与发布仍会构建。可用 -p:BentoDeskBuildUpdater=true 强制开启。 -->
+    <BentoDeskBuildUpdater Condition="'$(BentoDeskBuildUpdater)' == '' and '$(Configuration)' == 'Debug'">false</BentoDeskBuildUpdater>
+    <BentoDeskBuildUpdater Condition="'$(BentoDeskBuildUpdater)' == ''">true</BentoDeskBuildUpdater>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(BentoDeskDistribution)' == 'Store'">
@@ -107,14 +110,14 @@
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
   </PropertyGroup>
 
-  <Target Name="BuildBentoDeskUpdater" BeforeTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskDistribution)' != 'Store'">
+  <Target Name="BuildBentoDeskUpdater" BeforeTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskDistribution)' != 'Store' and '$(BentoDeskBuildUpdater)' == 'true'">
     <MSBuild
       Projects="..\BentoDesk.Updater\BentoDesk.Updater.csproj"
       Targets="Build"
       Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=$(RuntimeIdentifier)" />
   </Target>
 
-  <Target Name="CopyBentoDeskUpdater" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskDistribution)' != 'Store'">
+  <Target Name="CopyBentoDeskUpdater" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskDistribution)' != 'Store' and '$(BentoDeskBuildUpdater)' == 'true'">
     <ItemGroup>
       <BentoDeskUpdaterOutput Include="..\BentoDesk.Updater\bin\$(Platform)\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\BentoDesk.Updater.*" Condition="'$(RuntimeIdentifier)' != ''" />
       <BentoDeskUpdaterOutput Include="..\BentoDesk.Updater\bin\$(Platform)\$(Configuration)\$(TargetFramework)\BentoDesk.Updater.*" Condition="'$(RuntimeIdentifier)' == ''" />
@@ -122,7 +125,7 @@
     <Copy SourceFiles="@(BentoDeskUpdaterOutput)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
   </Target>
 
-  <Target Name="PublishBentoDeskUpdater" AfterTargets="Publish" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskDistribution)' != 'Store'">
+  <Target Name="PublishBentoDeskUpdater" AfterTargets="Publish" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskDistribution)' != 'Store' and '$(BentoDeskBuildUpdater)' == 'true'">
     <MSBuild
       Projects="..\BentoDesk.Updater\BentoDesk.Updater.csproj"
       Targets="Publish"
