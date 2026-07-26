@@ -366,9 +366,12 @@ public sealed partial class WidgetWindow
             slot.Margin = ViewModel.IconTileMargin;
         }
 
+        // 高亮面铺满固定格子槽，避免因文件名长短/换行导致选中矩形宽高不一致。
         border.Width = double.NaN;
         border.Height = double.NaN;
-        border.MaxWidth = Math.Max(ViewModel.IconImageSize + 18, ViewModel.IconLabelMaxWidth + 12);
+        border.ClearValue(FrameworkElement.MaxWidthProperty);
+        border.HorizontalAlignment = HorizontalAlignment.Stretch;
+        border.VerticalAlignment = VerticalAlignment.Stretch;
         border.Margin = new Thickness(0);
         border.Padding = ViewModel.IconTilePadding;
         border.CornerRadius = GetItemSurfaceCornerRadius();
@@ -376,6 +379,8 @@ public sealed partial class WidgetWindow
         if (border.Child is StackPanel iconStack)
         {
             iconStack.Spacing = ViewModel.IconContentSpacing;
+            iconStack.HorizontalAlignment = HorizontalAlignment.Center;
+            iconStack.VerticalAlignment = VerticalAlignment.Top;
 
             if (TryGetDescendant<Image>(iconStack, out var icon))
             {

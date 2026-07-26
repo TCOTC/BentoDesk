@@ -85,8 +85,8 @@
                         CornerRadius="8"
                         CanDrag="True"
                         AllowDrop="True"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
                         Loaded="WidgetItemSurface_Loaded"
                         Unloaded="WidgetItemSurface_Unloaded"
                         DragLeave="WidgetItemSurface_DragLeave"
@@ -99,7 +99,9 @@
                         Drop="WidgetItemSurface_Drop"
                         DragStarting="WidgetItemSurface_DragStarting"
                         DropCompleted="WidgetItemSurface_DropCompleted">
-                        <StackPanel HorizontalAlignment="Center">
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top">
                             <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <Image
                                     Source="{Binding Icon}"
