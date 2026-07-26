@@ -105,20 +105,17 @@ public static class WidgetPositioningService
         RectInt32 fallbackWorkArea,
         IReadOnlyList<RectInt32> availableWorkAreas)
     {
-        return EnsureCurrentBoundsCoordinateVersionCore(
-            config,
-            fallbackWorkArea,
-            availableWorkAreas.Select(workArea => new AvailableMonitorWorkArea(workArea, null, false)).ToList());
+        _ = fallbackWorkArea;
+        _ = availableWorkAreas;
+        return EnsureCurrentBoundsCoordinateVersion(config);
     }
 
     public static bool EnsureCurrentBoundsCoordinateVersionForCurrentTopology(
         WidgetConfig config,
         RectInt32 fallbackWorkArea)
     {
-        return EnsureCurrentBoundsCoordinateVersionCore(
-            config,
-            fallbackWorkArea,
-            GetAvailableMonitorWorkAreas());
+        _ = fallbackWorkArea;
+        return EnsureCurrentBoundsCoordinateVersion(config);
     }
 
     internal static bool EnsureCurrentBoundsCoordinateVersionForTest(
@@ -127,13 +124,10 @@ public static class WidgetPositioningService
         IReadOnlyList<(RectInt32 WorkArea, string? DeviceName)> availableWorkAreas,
         Func<RectInt32, double> dpiScaleProvider)
     {
-        return EnsureCurrentBoundsCoordinateVersionCore(
-            config,
-            fallbackWorkArea,
-            availableWorkAreas
-                .Select(area => new AvailableMonitorWorkArea(area.WorkArea, area.DeviceName, false))
-                .ToList(),
-            dpiScaleProvider);
+        _ = fallbackWorkArea;
+        _ = availableWorkAreas;
+        _ = dpiScaleProvider;
+        return EnsureCurrentBoundsCoordinateVersion(config);
     }
 
     internal static bool EnsureCurrentBoundsCoordinateVersionForTestWithPrimary(
@@ -142,39 +136,20 @@ public static class WidgetPositioningService
         IReadOnlyList<(RectInt32 WorkArea, string? DeviceName, bool IsPrimary)> availableWorkAreas,
         Func<RectInt32, double> dpiScaleProvider)
     {
-        return EnsureCurrentBoundsCoordinateVersionCore(
-            config,
-            fallbackWorkArea,
-            availableWorkAreas
-                .Select(area => new AvailableMonitorWorkArea(area.WorkArea, area.DeviceName, area.IsPrimary))
-                .ToList(),
-            dpiScaleProvider);
+        _ = fallbackWorkArea;
+        _ = availableWorkAreas;
+        _ = dpiScaleProvider;
+        return EnsureCurrentBoundsCoordinateVersion(config);
     }
 
-    private static bool EnsureCurrentBoundsCoordinateVersionCore(
-        WidgetConfig config,
-        RectInt32 fallbackWorkArea,
-        IReadOnlyList<AvailableMonitorWorkArea> availableWorkAreas,
-        Func<RectInt32, double>? dpiScaleProvider = null)
+    private static bool EnsureCurrentBoundsCoordinateVersion(WidgetConfig config)
     {
-        if (UsesLogicalBounds(config))
+        if (config.BoundsCoordinateVersion == WidgetConfig.CurrentBoundsCoordinateVersion)
         {
             return false;
         }
 
-        var workArea = SelectWorkAreaCore(
-            config,
-            fallbackWorkArea,
-            availableWorkAreas);
-        var legacyBounds = ResolveLegacyPhysicalBounds(config, workArea);
-        double scale = GetDpiScale(workArea, dpiScaleProvider);
-
         config.BoundsCoordinateVersion = WidgetConfig.CurrentBoundsCoordinateVersion;
-        config.X = legacyBounds.X;
-        config.Y = legacyBounds.Y;
-        config.Width = ToLogicalPixels(legacyBounds.Width, scale);
-        config.Height = ToLogicalPixels(legacyBounds.Height, scale);
-        CaptureAnchorCore(config, legacyBounds, workArea, dpiScaleProvider, availableWorkAreas);
         return true;
     }
 
@@ -199,7 +174,7 @@ public static class WidgetPositioningService
         IReadOnlyList<AvailableMonitorWorkArea>? availableWorkAreas = null,
         bool preserveCurrentAnchor = false)
     {
-        double scale = UsesLogicalBounds(config) ? GetDpiScale(workArea, dpiScaleProvider) : 1.0;
+        double scale = GetDpiScale(workArea, dpiScaleProvider);
         int leftMargin = bounds.X - workArea.X;
         int rightMargin = (workArea.X + workArea.Width) - (bounds.X + bounds.Width);
         int topMargin = bounds.Y - workArea.Y;
@@ -494,19 +469,12 @@ public static class WidgetPositioningService
         return normalized / normalizedScale;
     }
 
-    private static bool UsesLogicalBounds(WidgetConfig config)
-    {
-        return config.BoundsCoordinateVersion >= WidgetConfig.CurrentBoundsCoordinateVersion;
-    }
-
     private static int ResolvePhysicalWidth(WidgetConfig config, double scale)
     {
         double width = double.IsFinite(config.Width)
             ? Math.Max(SettingsService.MinWidgetWidth, config.Width)
             : SettingsService.DefaultWidgetWidth;
-        return UsesLogicalBounds(config)
-            ? ToPhysicalPixels(width, scale)
-            : (int)Math.Round(width);
+        return ToPhysicalPixels(width, scale);
     }
 
     private static int ResolvePhysicalHeight(WidgetConfig config, double scale)
@@ -514,32 +482,12 @@ public static class WidgetPositioningService
         double height = double.IsFinite(config.Height)
             ? Math.Max(SettingsService.MinWidgetHeight, config.Height)
             : SettingsService.DefaultWidgetHeight;
-        return UsesLogicalBounds(config)
-            ? ToPhysicalPixels(height, scale)
-            : (int)Math.Round(height);
-    }
-
-    private static RectInt32 ResolveLegacyPhysicalBounds(WidgetConfig config, RectInt32 workArea)
-    {
-        int width = ResolvePhysicalWidth(config, 1.0);
-        int height = ResolvePhysicalHeight(config, 1.0);
-        int x = (int)Math.Round(config.X);
-        int y = (int)Math.Round(config.Y);
-
-        if (HasValidAnchor(config))
-        {
-            x = ResolveLegacyAnchoredX(config, workArea, width);
-            y = ResolveLegacyAnchoredY(config, workArea, height);
-        }
-
-        return EnsureVisible(new RectInt32(x, y, width, height), workArea);
+        return ToPhysicalPixels(height, scale);
     }
 
     private static int ResolveAnchoredX(WidgetConfig config, RectInt32 workArea, int width, double scale)
     {
-        int margin = UsesLogicalBounds(config)
-            ? ToPhysicalMargin(config.PositionMarginX, scale)
-            : NormalizeMargin(config.PositionMarginX);
+        int margin = ToPhysicalMargin(config.PositionMarginX, scale);
         return config.PositionAnchor is WidgetPositionAnchors.RightTop or WidgetPositionAnchors.RightBottom
             ? workArea.X + workArea.Width - width - margin
             : workArea.X + margin;
@@ -547,35 +495,10 @@ public static class WidgetPositioningService
 
     private static int ResolveAnchoredY(WidgetConfig config, RectInt32 workArea, int height, double scale)
     {
-        int margin = UsesLogicalBounds(config)
-            ? ToPhysicalMargin(config.PositionMarginY, scale)
-            : NormalizeMargin(config.PositionMarginY);
+        int margin = ToPhysicalMargin(config.PositionMarginY, scale);
         return config.PositionAnchor is WidgetPositionAnchors.LeftBottom or WidgetPositionAnchors.RightBottom
             ? workArea.Y + workArea.Height - height - margin
             : workArea.Y + margin;
-    }
-
-    private static int ResolveLegacyAnchoredX(WidgetConfig config, RectInt32 workArea, int width)
-    {
-        int margin = NormalizeMargin(config.PositionMarginX);
-        return config.PositionAnchor is WidgetPositionAnchors.RightTop or WidgetPositionAnchors.RightBottom
-            ? workArea.X + workArea.Width - width - margin
-            : workArea.X + margin;
-    }
-
-    private static int ResolveLegacyAnchoredY(WidgetConfig config, RectInt32 workArea, int height)
-    {
-        int margin = NormalizeMargin(config.PositionMarginY);
-        return config.PositionAnchor is WidgetPositionAnchors.LeftBottom or WidgetPositionAnchors.RightBottom
-            ? workArea.Y + workArea.Height - height - margin
-            : workArea.Y + margin;
-    }
-
-    private static int NormalizeMargin(double value)
-    {
-        return double.IsFinite(value)
-            ? (int)Math.Round(Math.Max(0, value))
-            : 0;
     }
 
     private static int ToPhysicalMargin(double logicalPixels, double scale)

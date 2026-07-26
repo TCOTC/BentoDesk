@@ -64,6 +64,5 @@ Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilen
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent runasoriginaluser
 
-#include "BentoDesk.Migration.iss"
 #include "BentoDesk.Dependencies.iss"
 #include "BentoDesk.Uninstall.iss"

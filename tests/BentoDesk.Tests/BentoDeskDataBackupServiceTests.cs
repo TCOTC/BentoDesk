@@ -77,7 +77,6 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
         string restoreRoot = Directory.CreateDirectory(Path.Combine(_tempRoot, "snapshot-restore")).FullName;
         var restoreService = new BentoDeskDataBackupService(restoreRoot);
         BentoDeskRestorePreparation preparation = await restoreService.PrepareRestoreAsync(backupPath);
-        Assert.True(preparation.HasIntegrityManifest);
         Assert.False(Directory.Exists(service.BackupSnapshotStagingDirectory));
     }
 
@@ -227,7 +226,6 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
 
         Assert.True(preparation.FileCount >= 2);
         Assert.Equal(2, preparation.BackupSchemaVersion);
-        Assert.True(preparation.HasIntegrityManifest);
         Assert.True(result.HadPendingRestore);
         Assert.True(result.Succeeded, result.ErrorMessage);
         Assert.False(File.Exists(targetService.PendingRestoreMarkerPath));
@@ -299,7 +297,7 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task PrepareRestoreAsync_AcceptsLegacySchemaOneBackupWithCoreSettings()
+    public async Task PrepareRestoreAsync_RejectsSchemaOneBackup()
     {
         string archivePath = Path.Combine(_exportRoot, "legacy.zip");
         using (ZipArchive archive = ZipFile.Open(archivePath, ZipArchiveMode.Create))
@@ -313,26 +311,18 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
 
         var service = new BentoDeskDataBackupService(_appDataRoot);
 
-        BentoDeskRestorePreparation preparation = await service.PrepareRestoreAsync(archivePath);
-
-        Assert.Equal(1, preparation.BackupSchemaVersion);
-        Assert.False(preparation.HasIntegrityManifest);
-        Assert.True(File.Exists(service.PendingRestoreMarkerPath));
-        await service.CancelPendingRestoreAsync();
+        await Assert.ThrowsAsync<InvalidDataException>(() => service.PrepareRestoreAsync(archivePath));
+        Assert.False(File.Exists(service.PendingRestoreMarkerPath));
     }
 
     [Fact]
     public async Task PrepareRestoreAsync_RejectsBackupFromNewerBentoDeskVersion()
     {
-        string archivePath = Path.Combine(_exportRoot, "newer-version.zip");
-        using (ZipArchive archive = ZipFile.Open(archivePath, ZipArchiveMode.Create))
-        {
-            WriteEntry(
-                archive,
-                "manifest.json",
-                "{\"schemaVersion\":1,\"kind\":\"manual\",\"createdAtUtc\":\"2026-07-01T00:00:00Z\",\"appVersion\":\"99.0.0\"}");
-            WriteEntry(archive, "data/settings.json", "{}");
-        }
+        string dataDirectory = Directory.CreateDirectory(Path.Combine(_appDataRoot, "data")).FullName;
+        await File.WriteAllTextAsync(Path.Combine(dataDirectory, "settings.json"), "{}");
+        var exportService = new BentoDeskDataBackupService(_appDataRoot);
+        string archivePath = await exportService.ExportBackupAsync(_exportRoot);
+        RewriteManifestAppVersion(archivePath, "99.0.0");
 
         var service = new BentoDeskDataBackupService(_appDataRoot);
 
@@ -341,16 +331,65 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task PrepareRestoreAsync_RejectsLegacyBackupWithoutSettings()
+    public async Task PrepareRestoreAsync_RejectsBackupWithoutSettings()
     {
-        string archivePath = Path.Combine(_exportRoot, "missing-settings.zip");
-        using (ZipArchive archive = ZipFile.Open(archivePath, ZipArchiveMode.Create))
+        string dataDirectory = Directory.CreateDirectory(Path.Combine(_appDataRoot, "data")).FullName;
+        await File.WriteAllTextAsync(Path.Combine(dataDirectory, "settings.json"), "{}");
+        await File.WriteAllTextAsync(Path.Combine(dataDirectory, "other.json"), "{}");
+        var exportService = new BentoDeskDataBackupService(_appDataRoot);
+        string archivePath = await exportService.ExportBackupAsync(_exportRoot);
+
+        using (ZipArchive archive = ZipFile.Open(archivePath, ZipArchiveMode.Update))
         {
-            WriteEntry(
-                archive,
-                "manifest.json",
-                "{\"schemaVersion\":1,\"kind\":\"manual\",\"createdAtUtc\":\"2026-07-01T00:00:00Z\",\"appVersion\":\"1.2.9\"}");
-            WriteEntry(archive, "data/other.json", "{}");
+            archive.GetEntry("data/settings.json")?.Delete();
+            ZipArchiveEntry? manifestEntry = archive.GetEntry("manifest.json");
+            Assert.NotNull(manifestEntry);
+
+            string manifestJson;
+            using (var reader = new StreamReader(manifestEntry.Open()))
+            {
+                manifestJson = await reader.ReadToEndAsync();
+            }
+
+            using var doc = JsonDocument.Parse(manifestJson);
+            using var stream = new MemoryStream();
+            using (var jsonWriter = new Utf8JsonWriter(stream))
+            {
+                jsonWriter.WriteStartObject();
+                foreach (JsonProperty property in doc.RootElement.EnumerateObject())
+                {
+                    if (property.NameEquals("files"))
+                    {
+                        jsonWriter.WritePropertyName("files");
+                        jsonWriter.WriteStartArray();
+                        foreach (JsonElement file in property.Value.EnumerateArray())
+                        {
+                            string? relativePath =
+                                file.TryGetProperty("path", out JsonElement camelPath)
+                                    ? camelPath.GetString()
+                                    : file.GetProperty("Path").GetString();
+                            if (string.Equals(relativePath, "settings.json", StringComparison.OrdinalIgnoreCase))
+                            {
+                                continue;
+                            }
+
+                            file.WriteTo(jsonWriter);
+                        }
+
+                        jsonWriter.WriteEndArray();
+                    }
+                    else
+                    {
+                        property.WriteTo(jsonWriter);
+                    }
+                }
+
+                jsonWriter.WriteEndObject();
+            }
+
+            manifestEntry.Delete();
+            using var entryStream = archive.CreateEntry("manifest.json").Open();
+            await entryStream.WriteAsync(stream.ToArray());
         }
 
         var service = new BentoDeskDataBackupService(_appDataRoot);
@@ -408,6 +447,43 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
         ZipArchiveEntry entry = archive.CreateEntry(name);
         using var writer = new StreamWriter(entry.Open());
         writer.Write(content);
+    }
+
+    private static void RewriteManifestAppVersion(string archivePath, string appVersion)
+    {
+        using ZipArchive archive = ZipFile.Open(archivePath, ZipArchiveMode.Update);
+        ZipArchiveEntry? manifestEntry = archive.GetEntry("manifest.json");
+        Assert.NotNull(manifestEntry);
+
+        string manifestJson;
+        using (var reader = new StreamReader(manifestEntry.Open()))
+        {
+            manifestJson = reader.ReadToEnd();
+        }
+
+        using var doc = JsonDocument.Parse(manifestJson);
+        using var stream = new MemoryStream();
+        using (var jsonWriter = new Utf8JsonWriter(stream))
+        {
+            jsonWriter.WriteStartObject();
+            foreach (JsonProperty property in doc.RootElement.EnumerateObject())
+            {
+                if (property.NameEquals("appVersion"))
+                {
+                    jsonWriter.WriteString("appVersion", appVersion);
+                }
+                else
+                {
+                    property.WriteTo(jsonWriter);
+                }
+            }
+
+            jsonWriter.WriteEndObject();
+        }
+
+        manifestEntry.Delete();
+        using var entryStream = archive.CreateEntry("manifest.json").Open();
+        entryStream.Write(stream.ToArray());
     }
 
     private static async Task<string> WaitForStagedFileAsync(

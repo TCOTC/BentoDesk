@@ -23,16 +23,6 @@ public static class WidgetCollapseBehaviorNames
         WidgetCollapseBehavior fallback = WidgetCollapseBehavior.Click,
         bool allowSystem = false)
     {
-        if (string.Equals(value, "Manual", StringComparison.OrdinalIgnoreCase))
-        {
-            return WidgetCollapseBehavior.Click;
-        }
-
-        if (string.Equals(value, "Auto", StringComparison.OrdinalIgnoreCase))
-        {
-            return WidgetCollapseBehavior.Smart;
-        }
-
         if (Enum.TryParse(value, ignoreCase: true, out WidgetCollapseBehavior behavior) &&
             Enum.IsDefined(behavior) &&
             (allowSystem || behavior != WidgetCollapseBehavior.System))

@@ -119,62 +119,6 @@ public sealed partial class WidgetManager
         return await CreateContentWidgetFromConfigAsync(config, revealAfterCreate: true);
     }
 
-    internal int RepairLegacyContentFeatureFileShells()
-    {
-        if (!FeatureWidgetSettings.IsEnabled(_settingsService.Settings, WidgetKind.Music))
-        {
-            return 0;
-        }
-
-        bool hasMusicConfig = _settingsService.Settings.Widgets.Any(widget =>
-            widget.WidgetKind == WidgetKind.Music &&
-            !IsDeleted(widget.Id));
-        if (!hasMusicConfig)
-        {
-            return 0;
-        }
-
-        var fileShells = _settingsService.Settings.Widgets
-            .Where(IsLegacyEmptyContentFeatureFileShell)
-            .ToList();
-        if (fileShells.Count == 0)
-        {
-            return 0;
-        }
-
-        foreach (var shell in fileShells)
-        {
-            _settingsService.Settings.Widgets.Remove(shell);
-            if (!_settingsService.Settings.DeletedWidgetIds.Contains(shell.Id))
-            {
-                _settingsService.Settings.DeletedWidgetIds.Add(shell.Id);
-            }
-
-            App.Log($"[WidgetManager] Repaired legacy empty Music file shell: {FormatWidget(shell)}");
-        }
-
-        _settingsService.SaveDebounced();
-        return fileShells.Count;
-    }
-
-    private bool IsLegacyEmptyContentFeatureFileShell(WidgetConfig widget)
-    {
-        return widget.WidgetKind == WidgetKind.File &&
-               string.IsNullOrWhiteSpace(widget.MappedFolderPath) &&
-               !widget.FollowsDefaultStoragePath &&
-               string.IsNullOrWhiteSpace(widget.ManagedFolderName) &&
-               widget.Items.Count == 0 &&
-               IsDefaultMusicTitle(widget.Name);
-    }
-
-    private bool IsDefaultMusicTitle(string title)
-    {
-        string normalized = title.Trim();
-        return string.Equals(normalized, "Music", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(normalized, "\u97F3\u4E50", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(normalized, _localizationService.T("Music.Title"), StringComparison.OrdinalIgnoreCase);
-    }
-
     private void DeduplicateFeatureWidgets()
     {
         var seen = new HashSet<WidgetKind>();

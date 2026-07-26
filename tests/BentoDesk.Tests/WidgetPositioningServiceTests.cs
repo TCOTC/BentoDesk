@@ -45,19 +45,6 @@ public sealed class WidgetPositioningServiceTests
             _ => scale);
     }
 
-    private static bool EnsureCurrentBoundsCoordinateVersionWithPrimaryMonitors(
-        WidgetConfig config,
-        RectInt32 fallbackWorkArea,
-        IReadOnlyList<(RectInt32 WorkArea, string? DeviceName, bool IsPrimary)> availableWorkAreas,
-        double scale)
-    {
-        return WidgetPositioningService.EnsureCurrentBoundsCoordinateVersionForTestWithPrimary(
-            config,
-            fallbackWorkArea,
-            availableWorkAreas,
-            _ => scale);
-    }
-
     [Fact]
     public void CaptureAnchor_UsesNearestCornerMargins()
     {
@@ -320,65 +307,36 @@ public sealed class WidgetPositioningServiceTests
     }
 
     [Fact]
-    public void EnsureCurrentBoundsCoordinateVersion_MigratesLegacyPrimaryWidgetToCurrentPrimary()
-    {
-        var secondaryLaptop = new RectInt32(-1536, 0, 1536, 824);
-        var currentPrimaryExternal = new RectInt32(0, 0, 2560, 1400);
-        var config = new WidgetConfig
-        {
-            Width = 300,
-            Height = 200,
-            PositionAnchor = WidgetPositionAnchors.RightBottom,
-            PositionMarginX = 16,
-            PositionMarginY = 24,
-            PositionMonitorKey = "0:0:1536:824",
-            PositionMonitorDeviceName = @"\\.\DISPLAY1"
-        };
-
-        bool migrated = EnsureCurrentBoundsCoordinateVersionWithPrimaryMonitors(
-            config,
-            secondaryLaptop,
-            [
-                (secondaryLaptop, @"\\.\DISPLAY1", false),
-                (currentPrimaryExternal, @"\\.\DISPLAY2", true)
-            ],
-            1.0);
-
-        Assert.True(migrated);
-        Assert.Equal(WidgetConfig.CurrentBoundsCoordinateVersion, config.BoundsCoordinateVersion);
-        Assert.Equal(2244, config.X);
-        Assert.Equal(1176, config.Y);
-        Assert.Equal(@"\\.\DISPLAY2", config.PositionMonitorDeviceName);
-        Assert.True(config.PositionMonitorWasPrimary);
-        Assert.Equal(WidgetPositioningService.CreateMonitorKey(currentPrimaryExternal), config.PositionMonitorKey);
-    }
-    [Fact]
-    public void EnsureCurrentBoundsCoordinateVersion_MigratesLegacyPhysicalSizeToLogicalSize()
+    public void EnsureCurrentBoundsCoordinateVersion_StampsCurrentVersionWithoutRewritingBounds()
     {
         var workArea = new RectInt32(0, 0, 2560, 1400);
         var config = new WidgetConfig
         {
+            BoundsCoordinateVersion = 0,
             X = 120,
             Y = 90,
-            Width = 450,
-            Height = 300
+            Width = 300,
+            Height = 200,
+            PositionAnchor = WidgetPositionAnchors.LeftTop,
+            PositionMarginX = 16,
+            PositionMarginY = 24
         };
 
-        bool migrated = WidgetPositioningService.EnsureCurrentBoundsCoordinateVersionForTest(
+        bool stamped = WidgetPositioningService.EnsureCurrentBoundsCoordinateVersionForTest(
             config,
             workArea,
             [(workArea, null)],
             _ => 1.5);
 
-        Assert.True(migrated);
+        Assert.True(stamped);
         Assert.Equal(WidgetConfig.CurrentBoundsCoordinateVersion, config.BoundsCoordinateVersion);
         Assert.Equal(120, config.X);
         Assert.Equal(90, config.Y);
         Assert.Equal(300d, config.Width, precision: 3);
         Assert.Equal(200d, config.Height, precision: 3);
         Assert.Equal(WidgetPositionAnchors.LeftTop, config.PositionAnchor);
-        Assert.Equal(80d, config.PositionMarginX, precision: 3);
-        Assert.Equal(60d, config.PositionMarginY, precision: 3);
+        Assert.Equal(16d, config.PositionMarginX, precision: 3);
+        Assert.Equal(24d, config.PositionMarginY, precision: 3);
     }
 
     [Fact]

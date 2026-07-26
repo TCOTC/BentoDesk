@@ -34,18 +34,13 @@ public static class WidgetFileStackSettings
         }
 
         if (!string.Equals(value, SettingsService.FileStackGroupByKind, StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(value, SettingsService.FileStackGroupByDateAdded, StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(value, SettingsService.FileStackGroupByDateCreated, StringComparison.OrdinalIgnoreCase) &&
             !string.Equals(value, SettingsService.FileStackGroupByDateModified, StringComparison.OrdinalIgnoreCase) &&
             !string.Equals(value, SettingsService.FileStackGroupByCustom, StringComparison.OrdinalIgnoreCase))
         {
             return null;
         }
 
-        string normalized = SettingsService.NormalizeFileStackGroupBy(value);
-        return normalized == SettingsService.FileStackGroupByDateAdded
-            ? SettingsService.FileStackGroupByKind
-            : normalized;
+        return SettingsService.NormalizeFileStackGroupBy(value);
     }
 
     public static int? GetThresholdOverride(WidgetConfig config)
@@ -119,11 +114,8 @@ public static class WidgetFileStackSettings
             return;
         }
 
-        string normalized = SettingsService.NormalizeFileStackGroupBy(groupBy);
         config.Metadata[GroupByOverrideMetadataKey] =
-            normalized == SettingsService.FileStackGroupByDateAdded
-                ? SettingsService.FileStackGroupByKind
-                : normalized;
+            SettingsService.NormalizeFileStackGroupBy(groupBy);
     }
 
     public static void SetThresholdOverride(WidgetConfig config, int? threshold)

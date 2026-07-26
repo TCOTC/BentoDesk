@@ -44,7 +44,6 @@ public sealed class SettingsService
     public const string WidgetBorderColorModeNeutral = "Neutral";
     public const string WidgetBorderColorModeAccent = "Accent";
     public const string WidgetBorderColorModeNone = "None";
-    public const string WidgetBorderStyleNone = "None";
     public const string WidgetBorderStyleThin = "Thin";
     public const string WidgetBorderStyleMedium = "Medium";
     public const string WidgetBorderStyleThick = "Thick";
@@ -54,18 +53,9 @@ public sealed class SettingsService
     public const string WidgetCornerPreferenceRound = "Round";
     public const string WidgetAnimationEffectNone = "None";
     public const string WidgetAnimationEffectFade = "Fade";
-    public const string WidgetAnimationEffectSlideRight = "SlideRight";
-    public const string WidgetAnimationEffectSlideLeft = "SlideLeft";
-    public const string WidgetAnimationEffectSlideUp = "SlideUp";
-    public const string WidgetAnimationEffectSlideDown = "SlideDown";
     public const string WidgetAnimationEffectScaleFade = "ScaleFade";
     public const string WidgetAnimationEffectSlideFade = "SlideFade";
     public const string WidgetAnimationEffectZoom = "Zoom";
-    public const string WidgetAnimationEffectSlideUpFade = "SlideUpFade";
-    public const string WidgetAnimationEffectSlideDownFade = "SlideDownFade";
-    public const string WidgetAnimationEffectSlideLeftFade = "SlideLeftFade";
-    public const string WidgetAnimationEffectSlideRightFade = "SlideRightFade";
-    public const string WidgetAnimationEffectScaleSlide = "ScaleSlide";
     public const string WidgetAnimationSpeedVeryFast = "VeryFast";
     public const string WidgetAnimationSpeedFast = "Fast";
     public const string WidgetAnimationSpeedStandard = "Standard";
@@ -101,15 +91,10 @@ public sealed class SettingsService
     public const string WidgetCollapseBehaviorExpanded = WidgetCollapseBehaviorNames.Expanded;
     public const string WidgetCollapseBehaviorClick = WidgetCollapseBehaviorNames.Click;
     public const string WidgetCollapseBehaviorSmart = WidgetCollapseBehaviorNames.Smart;
-    public const string WidgetCollapseBehaviorManual = WidgetCollapseBehaviorClick;
-    public const string WidgetCollapseBehaviorAuto = WidgetCollapseBehaviorSmart;
     public const string WidgetCompactWidthModeAligned = "Aligned";
     public const string WidgetCompactWidthModeIndependent = "Independent";
     public const string WidgetCapsuleArrangementFree = "Free";
     public const string WidgetCapsuleArrangementBar = "Bar";
-    // Legacy top-level values retained for settings migration.
-    public const string WidgetCapsuleArrangementHorizontal = "Horizontal";
-    public const string WidgetCapsuleArrangementVertical = "Vertical";
     public const string WidgetCapsuleBarPlacementFloating = "Floating";
     public const string WidgetCapsuleBarPlacementTop = "Top";
     public const string WidgetCapsuleBarPlacementBottom = "Bottom";
@@ -121,14 +106,9 @@ public sealed class SettingsService
     public const double DefaultWidgetCapsuleBarSpacing = 8;
     public const double MinWidgetCapsuleBarSpacing = 0;
     public const double MaxWidgetCapsuleBarSpacing = 32;
-    public const string WidgetCollapsedStyleMinimal = "Minimal";
-    public const string WidgetCollapsedStyleSummary = "Summary";
-    public const string WidgetCollapsedStyleSmart = "Smart";
-    public const string WidgetCollapsedStylePill = "Pill";
     public const string WidgetCompactContentModeMinimal = "Minimal";
     public const string WidgetCompactContentModeSummary = "Summary";
     public const string WidgetCompactContentModeSmart = "Smart";
-    public const int CurrentWidgetCompactSettingsVersion = 1;
     public const string WidgetCompactAnimationSmooth = "Smooth";
     public const string WidgetCompactAnimationSlow = "Slow";
     public const string WidgetCompactAnimationSnappy = "Snappy";
@@ -173,9 +153,6 @@ public sealed class SettingsService
     public const string ManagedDropActionCopy = "Copy";
 
     public const string FileStackGroupByKind = "Kind";
-    public const string FileStackGroupByDateAdded = "DateAdded";
-    // Legacy value used by the first Stack preview build.
-    public const string FileStackGroupByDateCreated = "DateCreated";
     public const string FileStackGroupByDateModified = "DateModified";
     public const string FileStackGroupByCustom = "Custom";
     public const int DefaultFileStackThreshold = 3;
@@ -287,10 +264,8 @@ public sealed class SettingsService
         settings.WidgetCapsuleBarSpacing = DefaultWidgetCapsuleBarSpacing;
         settings.WidgetCapsuleBarPlacement = WidgetCapsuleBarPlacementFloating;
         settings.WidgetCapsuleBarDirection = WidgetCapsuleBarDirectionAuto;
-        settings.WidgetCollapsedStyle = WidgetCollapsedStyleSmart;
         settings.WidgetCompactContentMode = WidgetCompactContentModeSmart;
         settings.WidgetCompactHideSensitiveContent = false;
-        settings.WidgetCompactSettingsVersion = CurrentWidgetCompactSettingsVersion;
         settings.WidgetCompactAnimationEffect = WidgetCompactAnimationSlow;
         settings.WidgetCompactAnimationDurationMs = DefaultWidgetCompactAnimationDurationMs;
         settings.WidgetCompactExpandDelayMs = SensitiveWidgetCompactExpandDelayMs;
@@ -361,8 +336,6 @@ settings.FocusClickedWidgetOnRaise = false;
     {
         try
         {
-            await MigrateLegacySettingsIfNeededAsync();
-
             bool loadedFromDisk = false;
 
             if (File.Exists(_settingsPath))
@@ -406,30 +379,6 @@ settings.FocusClickedWidgetOnRaise = false;
         {
             System.Diagnostics.Debug.WriteLine($"[SettingsService] Failed to load settings: {ex.Message}");
             lock (_lock) _settings = new AppSettings();
-        }
-    }
-
-    private async Task MigrateLegacySettingsIfNeededAsync()
-    {
-        if (File.Exists(_settingsPath))
-        {
-            return;
-        }
-
-        var legacyPath = Path.Combine(AppContext.BaseDirectory, "data", "settings.json");
-        if (!File.Exists(legacyPath))
-        {
-            return;
-        }
-
-        try
-        {
-            var json = await File.ReadAllTextAsync(legacyPath);
-            await File.WriteAllTextAsync(_settingsPath, json);
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[SettingsService] Failed to migrate legacy settings: {ex.Message}");
         }
     }
 
@@ -646,15 +595,7 @@ settings.FocusClickedWidgetOnRaise = false;
             WidgetMaterialTypeAcrylicBase or
             WidgetMaterialTypeSolid))
         {
-            // Migrate legacy "Auto" to "Acrylic"
-            if (settings.WidgetMaterialType == "Auto")
-            {
-                settings.WidgetMaterialType = WidgetMaterialTypeAcrylic;
-            }
-            else
-            {
-                settings.WidgetMaterialType = WidgetMaterialTypeAcrylic;
-            }
+            settings.WidgetMaterialType = WidgetMaterialTypeAcrylic;
             changed = true;
         }
 
@@ -691,36 +632,7 @@ settings.FocusClickedWidgetOnRaise = false;
             WidgetBorderStyleMedium or
             WidgetBorderStyleThick))
         {
-            if (settings.WidgetBorderStyle == WidgetBorderStyleNone)
-            {
-                settings.WidgetBorderColorMode = WidgetBorderColorModeNone;
-            }
-
             settings.WidgetBorderStyle = WidgetBorderStyleThin;
-            changed = true;
-        }
-
-        string? migratedAnimationDirection = settings.WidgetAnimationEffect switch
-        {
-            WidgetAnimationEffectSlideLeft or WidgetAnimationEffectSlideLeftFade =>
-                WidgetAnimationSlideDirectionLeft,
-            WidgetAnimationEffectSlideRight or WidgetAnimationEffectSlideRightFade =>
-                WidgetAnimationSlideDirectionRight,
-            WidgetAnimationEffectSlideUp or WidgetAnimationEffectSlideUpFade =>
-                WidgetAnimationSlideDirectionUp,
-            WidgetAnimationEffectSlideDown or WidgetAnimationEffectSlideDownFade =>
-                WidgetAnimationSlideDirectionDown,
-            _ => null
-        };
-        if (migratedAnimationDirection is not null)
-        {
-            settings.WidgetAnimationEffect = WidgetAnimationEffectSlideFade;
-            settings.WidgetAnimationSlideDirection = migratedAnimationDirection;
-            changed = true;
-        }
-        else if (settings.WidgetAnimationEffect == WidgetAnimationEffectScaleSlide)
-        {
-            settings.WidgetAnimationEffect = WidgetAnimationEffectSlideFade;
             changed = true;
         }
 
@@ -848,34 +760,14 @@ settings.FocusClickedWidgetOnRaise = false;
             changed = true;
         }
 
-        string? legacyCapsuleArrangement = settings.WidgetCapsuleArrangementMode;
         string normalizedCapsuleArrangement = NormalizeWidgetCapsuleArrangementMode(
-            legacyCapsuleArrangement);
+            settings.WidgetCapsuleArrangementMode);
         if (!string.Equals(
                 settings.WidgetCapsuleArrangementMode,
                 normalizedCapsuleArrangement,
                 StringComparison.Ordinal))
         {
             settings.WidgetCapsuleArrangementMode = normalizedCapsuleArrangement;
-            changed = true;
-        }
-
-        if (string.Equals(
-                legacyCapsuleArrangement,
-                WidgetCapsuleArrangementHorizontal,
-                StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(
-                legacyCapsuleArrangement,
-                WidgetCapsuleArrangementVertical,
-                StringComparison.OrdinalIgnoreCase))
-        {
-            settings.WidgetCapsuleBarDirection = string.Equals(
-                legacyCapsuleArrangement,
-                WidgetCapsuleArrangementVertical,
-                StringComparison.OrdinalIgnoreCase)
-                    ? WidgetCapsuleBarDirectionVertical
-                    : WidgetCapsuleBarDirectionHorizontal;
-            settings.WidgetCapsuleBarOrder = [];
             changed = true;
         }
 
@@ -942,25 +834,6 @@ settings.FocusClickedWidgetOnRaise = false;
                 settings.WidgetCapsuleFreePlacements.Remove(invalidId);
                 changed = true;
             }
-        }
-
-        string normalizedCollapsedStyle = NormalizeWidgetCollapsedStyle(settings.WidgetCollapsedStyle);
-        if (!string.Equals(settings.WidgetCollapsedStyle, normalizedCollapsedStyle, StringComparison.Ordinal))
-        {
-            settings.WidgetCollapsedStyle = normalizedCollapsedStyle;
-            changed = true;
-        }
-
-        if (settings.WidgetCompactSettingsVersion < CurrentWidgetCompactSettingsVersion)
-        {
-            settings.WidgetCompactContentMode = normalizedCollapsedStyle switch
-            {
-                WidgetCollapsedStyleMinimal => WidgetCompactContentModeMinimal,
-                WidgetCollapsedStyleSmart => WidgetCompactContentModeSmart,
-                _ => WidgetCompactContentModeSummary
-            };
-            settings.WidgetCompactSettingsVersion = CurrentWidgetCompactSettingsVersion;
-            changed = true;
         }
 
         string normalizedCompactContentMode = NormalizeWidgetCompactContentMode(
@@ -1247,9 +1120,7 @@ settings.FocusClickedWidgetOnRaise = false;
 
     public static string NormalizeWidgetCapsuleArrangementMode(string? value)
     {
-        return string.Equals(value, WidgetCapsuleArrangementBar, StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(value, WidgetCapsuleArrangementHorizontal, StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(value, WidgetCapsuleArrangementVertical, StringComparison.OrdinalIgnoreCase)
+        return string.Equals(value, WidgetCapsuleArrangementBar, StringComparison.OrdinalIgnoreCase)
             ? WidgetCapsuleArrangementBar
             : WidgetCapsuleArrangementFree;
     }
@@ -1294,23 +1165,6 @@ settings.FocusClickedWidgetOnRaise = false;
             ? value
             : DefaultWidgetCapsuleBarSpacing;
         return Math.Clamp(finiteValue, MinWidgetCapsuleBarSpacing, MaxWidgetCapsuleBarSpacing);
-    }
-
-    public static string NormalizeWidgetCollapsedStyle(string? value)
-    {
-        if (string.Equals(value, WidgetCollapsedStylePill, StringComparison.OrdinalIgnoreCase))
-        {
-            return WidgetCollapsedStylePill;
-        }
-
-        if (string.Equals(value, WidgetCollapsedStyleSmart, StringComparison.OrdinalIgnoreCase))
-        {
-            return WidgetCollapsedStyleSmart;
-        }
-
-        return string.Equals(value, WidgetCollapsedStyleMinimal, StringComparison.OrdinalIgnoreCase)
-            ? WidgetCollapsedStyleMinimal
-            : WidgetCollapsedStyleSummary;
     }
 
     public static string NormalizeWidgetCompactContentMode(string? value)
@@ -1596,10 +1450,6 @@ settings.FocusClickedWidgetOnRaise = false;
         bool changed = false;
 
         string normalizedFileStackGroupBy = NormalizeFileStackGroupBy(settings.FileStackGroupBy);
-        if (normalizedFileStackGroupBy == FileStackGroupByDateAdded)
-        {
-            normalizedFileStackGroupBy = FileStackGroupByKind;
-        }
         if (!string.Equals(settings.FileStackGroupBy, normalizedFileStackGroupBy, StringComparison.Ordinal))
         {
             settings.FileStackGroupBy = normalizedFileStackGroupBy;
@@ -1745,12 +1595,6 @@ settings.FocusClickedWidgetOnRaise = false;
 
     public static string NormalizeFileStackGroupBy(string? groupBy)
     {
-        if (string.Equals(groupBy, FileStackGroupByDateAdded, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(groupBy, FileStackGroupByDateCreated, StringComparison.OrdinalIgnoreCase))
-        {
-            return FileStackGroupByDateAdded;
-        }
-
         if (string.Equals(groupBy, FileStackGroupByDateModified, StringComparison.OrdinalIgnoreCase))
         {
             return FileStackGroupByDateModified;

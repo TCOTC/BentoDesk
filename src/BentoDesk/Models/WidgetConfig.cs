@@ -47,8 +47,8 @@ public class WidgetConfig
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? PositionMonitorWasPrimary { get; set; }
 
-    /// <summary>Bounds coordinate model version. Version 0 is legacy physical pixels; version 1 stores size and anchor margins in logical pixels.</summary>
-    public int BoundsCoordinateVersion { get; set; }
+    /// <summary>Bounds coordinate model version. Current version stores size and anchor margins in logical pixels.</summary>
+    public int BoundsCoordinateVersion { get; set; } = CurrentBoundsCoordinateVersion;
 
     /// <summary>Widget width in logical pixels.</summary>
     public double Width { get; set; } = 300;
@@ -117,9 +117,6 @@ public class WidgetConfig
 
     /// <summary>When each file was first added to or observed by this BentoDesk widget.</summary>
     public Dictionary<string, DateTimeOffset> FileAddedAtByPath { get; set; } = [];
-
-    /// <summary>Whether legacy file entries have been seeded into <see cref="FileAddedAtByPath"/>.</summary>
-    public bool FileAddedAtTrackingInitialized { get; set; }
 }
 
 public sealed class WidgetCompactPlacement

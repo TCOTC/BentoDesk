@@ -486,9 +486,8 @@ public partial class WidgetViewModel
         _stackDateBoundaryTimer.Stop();
         _stackDateBoundaryTimer.Tick -= StackDateBoundaryTimer_Tick;
 
-        bool usesDateGrouping = FileStackGroupBy is
-            SettingsService.FileStackGroupByDateAdded or
-            SettingsService.FileStackGroupByDateModified;
+        bool usesDateGrouping =
+            FileStackGroupBy is SettingsService.FileStackGroupByDateModified;
         if (!FileStacksEnabled || !usesDateGrouping)
         {
             return;

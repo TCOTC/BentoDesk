@@ -249,7 +249,7 @@ public sealed class WidgetCompactBoundsCalculatorTests
     [InlineData(null, SettingsService.WidgetCollapseBehaviorClick)]
     [InlineData("unexpected", SettingsService.WidgetCollapseBehaviorClick)]
     [InlineData("manual", SettingsService.WidgetCollapseBehaviorClick)]
-    [InlineData("auto", SettingsService.WidgetCollapseBehaviorSmart)]
+    [InlineData("auto", SettingsService.WidgetCollapseBehaviorClick)]
     [InlineData("expanded", SettingsService.WidgetCollapseBehaviorExpanded)]
     [InlineData("smart", SettingsService.WidgetCollapseBehaviorSmart)]
     public void NormalizeCollapseBehavior_ConstrainsValue(string? value, string expected)
@@ -265,16 +265,6 @@ public sealed class WidgetCompactBoundsCalculatorTests
     public void NormalizeCompactWidthMode_ConstrainsValue(string? value, string expected)
     {
         Assert.Equal(expected, SettingsService.NormalizeWidgetCompactWidthMode(value));
-    }
-
-    [Theory]
-    [InlineData(null, SettingsService.WidgetCollapsedStyleSummary)]
-    [InlineData("unexpected", SettingsService.WidgetCollapsedStyleSummary)]
-    [InlineData("minimal", SettingsService.WidgetCollapsedStyleMinimal)]
-    [InlineData("pill", SettingsService.WidgetCollapsedStylePill)]
-    public void NormalizeCollapsedStyle_ConstrainsValue(string? value, string expected)
-    {
-        Assert.Equal(expected, SettingsService.NormalizeWidgetCollapsedStyle(value));
     }
 
     [Theory]

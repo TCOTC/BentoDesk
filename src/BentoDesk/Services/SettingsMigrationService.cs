@@ -24,12 +24,6 @@ public sealed class SettingsMigrationPipeline
 
     private readonly List<ISettingsMigration> _migrations = [];
 
-    public SettingsMigrationPipeline()
-    {
-        // Register migrations in order
-        _migrations.Add(new Migration_0_To_1());
-    }
-
     /// <summary>
     /// Runs all necessary migrations to bring the settings from their current
     /// schema version up to <see cref="CurrentSchemaVersion"/>.
@@ -64,45 +58,6 @@ public sealed class SettingsMigrationPipeline
         }
 
         settings.SchemaVersion = CurrentSchemaVersion;
-        return anyApplied;
-    }
-}
-
-/// <summary>
-/// Initial migration: handles legacy settings that predate the schema versioning system.
-/// Consolidates scattered migration logic (WidgetCompactSettingsVersion, legacy WidgetCollapsedStyle, etc.)
-/// into a single versioned step.
-/// </summary>
-internal sealed class Migration_0_To_1 : ISettingsMigration
-{
-    public int FromVersion => 0;
-
-    public void Migrate(AppSettings settings)
-    {
-        // Legacy migration: ensure WidgetCompactSettingsVersion is at least 1
-        // (older settings may have version 0 which used a different compact layout)
-        if (settings.WidgetCompactSettingsVersion < 1)
-        {
-            settings.WidgetCompactSettingsVersion = 1;
-        }
-
-        // Legacy migration: normalize any obsolete WidgetCollapsedStyle values
-        // The old "Collapsed" style was replaced by "Click" behavior
-        if (string.Equals(settings.WidgetCollapseBehavior, "Collapsed", StringComparison.OrdinalIgnoreCase))
-        {
-            settings.WidgetCollapseBehavior = SettingsService.WidgetCollapseBehaviorClick;
-        }
-
-        // Ensure FeatureWidgetEnabledStates dictionary is initialized
-        settings.FeatureWidgetEnabledStates ??= [];
-
-        // Ensure Widgets list is initialized
-        settings.Widgets ??= [];
-
-        // Ensure DeletedWidgetIds list is initialized
-        settings.DeletedWidgetIds ??= [];
-
-        // Ensure RecentOrganizationHistory is initialized
-        settings.RecentOrganizationHistory ??= [];
+        return anyApplied || settings.SchemaVersion != version;
     }
 }

@@ -9,7 +9,7 @@ namespace BentoDesk.Services;
 public sealed class BentoDeskDataBackupService
 {
     private const int BackupSchemaVersion = 2;
-    private const int MinimumSupportedBackupSchemaVersion = 1;
+    private const int MinimumSupportedBackupSchemaVersion = 2;
     private const int MaxAutomaticSnapshotCount = 7;
     private const int MaxPreRestoreBackupCount = 5;
     private const int MaxRestoreFileCount = 100_000;
@@ -182,8 +182,7 @@ public sealed class BentoDeskDataBackupService
                 archiveInfo.Manifest.AppVersion,
                 archiveInfo.FileCount,
                 archiveInfo.TotalUncompressedBytes,
-                archiveInfo.Manifest.SchemaVersion,
-                archiveInfo.Manifest.SchemaVersion >= 2);
+                archiveInfo.Manifest.SchemaVersion);
         }
         catch
         {
@@ -431,10 +430,7 @@ public sealed class BentoDeskDataBackupService
             throw new InvalidDataException("The backup contains no BentoDesk data files.");
         }
 
-        if (manifest.SchemaVersion >= 2)
-        {
-            ValidateIntegrityManifest(manifest.Files, extractedFiles);
-        }
+        ValidateIntegrityManifest(manifest.Files, extractedFiles);
 
         ValidateRestoreData(Path.Combine(stagingRoot, "data"));
         return new RestoreArchiveInfo(manifest, fileCount, totalUncompressedBytes);
@@ -1105,8 +1101,7 @@ public sealed record BentoDeskRestorePreparation(
     string AppVersion,
     int FileCount,
     long TotalUncompressedBytes,
-    int BackupSchemaVersion,
-    bool HasIntegrityManifest);
+    int BackupSchemaVersion);
 
 internal sealed record BentoDeskRestoreApplyResult(
     bool HadPendingRestore,

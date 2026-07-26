@@ -191,11 +191,6 @@ public class AppSettings
     public Dictionary<string, WidgetCompactPlacement> WidgetCapsuleFreePlacements { get; set; } = [];
 
     /// <summary>
-    /// Legacy combined compact style retained for settings migration.
-    /// </summary>
-    public string WidgetCollapsedStyle { get; set; } = "Smart";
-
-    /// <summary>
     /// Information density used by compact widgets.
     /// Valid values: <c>"Smart"</c>, <c>"Minimal"</c>, <c>"Summary"</c>.
     /// </summary>
@@ -203,9 +198,6 @@ public class AppSettings
 
     /// <summary>Whether compact widgets hide sensitive content previews.</summary>
     public bool WidgetCompactHideSensitiveContent { get; set; }
-
-    /// <summary>Schema version for compact content settings migrated from the legacy combined style.</summary>
-    public int WidgetCompactSettingsVersion { get; set; }
 
     /// <summary>
     /// Motion style used when compact widgets expand or collapse.

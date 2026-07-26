@@ -134,7 +134,6 @@ public abstract partial class WidgetWindowBase
         {
             SettingsService.WidgetBorderStyleMedium => (1.2d, (byte)0x30),
             SettingsService.WidgetBorderStyleThick => (1.6d, (byte)0x48),
-            SettingsService.WidgetBorderStyleNone => (0d, (byte)0),
             _ => (0.8d, (byte)0x18)
         };
 

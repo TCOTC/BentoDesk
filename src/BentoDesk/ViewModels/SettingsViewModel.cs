@@ -36,7 +36,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private const string BorderColorNeutral = SettingsService.WidgetBorderColorModeNeutral;
     private const string BorderColorAccent = SettingsService.WidgetBorderColorModeAccent;
     private const string BorderColorNone = SettingsService.WidgetBorderColorModeNone;
-    private const string BorderNone = SettingsService.WidgetBorderStyleNone;
     private const string BorderThin = SettingsService.WidgetBorderStyleThin;
     private const string BorderMedium = SettingsService.WidgetBorderStyleMedium;
     private const string BorderThick = SettingsService.WidgetBorderStyleThick;

@@ -434,8 +434,6 @@ public sealed partial class WidgetManager
     /// </summary>
     public async Task RestoreWidgetsAsync()
     {
-        RepairLegacyContentFeatureFileShells();
-
         // Dedup feature widgets: each kind should only have one config
         DeduplicateFeatureWidgets();
 

@@ -42,9 +42,6 @@ public partial class SettingsViewModel
     public Visibility UpdateReleaseNotesVisibility =>
         string.IsNullOrWhiteSpace(AvailableUpdateReleaseNotesUrl) ? Visibility.Collapsed : Visibility.Visible;
     public Visibility ManualUpdateFallbackVisibility => CanOpenManualUpdateDownload ? Visibility.Visible : Visibility.Collapsed;
-    // Aliases for XAML binding compatibility
-    public Visibility UpdateFallbackVisibility => ManualUpdateFallbackVisibility;
-    public bool CanOpenUpdateFallback => CanOpenManualUpdateDownload;
     public Visibility InstallUpdateButtonVisibility => Visibility.Visible;
     public Visibility UpdateReminderBadgeVisibility =>
         _availableUpdateManifest is not null ? Visibility.Visible : Visibility.Collapsed;

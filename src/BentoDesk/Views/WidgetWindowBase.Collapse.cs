@@ -893,12 +893,6 @@ public abstract partial class WidgetWindowBase
 
     private SizeInt32 ResolveExpandedPhysicalSize(RectInt32 workArea)
     {
-        if (Config.BoundsCoordinateVersion < WidgetConfig.CurrentBoundsCoordinateVersion)
-        {
-            RectInt32 legacy = WidgetPositioningService.ResolveBoundsForCurrentTopology(Config);
-            return new SizeInt32(legacy.Width, legacy.Height);
-        }
-
         double scale = WidgetPositioningService.GetDpiScale(workArea);
         double logicalWidth = double.IsFinite(Config.Width)
             ? Math.Max(SettingsService.MinWidgetWidth, Config.Width)

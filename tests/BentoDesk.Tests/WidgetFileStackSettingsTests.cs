@@ -114,9 +114,7 @@ public sealed class WidgetFileStackSettingsTests
 
         Assert.True(WidgetFileStackSettings.NormalizeOverrides(config));
         Assert.Equal("True", config.Metadata[WidgetFileStackSettings.EnabledOverrideMetadataKey]);
-        Assert.Equal(
-            SettingsService.FileStackGroupByKind,
-            config.Metadata[WidgetFileStackSettings.GroupByOverrideMetadataKey]);
+        Assert.False(config.Metadata.ContainsKey(WidgetFileStackSettings.GroupByOverrideMetadataKey));
         Assert.False(config.Metadata.ContainsKey(WidgetFileStackSettings.ThresholdOverrideMetadataKey));
         Assert.False(config.Metadata.ContainsKey(WidgetFileStackSettings.OrderByOverrideMetadataKey));
     }
@@ -127,7 +125,6 @@ public sealed class WidgetFileStackSettingsTests
         var addedAt = new DateTimeOffset(2026, 7, 17, 1, 45, 0, TimeSpan.FromHours(8));
         var config = new WidgetConfig
         {
-            FileAddedAtTrackingInitialized = true,
             FileAddedAtByPath = new Dictionary<string, DateTimeOffset>
             {
                 [@"C:\Work\report.docx"] = addedAt
@@ -138,7 +135,6 @@ public sealed class WidgetFileStackSettingsTests
         WidgetConfig? restored = JsonSerializer.Deserialize<WidgetConfig>(json);
 
         Assert.NotNull(restored);
-        Assert.True(restored.FileAddedAtTrackingInitialized);
         Assert.Equal(addedAt, restored.FileAddedAtByPath[@"C:\Work\report.docx"]);
     }
 

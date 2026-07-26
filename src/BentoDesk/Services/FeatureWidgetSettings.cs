@@ -28,7 +28,7 @@ public static class FeatureWidgetSettings
             return enabled;
         }
 
-        return GetLegacyEnabled(settings, kind);
+        return false;
     }
 
     public static void SetEnabled(AppSettings settings, WidgetKind kind, bool enabled)
@@ -40,7 +40,6 @@ public static class FeatureWidgetSettings
 
         EnsureStateBag(settings);
         settings.FeatureWidgetEnabledStates[GetKey(kind)] = enabled;
-        SetLegacyEnabled(settings, kind, enabled);
     }
 
     public static bool Normalize(AppSettings settings)
@@ -59,17 +58,10 @@ public static class FeatureWidgetSettings
                     changed = true;
                 }
 
-                if (GetLegacyEnabled(settings, kind) != enabled)
-                {
-                    SetLegacyEnabled(settings, kind, enabled);
-                    changed = true;
-                }
-
                 continue;
             }
 
-            bool legacyEnabled = GetLegacyEnabled(settings, kind);
-            settings.FeatureWidgetEnabledStates[key] = legacyEnabled;
+            settings.FeatureWidgetEnabledStates[key] = false;
             changed = true;
         }
 
@@ -126,11 +118,5 @@ public static class FeatureWidgetSettings
     private static string GetKey(WidgetKind kind)
     {
         return kind.ToString();
-    }
-
-    private static bool GetLegacyEnabled(AppSettings settings, WidgetKind kind) => false;
-
-    private static void SetLegacyEnabled(AppSettings settings, WidgetKind kind, bool enabled)
-    {
     }
 }

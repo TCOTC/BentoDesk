@@ -36,10 +36,9 @@ public sealed class WidgetAnimationSettingsTests
     }
 
     [Fact]
-    public void UsesGroupOffset_LegacyFullSlideStillUsesBatchGeometry()
+    public void UsesGroupOffset_UnknownEffectFallsBackToSlideBatchGeometry()
     {
-        Assert.True(WidgetAnimationSettings.UsesGroupOffset(
-            SettingsService.WidgetAnimationEffectSlideRight));
+        Assert.True(WidgetAnimationSettings.UsesGroupOffset("SlideRight"));
     }
 
     [Theory]

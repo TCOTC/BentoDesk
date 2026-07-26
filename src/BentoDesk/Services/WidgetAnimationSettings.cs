@@ -106,18 +106,9 @@ public static class WidgetAnimationSettings
         return effect is
             SettingsService.WidgetAnimationEffectNone or
             SettingsService.WidgetAnimationEffectFade or
-            SettingsService.WidgetAnimationEffectSlideRight or
-            SettingsService.WidgetAnimationEffectSlideLeft or
-            SettingsService.WidgetAnimationEffectSlideUp or
-            SettingsService.WidgetAnimationEffectSlideDown or
             SettingsService.WidgetAnimationEffectScaleFade or
             SettingsService.WidgetAnimationEffectSlideFade or
-            SettingsService.WidgetAnimationEffectZoom or
-            SettingsService.WidgetAnimationEffectSlideUpFade or
-            SettingsService.WidgetAnimationEffectSlideDownFade or
-            SettingsService.WidgetAnimationEffectSlideLeftFade or
-            SettingsService.WidgetAnimationEffectSlideRightFade or
-            SettingsService.WidgetAnimationEffectScaleSlide
+            SettingsService.WidgetAnimationEffectZoom
             ? effect
             : SettingsService.WidgetAnimationEffectSlideFade;
     }

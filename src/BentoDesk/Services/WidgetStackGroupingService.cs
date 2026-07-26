@@ -256,11 +256,6 @@ public static class WidgetStackGroupingService
         string normalizedGroupBy,
         DateTime today)
     {
-        if (normalizedGroupBy == SettingsService.FileStackGroupByDateAdded)
-        {
-            return ResolveDateCategory(item.AddedAt.LocalDateTime, today);
-        }
-
         if (normalizedGroupBy == SettingsService.FileStackGroupByDateModified)
         {
             return ResolveDateCategory(item.LastModified, today);

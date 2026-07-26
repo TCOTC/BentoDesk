@@ -208,64 +208,19 @@ public sealed class WidgetTrayAnimationController
                 SoftOpacity, SoftOpacity,
                 RestingScale, RestingScale,
                 durationMs, true),
-            SettingsService.WidgetAnimationEffectSlideLeft => new WidgetTrayAnimationProfile(
-                -slideOffsets.Left, 0, -slideOffsets.Left, 0,
-                RestingOpacity, RestingOpacity,
-                RestingScale, RestingScale,
-                durationMs, true),
-            SettingsService.WidgetAnimationEffectSlideUp => new WidgetTrayAnimationProfile(
-                0, -slideOffsets.Up, 0, -slideOffsets.Up,
-                RestingOpacity, RestingOpacity,
-                RestingScale, RestingScale,
-                durationMs, true),
-            SettingsService.WidgetAnimationEffectSlideDown => new WidgetTrayAnimationProfile(
-                0, slideOffsets.Down, 0, slideOffsets.Down,
-                RestingOpacity, RestingOpacity,
-                RestingScale, RestingScale,
-                durationMs, true),
             SettingsService.WidgetAnimationEffectScaleFade => new WidgetTrayAnimationProfile(
                 0, 0, 0, 0,
                 SoftOpacity, SoftOpacity,
                 SoftScale, SoftScale,
-                durationMs, true),
-            SettingsService.WidgetAnimationEffectSlideRight => new WidgetTrayAnimationProfile(
-                slideOffsets.Right, 0, slideOffsets.Right, 0,
-                RestingOpacity, RestingOpacity,
-                RestingScale, RestingScale,
                 durationMs, true),
             SettingsService.WidgetAnimationEffectZoom => new WidgetTrayAnimationProfile(
                 0, 0, 0, 0,
                 SoftOpacity, SoftOpacity,
                 0.5f, 0.5f,
                 durationMs, true),
-            SettingsService.WidgetAnimationEffectSlideUpFade => new WidgetTrayAnimationProfile(
-                0, -slideOffsets.Up, 0, -slideOffsets.Up,
-                SoftOpacity, SoftOpacity,
-                RestingScale, RestingScale,
-                durationMs, true),
-            SettingsService.WidgetAnimationEffectSlideDownFade => new WidgetTrayAnimationProfile(
-                0, slideOffsets.Down, 0, slideOffsets.Down,
-                SoftOpacity, SoftOpacity,
-                RestingScale, RestingScale,
-                durationMs, true),
-            SettingsService.WidgetAnimationEffectSlideLeftFade => new WidgetTrayAnimationProfile(
-                -slideOffsets.Left, 0, -slideOffsets.Left, 0,
-                SoftOpacity, SoftOpacity,
-                RestingScale, RestingScale,
-                durationMs, true),
-            SettingsService.WidgetAnimationEffectSlideRightFade => new WidgetTrayAnimationProfile(
-                slideOffsets.Right, 0, slideOffsets.Right, 0,
-                SoftOpacity, SoftOpacity,
-                RestingScale, RestingScale,
-                durationMs, true),
             SettingsService.WidgetAnimationEffectSlideFade => new WidgetTrayAnimationProfile(
                 dirX, dirY, dirX, dirY,
                 RestingOpacity, RestingOpacity,
-                RestingScale, RestingScale,
-                durationMs, true),
-            SettingsService.WidgetAnimationEffectScaleSlide => new WidgetTrayAnimationProfile(
-                dirX, dirY, dirX, dirY,
-                SoftOpacity, SoftOpacity,
                 RestingScale, RestingScale,
                 durationMs, true),
             _ => new WidgetTrayAnimationProfile(

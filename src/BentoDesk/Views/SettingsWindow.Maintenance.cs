@@ -155,9 +155,6 @@ public sealed partial class SettingsWindow
         {
             BentoDeskRestorePreparation preparation = await App.Current.DataBackupService.PrepareRestoreAsync(
                 archivePath);
-            string integrityWarning = preparation.HasIntegrityManifest
-                ? string.Empty
-                : $"\n\n{_localizationService.T("Settings.DataBackup.LegacyIntegrityWarning")}";
             var dialog = new ContentDialog
             {
                 XamlRoot = SettingsRoot.XamlRoot,
@@ -173,7 +170,7 @@ public sealed partial class SettingsWindow
                         preparation.AppVersion,
                         preparation.FileCount,
                         ViewModel.FormatBytes(preparation.TotalUncompressedBytes),
-                        integrityWarning),
+                        string.Empty),
                     TextWrapping = TextWrapping.Wrap
                 }
             };

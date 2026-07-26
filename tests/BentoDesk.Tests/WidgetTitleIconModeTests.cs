@@ -9,7 +9,6 @@ public sealed class WidgetTitleIconModeTests
     public void MusicWidget_UsesDedicatedMusicIconFamily()
     {
         Assert.Equal(WidgetTitleIconKindNames.Music, WidgetTitleIconKindNames.FromWidgetKind(WidgetKind.Music));
-        Assert.Equal(WidgetTitleIconKindNames.Music, WidgetTitleIconKindNames.FromLegacyGlyph("\uEC4F"));
         Assert.Equal("music", WidgetTitleIconKindNames.GetColorAssetName(WidgetTitleIconKind.Music));
         Assert.Equal("WidgetTitleIcon.Label.Music", WidgetTitleIconKindNames.GetLocalizationKey(WidgetTitleIconKind.Music));
     }

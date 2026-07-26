@@ -70,23 +70,25 @@ public sealed class WidgetStackGroupingServiceTests
     public void ResolveCategory_UsesFriendlyDateBuckets(int dayOffset, WidgetStackCategory expected)
     {
         var now = new DateTime(2026, 7, 17, 12, 0, 0);
-        var item = new WidgetItem { AddedAt = new DateTimeOffset(now.AddDays(dayOffset)) };
+        var item = new WidgetItem { LastModified = now.AddDays(dayOffset) };
 
         Assert.Equal(
             expected,
             WidgetStackGroupingService.ResolveCategory(
                 item,
-                SettingsService.FileStackGroupByDateAdded,
+                SettingsService.FileStackGroupByDateModified,
                 now));
     }
 
     [Fact]
-    public void NormalizeGroupBy_MigratesLegacyCreatedDateValue()
+    public void NormalizeGroupBy_UnknownValuesFallBackToKind()
     {
         Assert.Equal(
-            SettingsService.FileStackGroupByDateAdded,
-            SettingsService.NormalizeFileStackGroupBy(
-                SettingsService.FileStackGroupByDateCreated));
+            SettingsService.FileStackGroupByKind,
+            SettingsService.NormalizeFileStackGroupBy("DateCreated"));
+        Assert.Equal(
+            SettingsService.FileStackGroupByKind,
+            SettingsService.NormalizeFileStackGroupBy("DateAdded"));
     }
 
     [Fact]

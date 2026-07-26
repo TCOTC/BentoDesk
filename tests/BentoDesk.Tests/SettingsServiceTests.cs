@@ -163,11 +163,11 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task LoadAsync_MigratesLegacyNoBorderAndClampsMaterialIntensity()
+    public async Task LoadAsync_ClampsInvalidBorderStyleAndMaterialIntensity()
     {
         var settings = new AppSettings
         {
-            WidgetBorderStyle = SettingsService.WidgetBorderStyleNone,
+            WidgetBorderStyle = "None",
             WidgetMaterialIntensity = 2.0
         };
         await File.WriteAllTextAsync(
@@ -177,44 +177,8 @@ public sealed class SettingsServiceTests : IDisposable
         var service = new SettingsService(_settingsRoot);
         await service.LoadAsync();
 
-        Assert.Equal(SettingsService.WidgetBorderColorModeNone, service.Settings.WidgetBorderColorMode);
         Assert.Equal(SettingsService.WidgetBorderStyleThin, service.Settings.WidgetBorderStyle);
         Assert.Equal(SettingsService.MaxWidgetMaterialIntensity, service.Settings.WidgetMaterialIntensity);
-    }
-
-    [Theory]
-    [InlineData(
-        SettingsService.WidgetCollapsedStylePill,
-        SettingsService.WidgetCompactContentModeSummary)]
-    [InlineData(
-        SettingsService.WidgetCollapsedStyleSmart,
-        SettingsService.WidgetCompactContentModeSmart)]
-    [InlineData(
-        SettingsService.WidgetCollapsedStyleSummary,
-        SettingsService.WidgetCompactContentModeSummary)]
-    [InlineData(
-        SettingsService.WidgetCollapsedStyleMinimal,
-        SettingsService.WidgetCompactContentModeMinimal)]
-    public async Task LoadAsync_MigratesLegacyCompactStyleIntoContentMode(
-        string legacyStyle,
-        string expectedContentMode)
-    {
-        var settings = new AppSettings
-        {
-            WidgetCollapsedStyle = legacyStyle,
-            WidgetCompactSettingsVersion = 0
-        };
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            JsonSerializer.Serialize(settings, s_jsonOptions));
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
-        Assert.Equal(expectedContentMode, service.Settings.WidgetCompactContentMode);
-        Assert.Equal(
-            SettingsService.CurrentWidgetCompactSettingsVersion,
-            service.Settings.WidgetCompactSettingsVersion);
     }
 
     [Theory]
@@ -251,26 +215,12 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal(value, SettingsService.NormalizeWidgetCompactHoverResponse(value));
     }
 
-    [Theory]
-    [InlineData(
-        SettingsService.WidgetAnimationEffectSlideLeftFade,
-        SettingsService.WidgetAnimationSlideDirectionLeft)]
-    [InlineData(
-        SettingsService.WidgetAnimationEffectSlideRight,
-        SettingsService.WidgetAnimationSlideDirectionRight)]
-    [InlineData(
-        SettingsService.WidgetAnimationEffectSlideUpFade,
-        SettingsService.WidgetAnimationSlideDirectionUp)]
-    [InlineData(
-        SettingsService.WidgetAnimationEffectSlideDown,
-        SettingsService.WidgetAnimationSlideDirectionDown)]
-    public async Task LoadAsync_MigratesLegacyDirectionalAnimation(
-        string legacyEffect,
-        string expectedDirection)
+    [Fact]
+    public async Task LoadAsync_UnknownAnimationEffectFallsBackToSlideFade()
     {
         var settings = new AppSettings
         {
-            WidgetAnimationEffect = legacyEffect,
+            WidgetAnimationEffect = "SlideLeftFade",
             WidgetAnimationSlideDirection = SettingsService.WidgetAnimationSlideDirectionNone
         };
         await File.WriteAllTextAsync(
@@ -281,7 +231,9 @@ public sealed class SettingsServiceTests : IDisposable
         await service.LoadAsync();
 
         Assert.Equal(SettingsService.WidgetAnimationEffectSlideFade, service.Settings.WidgetAnimationEffect);
-        Assert.Equal(expectedDirection, service.Settings.WidgetAnimationSlideDirection);
+        Assert.Equal(
+            SettingsService.WidgetAnimationSlideDirectionRight,
+            service.Settings.WidgetAnimationSlideDirection);
     }
 
     [Fact]
@@ -499,13 +451,14 @@ public sealed class SettingsServiceTests : IDisposable
     [Theory]
     [InlineData("DateAdded")]
     [InlineData("DateCreated")]
-    public async Task LoadAsync_MigratesRemovedDateAddedStackGroupingToKind(string legacyValue)
+    [InlineData("Unknown")]
+    public async Task LoadAsync_UnknownStackGroupingFallsBackToKind(string invalidValue)
     {
         await File.WriteAllTextAsync(
             Path.Combine(_settingsRoot, "settings.json"),
             $$"""
             {
-              "fileStackGroupBy": "{{legacyValue}}"
+              "fileStackGroupBy": "{{invalidValue}}"
             }
             """);
 

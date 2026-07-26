@@ -1766,9 +1766,9 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                                             <Button
                                                 x:Name="OpenManualUpdateDownloadButton"
                                                 Click="OpenManualUpdateDownloadButton_Click"
-                                                IsEnabled="{Binding CanOpenUpdateFallback}"
+                                                IsEnabled="{Binding CanOpenManualUpdateDownload}"
                                                 Style="{StaticResource ActionButtonStyle}"
-                                                Visibility="{Binding UpdateFallbackVisibility}">
+                                                Visibility="{Binding ManualUpdateFallbackVisibility}">
                                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                                     <FontIcon FontSize="14" Glyph="&#xE896;" />
                                                     <TextBlock Text="{Binding UpdateFallbackActionText}" />

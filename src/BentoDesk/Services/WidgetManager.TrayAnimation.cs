@@ -335,26 +335,9 @@ public sealed partial class WidgetManager
             return;
         }
 
-        string effect = options.Effect;
-        string direction = effect switch
-        {
-            SettingsService.WidgetAnimationEffectSlideLeft or
-            SettingsService.WidgetAnimationEffectSlideLeftFade =>
-                SettingsService.WidgetAnimationSlideDirectionLeft,
-            SettingsService.WidgetAnimationEffectSlideUp or
-            SettingsService.WidgetAnimationEffectSlideUpFade =>
-                SettingsService.WidgetAnimationSlideDirectionUp,
-            SettingsService.WidgetAnimationEffectSlideDown or
-            SettingsService.WidgetAnimationEffectSlideDownFade =>
-                SettingsService.WidgetAnimationSlideDirectionDown,
-            SettingsService.WidgetAnimationEffectSlideRight or
-            SettingsService.WidgetAnimationEffectSlideRightFade =>
-                SettingsService.WidgetAnimationSlideDirectionRight,
-            SettingsService.WidgetAnimationEffectSlideFade or
-            SettingsService.WidgetAnimationEffectScaleSlide =>
-                options.SlideDirection,
-            _ => SettingsService.WidgetAnimationSlideDirectionNone
-        };
+        string direction = options.Effect == SettingsService.WidgetAnimationEffectSlideFade
+            ? options.SlideDirection
+            : SettingsService.WidgetAnimationSlideDirectionNone;
 
         if (direction == SettingsService.WidgetAnimationSlideDirectionNone)
         {

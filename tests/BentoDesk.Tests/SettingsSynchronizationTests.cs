@@ -68,25 +68,19 @@ public sealed class SettingsSynchronizationTests
     }
 
     [Fact]
-    public async Task LegacyCapsuleArrangementMigratesToWidgetBarDirection()
+    public async Task UnknownCapsuleArrangementFallsBackToFree()
     {
         using var scope = new TempSettingsScope();
         var settingsService = new SettingsService(scope.RootPath);
-        settingsService.Settings.WidgetCapsuleArrangementMode =
-            SettingsService.WidgetCapsuleArrangementVertical;
-        settingsService.Settings.WidgetCapsuleBarOrder = ["legacy-one", "legacy-two"];
+        settingsService.Settings.WidgetCapsuleArrangementMode = "Vertical";
         await settingsService.SaveAsync(notifySubscribers: false);
 
         var reloadedService = new SettingsService(scope.RootPath);
         await reloadedService.LoadAsync();
 
         Assert.Equal(
-            SettingsService.WidgetCapsuleArrangementBar,
+            SettingsService.WidgetCapsuleArrangementFree,
             reloadedService.Settings.WidgetCapsuleArrangementMode);
-        Assert.Equal(
-            SettingsService.WidgetCapsuleBarDirectionVertical,
-            reloadedService.Settings.WidgetCapsuleBarDirection);
-        Assert.Empty(reloadedService.Settings.WidgetCapsuleBarOrder);
     }
 
     private sealed class TempSettingsScope : IDisposable

@@ -398,9 +398,8 @@ public partial class SettingsViewModel
 
     public string SelectedWidgetAnimationEffectText => GetWidgetAnimationEffectDisplayName(SelectedWidgetAnimationEffect);
 
-    public bool IsDirectionEnabled => _selectedWidgetAnimationEffect is
-        SettingsService.WidgetAnimationEffectSlideFade or
-        SettingsService.WidgetAnimationEffectScaleSlide;
+    public bool IsDirectionEnabled =>
+        _selectedWidgetAnimationEffect is SettingsService.WidgetAnimationEffectSlideFade;
 
     public bool IsEasingEnabled => _selectedWidgetAnimationEffect != SettingsService.WidgetAnimationEffectNone;
 

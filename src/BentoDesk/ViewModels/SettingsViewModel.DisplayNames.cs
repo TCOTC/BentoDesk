@@ -72,7 +72,6 @@ public partial class SettingsViewModel
     {
         return style switch
         {
-            BorderNone => _localizationService.T("Settings.Border.None"),
             BorderMedium => _localizationService.T("Settings.Border.Medium"),
             BorderThick => _localizationService.T("Settings.Border.Thick"),
             _ => _localizationService.T("Settings.Border.Thin")
@@ -136,17 +135,8 @@ public partial class SettingsViewModel
         {
             SettingsService.WidgetAnimationEffectNone => _localizationService.T("Settings.Animation.Effect.None"),
             SettingsService.WidgetAnimationEffectFade => _localizationService.T("Settings.Animation.Effect.Fade"),
-            SettingsService.WidgetAnimationEffectSlideRight => _localizationService.T("Settings.Animation.Effect.SlideRight"),
-            SettingsService.WidgetAnimationEffectSlideLeft => _localizationService.T("Settings.Animation.Effect.SlideLeft"),
-            SettingsService.WidgetAnimationEffectSlideUp => _localizationService.T("Settings.Animation.Effect.SlideUp"),
-            SettingsService.WidgetAnimationEffectSlideDown => _localizationService.T("Settings.Animation.Effect.SlideDown"),
             SettingsService.WidgetAnimationEffectScaleFade => _localizationService.T("Settings.Animation.Effect.ScaleFade"),
             SettingsService.WidgetAnimationEffectZoom => _localizationService.T("Settings.Animation.Effect.Zoom"),
-            SettingsService.WidgetAnimationEffectSlideUpFade => _localizationService.T("Settings.Animation.Effect.SlideUpFade"),
-            SettingsService.WidgetAnimationEffectSlideDownFade => _localizationService.T("Settings.Animation.Effect.SlideDownFade"),
-            SettingsService.WidgetAnimationEffectSlideLeftFade => _localizationService.T("Settings.Animation.Effect.SlideLeftFade"),
-            SettingsService.WidgetAnimationEffectSlideRightFade => _localizationService.T("Settings.Animation.Effect.SlideRightFade"),
-            SettingsService.WidgetAnimationEffectScaleSlide => _localizationService.T("Settings.Animation.Effect.ScaleSlide"),
             _ => _localizationService.T("Settings.Animation.Effect.SlideFade")
         };
     }

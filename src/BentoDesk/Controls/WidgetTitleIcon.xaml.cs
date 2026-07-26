@@ -206,10 +206,7 @@ public sealed partial class WidgetTitleIcon : UserControl
 
     private WidgetTitleIconKind ResolveIconKind()
     {
-        var kind = WidgetTitleIconKindNames.NormalizeKind(IconKind);
-        return kind == WidgetTitleIconKind.Default
-            ? WidgetTitleIconKindNames.NormalizeKind(WidgetTitleIconKindNames.FromLegacyGlyph(Glyph))
-            : kind;
+        return WidgetTitleIconKindNames.NormalizeKind(IconKind);
     }
 
     private void ApplyColorIcon(WidgetTitleIconKind kind, double iconSize)

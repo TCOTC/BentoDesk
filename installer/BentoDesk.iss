@@ -76,8 +76,6 @@ Type: files; Name: "{app}\Microsoft.WinUI.dll"
 Type: files; Name: "{app}\Microsoft.Windows.SDK.NET.dll"
 Type: files; Name: "{app}\DirectML.dll"
 Type: files; Name: "{app}\onnxruntime.dll"
-; Remove legacy startup shortcut from previous versions that created it via Inno Setup.
-Type: files; Name: "{userstartup}\{#MyAppName}.lnk"
 
 [Files]
 Source: "{#MyAppReleaseDir}\*"; DestDir: "{app}"; Excludes: "BentoDesk.Updater.*"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -90,6 +88,5 @@ Name: "{userdesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilen
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent runasoriginaluser
 
-#include "BentoDesk.Migration.iss"
 #include "BentoDesk.Dependencies.iss"
 #include "BentoDesk.Uninstall.iss"

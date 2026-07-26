@@ -1067,12 +1067,12 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
 
     private void RootGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
-        ApplyLegacyTitleActionButtonVisibility(_chromeModeResolver.Resolve(ViewModel.Config, _chromeDescriptor));
+        ApplyTitleActionButtonPanelVisibility(_chromeModeResolver.Resolve(ViewModel.Config, _chromeDescriptor));
     }
 
     private void RootGrid_PointerExited(object sender, PointerRoutedEventArgs e)
     {
-        ApplyLegacyTitleActionButtonVisibility(_chromeModeResolver.Resolve(ViewModel.Config, _chromeDescriptor));
+        ApplyTitleActionButtonPanelVisibility(_chromeModeResolver.Resolve(ViewModel.Config, _chromeDescriptor));
     }
 
     private static Windows.UI.Color ApplySurfaceOpacity(Windows.UI.Color color, double opacity)

@@ -220,8 +220,6 @@ public partial class SettingsViewModel
     public string GetFileStackGroupByDisplayName(string groupBy) =>
         SettingsService.NormalizeFileStackGroupBy(groupBy) switch
         {
-            SettingsService.FileStackGroupByDateAdded =>
-                _localizationService.T("Settings.FileStacks.GroupBy.DateAdded"),
             SettingsService.FileStackGroupByDateModified =>
                 _localizationService.T("Settings.FileStacks.GroupBy.DateModified"),
             SettingsService.FileStackGroupByCustom =>

@@ -93,17 +93,6 @@ public static class WidgetTitleIconKindNames
         };
     }
 
-    public static string FromLegacyGlyph(string? glyph)
-    {
-        return glyph switch
-        {
-            "\uE8B7" => ManagedStorage,
-            "\uE71B" => MappedFolder,
-            "\uEC4F" => Music,
-            _ => Default
-        };
-    }
-
     public static string GetLocalizationKey(WidgetTitleIconKind kind)
     {
         return kind switch

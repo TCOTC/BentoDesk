@@ -7,7 +7,6 @@ public partial class WidgetViewModel
     private void ApplyPersistedAddedTimes(IReadOnlyList<WidgetItem> items)
     {
         EnsureAddedAtDictionaryComparer();
-        bool isLegacySeed = !Config.FileAddedAtTrackingInitialized;
         bool changed = false;
         var currentPaths = items
             .Select(item => item.Path)
@@ -22,9 +21,7 @@ public partial class WidgetViewModel
                 continue;
             }
 
-            addedAt = isLegacySeed && item.CreatedAt != default
-                ? new DateTimeOffset(DateTime.SpecifyKind(item.CreatedAt, DateTimeKind.Local))
-                : DateTimeOffset.Now;
+            addedAt = DateTimeOffset.Now;
             Config.FileAddedAtByPath[item.Path] = addedAt;
             item.AddedAt = addedAt;
             changed = true;
@@ -35,12 +32,6 @@ public partial class WidgetViewModel
                      .ToArray())
         {
             Config.FileAddedAtByPath.Remove(stalePath);
-            changed = true;
-        }
-
-        if (!Config.FileAddedAtTrackingInitialized)
-        {
-            Config.FileAddedAtTrackingInitialized = true;
             changed = true;
         }
 
@@ -72,7 +63,6 @@ public partial class WidgetViewModel
 
         EnsureAddedAtDictionaryComparer();
         Config.FileAddedAtByPath[path] = addedAt;
-        Config.FileAddedAtTrackingInitialized = true;
         PersistAddedAtTracking();
     }
 
@@ -100,7 +90,6 @@ public partial class WidgetViewModel
     {
         Config.FileAddedAtByPath = new Dictionary<string, DateTimeOffset>(
             StringComparer.OrdinalIgnoreCase);
-        Config.FileAddedAtTrackingInitialized = false;
     }
 
     private void EnsureAddedAtDictionaryComparer()

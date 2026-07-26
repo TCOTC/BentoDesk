@@ -168,7 +168,7 @@ public sealed partial class WidgetWindow
         FileWidgetShell.TitleBarContent = chromeMode is WidgetChromeMode.Overlay or WidgetChromeMode.Hidden
             ? null
             : TitleBarGrid;
-        ApplyLegacyTitleActionButtonVisibility(chromeMode);
+        ApplyTitleActionButtonPanelVisibility(chromeMode);
         ApplyLockActionIconState();
 
         FileTitleIcon.IconSize = metrics.TitleIconSize;
@@ -261,7 +261,7 @@ public sealed partial class WidgetWindow
             ViewModel.IsSizeLocked);
     }
 
-    private void ApplyLegacyTitleActionButtonVisibility(WidgetChromeMode chromeMode)
+    private void ApplyTitleActionButtonPanelVisibility(WidgetChromeMode chromeMode)
     {
         _showButtonsStoryboard?.Stop();
         _hideButtonsStoryboard?.Stop();
