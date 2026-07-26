@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// Copyright (c) BentoDesk. All rights reserved.
+﻿// Copyright (c) BentoDesk. All rights reserved.
 
 using BentoDesk.Helpers;
 using BentoDesk.Models;
@@ -37,9 +37,13 @@ public sealed partial class WidgetWindow
     private bool _isNativeDragActive;
     private Border? _nativeDragHighlightBorder;
 
-    // ── Real-time reorder state ──
+    // ── Reorder preview state（原位半透明占位 + 插入指示线，松手后落位）──
     private bool _isReorderDragActive;
+    private bool _reorderCommitHandled;
     private string[] _reorderDragPaths = [];
+    private int _reorderInsertionIndex = -1;
+    private const double ReorderPlaceholderOpacity = 0.4;
+    private const double ReorderInsertionIndicatorThickness = 3;
     private DataPackageView? _pendingDropDataView;
 
     // ── Drop poll (compensates for WinUI 3 Drop not firing) ──
@@ -73,6 +77,17 @@ public sealed partial class WidgetWindow
         bool isLeftButtonReleased = !Win32Helper.IsKeyDown(0x01);
         if (isLeftButtonReleased && _pendingDropDataView is not null && !_isManualDropInProgress)
         {
+            // 同格子排序松手：提交指示线位置，绝不能走文件导入刷新路径。
+            if (_isReorderDragActive)
+            {
+                _pendingDropDataView = null;
+                _cachedDropPaths = null;
+                StopDropPoll();
+                StopDragHighlight();
+                CommitPendingReorder();
+                return;
+            }
+
             var capturedView = _pendingDropDataView;
             _pendingDropDataView = null;
             _isManualDropInProgress = true;
@@ -100,15 +115,6 @@ public sealed partial class WidgetWindow
             return;
         }
 
-        _pendingDropDataView = e.DataView;
-        EnsureDropPoll();
-
-        // Pre-cache drop paths while the DataPackageView is still valid
-        // (during DragOver, inside the OLE modal loop). The poll thread
-        // will use these cached paths when it detects mouse release,
-        // because by then the DataPackageView will be invalid.
-        TryCacheDropPaths(e.DataView);
-
         if (_isMigrationBusy)
         {
             e.AcceptedOperation = DataPackageOperation.None;
@@ -126,23 +132,34 @@ public sealed partial class WidgetWindow
 
         bool movesIntoFolder = !string.IsNullOrEmpty(ViewModel.MappedFolderPath);
 
-        // Same-widget internal drag: real-time reordering.
-        // All sort modes allow drag reorder — dragging switches to Manual mode
-        // and items move in real-time to show where the drop will land.
+        // Same-widget internal drag: reorder preview（原位占位 + 插入指示线）。
+        // 不启用 drop poll / 路径缓存，避免松手被误判为外部文件导入并刷新。
         if (HasBentoDeskInternalDragData(e.DataView.Properties))
         {
             string? sourceWidgetId = TryGetPackageString(e.DataView.Properties, "BentoDeskSourceWidgetId");
             if (string.Equals(sourceWidgetId, ViewModel.Config.Id, StringComparison.Ordinal))
             {
+                StopDropPoll();
+                _pendingDropDataView = null;
+                _cachedDropPaths = null;
+
                 e.AcceptedOperation = DataPackageOperation.Link;
                 e.DragUIOverride.IsGlyphVisible = false;
                 e.DragUIOverride.Caption = _localizationService.T("Widget.DragCaption.Reorder");
 
-                // Perform real-time reordering for visual feedback.
-                HandleRealTimeReorder(e.DataView.Properties, e.GetPosition(GetDropTargetControl()));
+                HandleReorderDragOver(e.DataView.Properties, e.GetPosition(GetDropTargetControl()));
                 return;
             }
         }
+
+        _pendingDropDataView = e.DataView;
+        EnsureDropPoll();
+
+        // Pre-cache drop paths while the DataPackageView is still valid
+        // (during DragOver, inside the OLE modal loop). The poll thread
+        // will use these cached paths when it detects mouse release,
+        // because by then the DataPackageView will be invalid.
+        TryCacheDropPaths(e.DataView);
 
         e.AcceptedOperation = NormalizePathDropOperation(e.DataView.RequestedOperation, movesIntoFolder);
         LogDropDiagnostic("RootDragOver", e.DataView, e.AcceptedOperation, movesIntoFolder);
@@ -231,12 +248,10 @@ private void RootGrid_DragLeave(object sender, DragEventArgs e)
     StopDragHighlight();
     _lastRootDragDiagnosticSignature = null;
 
-    // Persist any real-time reordering that was done during DragOver.
+    // 离开窗口时只隐藏指示线；占位保留到 Drop / DropCompleted 再提交或取消。
     if (_isReorderDragActive)
     {
-        _isReorderDragActive = false;
-        _reorderDragPaths = [];
-        ViewModel.PersistManualOrder();
+        HideReorderInsertionIndicator();
     }
 }
 
@@ -256,6 +271,34 @@ StopDragHighlight();
         {
             if (_isMigrationBusy)
             {
+                return;
+            }
+
+            string? sourceWidgetId = TryGetPackageString(e.DataView.Properties, "BentoDeskSourceWidgetId");
+
+            // ── Same-widget internal drag: commit reorder before other drop gates ──
+            // Sorting uses Link and must not be blocked by None/path checks that
+            // apply to file import drops.
+            if (HasBentoDeskInternalDragData(e.DataView.Properties) &&
+                string.Equals(sourceWidgetId, ViewModel.Config.Id, StringComparison.Ordinal))
+            {
+                e.AcceptedOperation = DataPackageOperation.Link;
+
+                if (_reorderInsertionIndex < 0)
+                {
+                    _reorderInsertionIndex = ComputeDropInsertionIndex(
+                        GetDropTargetControl(),
+                        e.GetPosition(GetDropTargetControl()));
+                }
+
+                if (!_isReorderDragActive)
+                {
+                    var dragPaths = TryGetPackageStringArray(e.DataView.Properties, "BentoDeskSourcePaths");
+                    _reorderDragPaths = dragPaths.ToArray();
+                    _isReorderDragActive = dragPaths.Count > 0;
+                }
+
+                CommitPendingReorder();
                 return;
             }
 
@@ -291,32 +334,6 @@ StopDragHighlight();
             bool? moveWhenMapped = movesIntoFolder
                 ? ShouldMoveForAcceptedOperation(acceptedOperation)
                 : null;
-
-            string? sourceWidgetId = TryGetPackageString(e.DataView.Properties, "BentoDeskSourceWidgetId");
-
-            // ── Same-widget internal drag: persist real-time reorder ──
-            if (HasBentoDeskInternalDragData(e.DataView.Properties) &&
-                string.Equals(sourceWidgetId, ViewModel.Config.Id, StringComparison.Ordinal))
-            {
-                // Real-time reordering was done during DragOver.  If the mode
-                // wasn't Manual yet, switch now (HandleRealTimeReorder already
-                // did this, but this covers edge cases).
-                if (ViewModel.Config.SortMode != WidgetSortMode.Manual)
-                {
-                    ViewModel.SetSortMode(WidgetSortMode.Manual);
-                }
-
-                // Do a final reorder to the exact drop position, then persist.
-                var dragPaths = TryGetPackageStringArray(e.DataView.Properties, "BentoDeskSourcePaths");
-                HandleFinalReorder(dragPaths, e.GetPosition(GetDropTargetControl()));
-                ViewModel.PersistManualOrder();
-
-                _isReorderDragActive = false;
-                _reorderDragPaths = [];
-
-                // Same-widget drop: no file transfer needed regardless of mode.
-                return;
-            }
 
             if (movesIntoFolder &&
                 HasBentoDeskInternalDragData(e.DataView.Properties) &&
@@ -537,7 +554,7 @@ StopDragHighlight();
         return !string.IsNullOrWhiteSpace(ViewModel.MappedFolderPath);
     }
 
-    // ── Real-time reorder helpers ────────────────────────────────
+    // ── Reorder preview helpers ────────────────────────────────
 
     /// <summary>
     /// Returns the active items control (GridView or ListView) that
@@ -551,17 +568,84 @@ StopDragHighlight();
     }
 
     /// <summary>
-    /// Performs real-time reordering during DragOver.  Moves the dragged
-    /// item to the insertion index so other items shift to make room.
-    /// Switches to Manual mode on first call.
+    /// Marks dragged items as fixed semi-transparent placeholders at their
+    /// original slots. Items stay put until drop commits the new order.
     /// </summary>
-    private void HandleRealTimeReorder(
+    private void BeginReorderPlaceholder(IReadOnlyList<WidgetItem> draggedItems)
+    {
+        ClearReorderPlaceholder();
+
+        if (draggedItems.Count == 0 || ViewModel.FileStacksEnabled)
+        {
+            return;
+        }
+
+        var pathSet = draggedItems
+            .Select(item => item.Path)
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .Select(Path.GetFullPath)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (pathSet.Count == 0)
+        {
+            return;
+        }
+
+        bool anyChanged = false;
+        foreach (WidgetItem item in ViewModel.Items)
+        {
+            if (string.IsNullOrWhiteSpace(item.Path))
+            {
+                continue;
+            }
+
+            bool shouldPlaceholder = pathSet.Contains(Path.GetFullPath(item.Path));
+            if (item.IsReorderPlaceholder == shouldPlaceholder)
+            {
+                continue;
+            }
+
+            item.IsReorderPlaceholder = shouldPlaceholder;
+            anyChanged = true;
+        }
+
+        if (anyChanged)
+        {
+            UpdateInteractiveSurfaceStates();
+        }
+    }
+
+    private void ClearReorderPlaceholder()
+    {
+        bool anyChanged = false;
+        foreach (WidgetItem item in ViewModel.Items)
+        {
+            if (!item.IsReorderPlaceholder)
+            {
+                continue;
+            }
+
+            item.IsReorderPlaceholder = false;
+            anyChanged = true;
+        }
+
+        if (anyChanged)
+        {
+            UpdateInteractiveSurfaceStates();
+        }
+    }
+
+    /// <summary>
+    /// Updates reorder preview during DragOver: keeps the placeholder fixed and
+    /// only moves the insertion indicator line.
+    /// </summary>
+    private void HandleReorderDragOver(
         DataPackagePropertySetView properties,
         Windows.Foundation.Point position)
     {
         // Skip when file stacks are enabled — VisibleItems != Items.
         if (ViewModel.FileStacksEnabled)
         {
+            HideReorderInsertionIndicator();
             return;
         }
 
@@ -571,98 +655,199 @@ StopDragHighlight();
             return;
         }
 
-        // Switch to Manual mode if needed (only once per drag).
         if (!_isReorderDragActive)
         {
             if (ViewModel.Config.SortMode != WidgetSortMode.Manual)
             {
                 ViewModel.SetSortMode(WidgetSortMode.Manual);
             }
+
             _isReorderDragActive = true;
+            _reorderCommitHandled = false;
             _reorderDragPaths = dragPaths.ToArray();
         }
 
-        // Find the dragged item (single-item drag is most common).
+        int insertionIndex = ComputeDropInsertionIndex(GetDropTargetControl(), position);
+        _reorderInsertionIndex = insertionIndex;
+        UpdateReorderInsertionIndicator(insertionIndex);
+    }
+
+    private void UpdateReorderInsertionIndicator(int insertionIndex)
+    {
+        if (GetDropTargetControl() is not ListViewBase listControl || listControl.Items.Count == 0)
+        {
+            HideReorderInsertionIndicator();
+            return;
+        }
+
+        WidgetItem? draggedItem = FindReorderDraggedItem();
+        if (draggedItem is not null)
+        {
+            int currentIndex = ViewModel.Items.IndexOf(draggedItem);
+            if (currentIndex >= 0)
+            {
+                int adjustedIndex = insertionIndex > currentIndex
+                    ? insertionIndex - 1
+                    : insertionIndex;
+                if (adjustedIndex == currentIndex)
+                {
+                    HideReorderInsertionIndicator();
+                    return;
+                }
+            }
+        }
+
+        bool isGridView = listControl is GridView;
+        bool placeAfter = insertionIndex >= listControl.Items.Count;
+        int anchorIndex = placeAfter
+            ? listControl.Items.Count - 1
+            : Math.Clamp(insertionIndex, 0, listControl.Items.Count - 1);
+
+        if (listControl.ContainerFromIndex(anchorIndex) is not FrameworkElement anchor ||
+            anchor.ActualWidth <= 0 ||
+            anchor.ActualHeight <= 0)
+        {
+            HideReorderInsertionIndicator();
+            return;
+        }
+
+        Windows.Foundation.Rect rect;
+        try
+        {
+            rect = anchor
+                .TransformToVisual(SelectionOverlay)
+                .TransformBounds(new Windows.Foundation.Rect(
+                    0,
+                    0,
+                    anchor.ActualWidth,
+                    anchor.ActualHeight));
+        }
+        catch (Exception ex)
+        {
+            App.Log($"[ReorderIndicator] Transform failed: {ex.Message}");
+            HideReorderInsertionIndicator();
+            return;
+        }
+
+        if (isGridView)
+        {
+            // 图标视图：目标左侧或右侧竖线。
+            double lineHeight = Math.Max(28, rect.Height - 8);
+            double x = placeAfter ? rect.Right : rect.Left;
+            ReorderInsertionIndicator.Width = ReorderInsertionIndicatorThickness;
+            ReorderInsertionIndicator.Height = lineHeight;
+            Canvas.SetLeft(ReorderInsertionIndicator, x - (ReorderInsertionIndicatorThickness / 2));
+            Canvas.SetTop(ReorderInsertionIndicator, rect.Top + ((rect.Height - lineHeight) / 2));
+        }
+        else
+        {
+            // 列表视图：目标上方或下方横线。
+            double lineWidth = Math.Max(28, rect.Width);
+            double y = placeAfter ? rect.Bottom : rect.Top;
+            ReorderInsertionIndicator.Width = lineWidth;
+            ReorderInsertionIndicator.Height = ReorderInsertionIndicatorThickness;
+            Canvas.SetLeft(ReorderInsertionIndicator, rect.Left);
+            Canvas.SetTop(ReorderInsertionIndicator, y - (ReorderInsertionIndicatorThickness / 2));
+        }
+
+        Canvas.SetZIndex(ReorderInsertionIndicator, 2);
+        ReorderInsertionIndicator.Visibility = Visibility.Visible;
+    }
+
+    private void HideReorderInsertionIndicator()
+    {
+        ReorderInsertionIndicator.Visibility = Visibility.Collapsed;
+    }
+
+    private WidgetItem? FindReorderDraggedItem()
+    {
+        if (_reorderDragPaths.Length == 0)
+        {
+            return null;
+        }
+
         var pathSet = _reorderDragPaths
             .Select(Path.GetFullPath)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var draggedItem = ViewModel.Items
-            .FirstOrDefault(item => pathSet.Contains(Path.GetFullPath(item.Path)));
-
-        if (draggedItem is null)
-        {
-            return;
-        }
-
-        int currentIndex = ViewModel.Items.IndexOf(draggedItem);
-        if (currentIndex < 0)
-        {
-            return;
-        }
-
-        int targetIndex = ComputeDropInsertionIndex(GetDropTargetControl(), position);
-
-        // Adjust for Move semantics: Move(oldIndex, newIndex) puts the item
-        // AT newIndex.  If target > current, we need target-1 so the item
-        // ends up visually where the insertion indicator shows.
-        if (targetIndex > currentIndex)
-        {
-            targetIndex--;
-        }
-
-        // Skip if no meaningful move.
-        if (targetIndex == currentIndex || targetIndex < 0)
-        {
-            return;
-        }
-
-        ViewModel.MoveItemForReorder(draggedItem, targetIndex);
+        return ViewModel.Items
+            .FirstOrDefault(item =>
+                !string.IsNullOrWhiteSpace(item.Path) &&
+                pathSet.Contains(Path.GetFullPath(item.Path)));
     }
 
     /// <summary>
-    /// Final reorder on drop — moves the item to the exact drop position.
+    /// Commits the pending reorder to the last insertion-indicator index.
     /// </summary>
-    private void HandleFinalReorder(
-        IReadOnlyList<string> dragPaths,
-        Windows.Foundation.Point dropPosition)
+    private void CommitPendingReorder()
     {
-        if (dragPaths.Count == 0 || ViewModel.FileStacksEnabled)
+        if (_reorderCommitHandled)
         {
+            ClearReorderPreview();
             return;
         }
 
-        var pathSet = dragPaths
-            .Select(Path.GetFullPath)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        _reorderCommitHandled = true;
 
-        var draggedItem = ViewModel.Items
-            .FirstOrDefault(item => pathSet.Contains(Path.GetFullPath(item.Path)));
-
-        if (draggedItem is null)
+        try
         {
-            return;
-        }
+            if (!ViewModel.FileStacksEnabled &&
+                _reorderDragPaths.Length > 0 &&
+                _reorderInsertionIndex >= 0)
+            {
+                if (ViewModel.Config.SortMode != WidgetSortMode.Manual)
+                {
+                    ViewModel.SetSortMode(WidgetSortMode.Manual);
+                }
 
-        int currentIndex = ViewModel.Items.IndexOf(draggedItem);
-        if (currentIndex < 0)
+                WidgetItem? draggedItem = FindReorderDraggedItem();
+                if (draggedItem is not null)
+                {
+                    int currentIndex = ViewModel.Items.IndexOf(draggedItem);
+                    if (currentIndex >= 0)
+                    {
+                        int targetIndex = _reorderInsertionIndex;
+                        if (targetIndex > currentIndex)
+                        {
+                            targetIndex--;
+                        }
+
+                        targetIndex = Math.Clamp(targetIndex, 0, ViewModel.Items.Count - 1);
+                        if (targetIndex != currentIndex)
+                        {
+                            ViewModel.MoveItemForReorder(draggedItem, targetIndex);
+                        }
+                    }
+                }
+
+                ViewModel.PersistManualOrder();
+            }
+        }
+        finally
         {
-            return;
+            _isReorderDragActive = false;
+            _reorderDragPaths = [];
+            _reorderInsertionIndex = -1;
+            ClearReorderPreview();
         }
+    }
 
-        int targetIndex = ComputeDropInsertionIndex(GetDropTargetControl(), dropPosition);
+    /// <summary>
+    /// Cancels a pending reorder preview without moving items.
+    /// </summary>
+    private void CancelPendingReorder()
+    {
+        _reorderCommitHandled = true;
+        _isReorderDragActive = false;
+        _reorderDragPaths = [];
+        _reorderInsertionIndex = -1;
+        ClearReorderPreview();
+    }
 
-        if (targetIndex > currentIndex)
-        {
-            targetIndex--;
-        }
-
-        if (targetIndex == currentIndex || targetIndex < 0)
-        {
-            return;
-        }
-
-        ViewModel.MoveItemForReorder(draggedItem, targetIndex);
+    private void ClearReorderPreview()
+    {
+        HideReorderInsertionIndicator();
+        ClearReorderPlaceholder();
     }
 
     // ── Drop poll (background thread) ─────────────────────────
@@ -785,6 +970,16 @@ StopDragHighlight();
             return;
         }
 
+        // 同格子排序：只提交顺序，不要走导入刷新。
+        if (_isReorderDragActive)
+        {
+            App.Log("[DropDiagnostic] Poll release during reorder — committing reorder");
+            _cachedDropPaths = null;
+            CommitPendingReorder();
+            _isManualDropInProgress = false;
+            return;
+        }
+
         // Use cached paths — the DataPackageView is invalid by now.
         var paths = _cachedDropPaths ?? [];
         _cachedDropPaths = null;
@@ -853,6 +1048,13 @@ StopDragHighlight();
     /// </summary>
     private async Task ProcessManualDropAsync(IReadOnlyList<string> paths)
     {
+        if (_isReorderDragActive)
+        {
+            App.Log("[DropDiagnostic] ProcessManualDropAsync skipped — committing in-widget reorder");
+            CommitPendingReorder();
+            return;
+        }
+
         // Check if the cursor is over a folder item — if so, transfer into it
         // (mirrors OnNativeDrop's folder-drop logic).
         if (Win32Helper.GetCursorPos(out var cursor) &&

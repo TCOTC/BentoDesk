@@ -159,6 +159,7 @@ public sealed partial class WidgetWindow
         var item = border.DataContext as WidgetItem;
         bool isSelected = item?.IsSelected == true;
         bool isCut = item?.IsCut == true;
+        bool isReorderPlaceholder = item?.IsReorderPlaceholder == true;
 
         EnsureItemSurfaceBrushCache(isDark, accentColor);
 
@@ -178,7 +179,9 @@ public sealed partial class WidgetWindow
         var borderThickness = state == ItemSurfaceState.DropTarget
             ? new Thickness(1)
             : new Thickness(0);
-        double opacity = isCut ? 0.58 : 1.0;
+        double opacity = isReorderPlaceholder
+            ? ReorderPlaceholderOpacity
+            : isCut ? 0.58 : 1.0;
 
         if (!ReferenceEquals(border.Background, background))
         {
@@ -431,13 +434,19 @@ public sealed partial class WidgetWindow
             return;
         }
 
-        if (!TryPrepareItemDragPackage(args.Data, GetDragItems(item)))
+        var dragItems = GetDragItems(item);
+        if (!TryPrepareItemDragPackage(args.Data, dragItems))
         {
             args.Cancel = true;
             return;
         }
 
-        args.AllowedOperations = DataPackageOperation.Copy | DataPackageOperation.Move;
+        // 原位保留半透明占位；松手后再按指示线位置插入。
+        _reorderCommitHandled = false;
+        BeginReorderPlaceholder(dragItems);
+
+        // Link 用于同格子内排序；必须包含在 AllowedOperations，否则目标 Accept Link 会被判无效。
+        args.AllowedOperations = DataPackageOperation.Copy | DataPackageOperation.Move | DataPackageOperation.Link;
     }
 
     private async void WidgetItemSurface_DropCompleted(UIElement sender, DropCompletedEventArgs args)
@@ -449,13 +458,23 @@ public sealed partial class WidgetWindow
 
         _surfaceDragCompletionHandled = true;
 
-        // Fallback: if a real-time reorder was active but RootGrid_Drop
-        // didn't fire (event didn't bubble), persist the order now.
-        if (_isReorderDragActive)
+        // Fallback: RootGrid_Drop 未触发时，用最后一次指示线位置提交排序。
+        if (!_reorderCommitHandled && _isReorderDragActive)
         {
-            _isReorderDragActive = false;
-            _reorderDragPaths = [];
-            ViewModel.PersistManualOrder();
+            // Link = 同格子排序成功；None 时若光标仍在本窗口，多半是 WinUI 未送达 Drop。
+            if (args.DropResult == DataPackageOperation.Link ||
+                (IsCursorOverThisWindow() && args.DropResult != DataPackageOperation.Move))
+            {
+                CommitPendingReorder();
+            }
+            else
+            {
+                CancelPendingReorder();
+            }
+        }
+        else if (!_reorderCommitHandled)
+        {
+            ClearReorderPreview();
         }
 
         await HandleItemDragCompletedAsync(args.DropResult);

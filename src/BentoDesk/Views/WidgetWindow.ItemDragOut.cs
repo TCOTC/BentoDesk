@@ -1,4 +1,4 @@
-﻿﻿// Copyright (c) BentoDesk. All rights reserved.
+﻿// Copyright (c) BentoDesk. All rights reserved.
 
 using System.Net.Http;
 using BentoDesk.Helpers;
@@ -188,7 +188,8 @@ public sealed partial class WidgetWindow
             return false;
         }
 
-        dataPackage.RequestedOperation = DataPackageOperation.Copy | DataPackageOperation.Move;
+        dataPackage.RequestedOperation =
+            DataPackageOperation.Copy | DataPackageOperation.Move | DataPackageOperation.Link;
 
         var storageItems = App.Current.FileService.GetStorageItems(sourcePaths);
         if (storageItems.Count > 0)

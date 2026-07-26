@@ -156,7 +156,8 @@ public partial class WidgetViewModel
         }
 
         ApplyPersistedAddedTimes(loaded);
-        SyncFolderItems(loaded);
+        // loaded 已按 Config.Items 排序，必须应用该顺序（不能走 Manual 保序分支）。
+        SyncFolderItems(loaded, preserveManualOrder: false);
         SortItems();
         StartItemHydration();
     }
@@ -235,6 +236,11 @@ public partial class WidgetViewModel
         }
 
         ApplyPersistedAddedTimes(items);
+        if (Config.SortMode == WidgetSortMode.Manual)
+        {
+            items = ApplyManualConfigOrder(items);
+        }
+
         SyncFolderItems(items);
         SortItems();
         if (clearIconCacheBeforeHydration)
@@ -245,7 +251,48 @@ public partial class WidgetViewModel
         StartItemHydration();
     }
 
-    private void SyncFolderItems(IReadOnlyList<WidgetItem> refreshedItems)
+    /// <summary>
+    /// Orders folder enumeration results by persisted <see cref="WidgetConfig.Items"/>
+    /// when SortMode is Manual. Unknown new files are appended.
+    /// </summary>
+    private List<WidgetItem> ApplyManualConfigOrder(List<WidgetItem> items)
+    {
+        if (items.Count == 0 || Config.Items.Count == 0)
+        {
+            return items;
+        }
+
+        var byPath = items
+            .GroupBy(item => Path.GetFullPath(item.Path), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+
+        var ordered = new List<WidgetItem>(items.Count);
+        foreach (var configItem in Config.Items
+                     .Where(item => !string.IsNullOrWhiteSpace(item.Path))
+                     .OrderBy(item => item.SortOrder))
+        {
+            string fullPath = Path.GetFullPath(configItem.Path);
+            if (byPath.Remove(fullPath, out var item))
+            {
+                ordered.Add(item);
+            }
+        }
+
+        foreach (var item in items)
+        {
+            string fullPath = Path.GetFullPath(item.Path);
+            if (byPath.Remove(fullPath, out var remaining))
+            {
+                ordered.Add(remaining);
+            }
+        }
+
+        return ordered;
+    }
+
+    private void SyncFolderItems(
+        IReadOnlyList<WidgetItem> refreshedItems,
+        bool preserveManualOrder = true)
     {
         var existingByPath = Items
             .GroupBy(item => item.Path, StringComparer.OrdinalIgnoreCase)
@@ -260,6 +307,24 @@ public partial class WidgetViewModel
             {
                 Items.RemoveAt(index);
             }
+        }
+
+        // Manual 模式：只增删/更新元数据，不按刷新列表重排，避免拖放后被目录枚举顺序冲掉。
+        if (preserveManualOrder && Config.SortMode == WidgetSortMode.Manual)
+        {
+            foreach (var refreshedItem in refreshedItems)
+            {
+                if (existingByPath.TryGetValue(refreshedItem.Path, out var existingItem))
+                {
+                    ApplyRuntimeItemData(existingItem, refreshedItem);
+                    continue;
+                }
+
+                Items.Add(refreshedItem);
+            }
+
+            NormalizeSortOrder();
+            return;
         }
 
         for (int targetIndex = 0; targetIndex < refreshedItems.Count; targetIndex++)

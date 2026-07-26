@@ -90,6 +90,12 @@ public partial class WidgetItem : ObservableObject
     [ObservableProperty]
     public partial bool IsCut { get; set; }
 
+    /// <summary>
+    /// Whether this item is the fixed semi-transparent placeholder during a reorder drag.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsReorderPlaceholder { get; set; }
+
     /// <summary>Temporary indentation marker while an automatic stack is expanded.</summary>
     [ObservableProperty]
     public partial bool IsStackChild { get; set; }

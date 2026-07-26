@@ -657,6 +657,14 @@
                     BorderThickness="1"
                     CornerRadius="0"
                     Visibility="Collapsed" />
+                <Border
+                    x:Name="ReorderInsertionIndicator"
+                    Width="3"
+                    Height="0"
+                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                    CornerRadius="1.5"
+                    IsHitTestVisible="False"
+                    Visibility="Collapsed" />
             </Canvas>
 
             <TextBox
