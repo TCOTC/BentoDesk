@@ -1,6 +1,6 @@
 # Extract drag/drop methods from WidgetWindow.xaml.cs into WidgetWindow.DragDrop.cs
 param(
-    [string]$SourceFile = "src/DeskBox/Views/WidgetWindow.xaml.cs"
+    [string]$SourceFile = "src/BentoDesk/Views/WidgetWindow.xaml.cs"
 )
 
 $lines = Get-Content $SourceFile -Encoding UTF8
@@ -26,7 +26,7 @@ $methodNames = @(
     'GetDragItems',
     'TryPrepareItemDragPackage',
     'SyncMoveSourceAsync',
-    'HasDeskBoxInternalDragData',
+    'HasBentoDeskInternalDragData',
     'HasPathDropData',
     'GetDropPathsAsync',
     'TryNormalizeDroppedPath',
@@ -130,7 +130,7 @@ foreach ($methodName in $methodNames) {
 
 # Also extract fields
 $fieldPatterns = @(
-    'private const string DeskBoxInternalDragToken',
+    'private const string BentoDeskInternalDragToken',
     'private static readonly UIntPtr FileDropSubclassId',
     'private readonly Win32Helper.SubclassProc _fileDropSubclassProc',
     'private string\[\] _activeDragSourcePaths',
@@ -160,11 +160,11 @@ foreach ($pattern in $fieldPatterns) {
 
 # Write the new DragDrop.cs file
 $usingLines = @(
-    "// Copyright (c) DeskBox. All rights reserved.",
+    "// Copyright (c) BentoDesk. All rights reserved.",
     "",
-    "using DeskBox.Helpers;",
-    "using DeskBox.Models;",
-    "using DeskBox.Services;",
+    "using BentoDesk.Helpers;",
+    "using BentoDesk.Models;",
+    "using BentoDesk.Services;",
     "using Microsoft.UI;",
     "using Microsoft.UI.Xaml;",
     "using Microsoft.UI.Xaml.Controls;",
@@ -173,7 +173,7 @@ $usingLines = @(
     "using Windows.ApplicationModel.DataTransfer;",
     "using WinRT.Interop;",
     "",
-    "namespace DeskBox.Views;",
+    "namespace BentoDesk.Views;",
     "",
     "/// <summary>",
     "/// Partial class containing drag-and-drop, file drop subclass,",
@@ -208,7 +208,7 @@ foreach ($block in $sortedBlocks) {
 $output.Add("}")
 
 # Write the new file
-$outputPath = "src/DeskBox/Views/WidgetWindow.DragDrop.cs"
+$outputPath = "src/BentoDesk/Views/WidgetWindow.DragDrop.cs"
 $output -join "`r`n" | Set-Content $outputPath -Encoding UTF8 -NoNewline
 Write-Host "`nCreated: $outputPath ($($output.Count) lines)"
 

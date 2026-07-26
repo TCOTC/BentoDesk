@@ -1,4 +1,4 @@
-# DeskBox 性能优化 - 方案 C 设计与 PoC 框架
+# BentoDesk 性能优化 - 方案 C 设计与 PoC 框架
 
 **版本:** 1.0  
 **状态:** 🔄 待实施  
@@ -93,7 +93,7 @@ visual.StartAnimation("Translation", translationAnim);
 
 ### 示例 1：DetailPageTransitionHelper
 
-**文件：** [`src/DeskBox/Helpers/DetailPageTransitionHelper.cs`](d:\project\wingezi\src\DeskBox\Helpers\DetailPageTransitionHelper.cs)
+**文件：** [`src/BentoDesk/Helpers/DetailPageTransitionHelper.cs`](d:\project\wingezi\src\BentoDesk\Helpers\DetailPageTransitionHelper.cs)
 
 ```csharp
 public static void PlayEnter(UIElement element)
@@ -113,7 +113,7 @@ public static void PlayEnter(UIElement element)
 
 ### 示例 2：QuickCaptureWidgetWindow Offset 动画
 
-**文件：** [`src/DeskBox/Views/QuickCaptureWidgetWindow.Appearance.cs`](d:\project\wingezi\src\DeskBox\Views\QuickCaptureWidgetWindow.Appearance.cs)
+**文件：** [`src/BentoDesk/Views/QuickCaptureWidgetWindow.Appearance.cs`](d:\project\wingezi\src\BentoDesk\Views\QuickCaptureWidgetWindow.Appearance.cs)
 
 ```csharp
 private static void StartSubtleOffsetAnimation(...)
@@ -145,8 +145,8 @@ private static void StartSubtleOffsetAnimation(...)
 #### 文件结构
 
 ```
-src/DeskBox/Views/TestGPUEmulationWindow.xaml  (新建)
-src/DeskBox/Views/TestGPUEmulationWindow.xaml.cs (新建)
+src/BentoDesk/Views/TestGPUEmulationWindow.xaml  (新建)
+src/BentoDesk/Views/TestGPUEmulationWindow.xaml.cs (新建)
 ```
 
 #### XAML 界面
@@ -154,7 +154,7 @@ src/DeskBox/Views/TestGPUEmulationWindow.xaml.cs (新建)
 ```xml
 <!-- TestGPUEmulationWindow.xaml -->
 <Window
-    x:Class="DeskBox.Views.TestGPUEmulationWindow"
+    x:Class="BentoDesk.Views.TestGPUEmulationWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="GPU Animation Demo" 
@@ -221,7 +221,7 @@ using Microsoft.UI.Xaml.Media;
 using System.Numerics;
 using System.Diagnostics;
 
-namespace DeskBox.Views;
+namespace BentoDesk.Views;
 
 public sealed partial class TestGPUEmulationWindow : Window
 {
@@ -440,7 +440,7 @@ public sealed partial class TestGPUEmulationWindow : Window
 ### 修改范围
 
 **主要文件：**
-- [`src/DeskBox/Services/WidgetTrayAnimationController.cs`](d:\project\wingezi\src\DeskBox\Services\WidgetTrayAnimationController.cs)
+- [`src/BentoDesk/Services/WidgetTrayAnimationController.cs`](d:\project\wingezi\src\BentoDesk\Services\WidgetTrayAnimationController.cs)
 
 **改动点：**
 1. `Animate()` 方法重构

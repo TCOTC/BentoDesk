@@ -4,8 +4,8 @@ param(
     [string]$Usings
 )
 
-$file = "src\DeskBox\Views\WidgetWindow.xaml.cs"
-$newFile = "src\DeskBox\Views\WidgetWindow.$StepName.cs"
+$file = "src\BentoDesk\Views\WidgetWindow.xaml.cs"
+$newFile = "src\BentoDesk\Views\WidgetWindow.$StepName.cs"
 $content = [System.IO.File]::ReadAllText((Resolve-Path $file))
 $lines = $content -split "`r`n|`r|`n"
 $methods = $MethodList -split ',' | ForEach-Object { $_.Trim() }
@@ -50,9 +50,9 @@ foreach ($m in $methods) {
 }
 
 # Build the new file
-$header = "// Copyright (c) DeskBox. All rights reserved.`r`n`r`n"
+$header = "// Copyright (c) BentoDesk. All rights reserved.`r`n`r`n"
 $header += $Usings
-$header += "`r`nnamespace DeskBox.Views;`r`n`r`n"
+$header += "`r`nnamespace BentoDesk.Views;`r`n`r`n"
 $header += "public sealed partial class WidgetWindow`r`n{`r`n"
 
 $body = ($extractedBlocks -join "`r`n`r`n")

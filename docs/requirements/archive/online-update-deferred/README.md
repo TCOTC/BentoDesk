@@ -1,6 +1,6 @@
 # Deferred Online Update Draft
 
-This folder keeps the first implementation draft for the DeskBox online update feature.
+This folder keeps the first implementation draft for the BentoDesk online update feature.
 
 The feature is intentionally not compiled into the app right now. The product decision is to pause online updates until server, domestic download reliability, package signing, and rollout risks are evaluated further.
 
@@ -13,9 +13,9 @@ Files:
 
 To restore later, copy these files back to their original locations and remove the `.txt` suffix:
 
-- `src/DeskBox/Models/UpdateManifest.cs`
-- `src/DeskBox/Models/UpdateCheckResult.cs`
-- `src/DeskBox/Services/UpdateService.cs`
-- `tests/DeskBox.Tests/UpdateServiceTests.cs`
+- `src/BentoDesk/Models/UpdateManifest.cs`
+- `src/BentoDesk/Models/UpdateCheckResult.cs`
+- `src/BentoDesk/Services/UpdateService.cs`
+- `tests/BentoDesk.Tests/UpdateServiceTests.cs`
 
 Then reintroduce the settings UI from `docs/requirements/online-update.md` rather than leaving any partial UI in the main app.

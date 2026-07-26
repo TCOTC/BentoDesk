@@ -1,4 +1,4 @@
-# DeskBox Current Architecture
+# BentoDesk Current Architecture
 
 Last updated: 2026-07-20
 
@@ -6,7 +6,7 @@ This document describes the current architecture after the 1.2.0 widget foundati
 
 ## Current Goal
 
-DeskBox is moving toward a reusable widget foundation without forcing every existing widget into the same implementation immediately.
+BentoDesk is moving toward a reusable widget foundation without forcing every existing widget into the same implementation immediately.
 
 The current rule is:
 
@@ -55,14 +55,14 @@ Use this path for future content-type widgets whenever possible.
 
 Core widget foundation:
 
-- `src/DeskBox/Models/WidgetKind.cs`
-- `src/DeskBox/Models/WidgetConfig.cs`
-- `src/DeskBox/Services/WidgetRegistry.cs`
-- `src/DeskBox/Services/WidgetContentDescriptor.cs`
-- `src/DeskBox/Services/WidgetContentFactory.cs`
-- `src/DeskBox/Services/IWidgetContentProvider.cs`
-- `src/DeskBox/Services/ContentWidgetWindowFactory.cs`
-- `src/DeskBox/Services/WidgetManager.cs`
+- `src/BentoDesk/Models/WidgetKind.cs`
+- `src/BentoDesk/Models/WidgetConfig.cs`
+- `src/BentoDesk/Services/WidgetRegistry.cs`
+- `src/BentoDesk/Services/WidgetContentDescriptor.cs`
+- `src/BentoDesk/Services/WidgetContentFactory.cs`
+- `src/BentoDesk/Services/IWidgetContentProvider.cs`
+- `src/BentoDesk/Services/ContentWidgetWindowFactory.cs`
+- `src/BentoDesk/Services/WidgetManager.cs`
 
 Window creation routing:
 
@@ -72,50 +72,50 @@ Window creation routing:
 
 Shared shell and window helpers:
 
-- `src/DeskBox/Controls/WidgetShell.xaml`
-- `src/DeskBox/Controls/WidgetShell.xaml.cs`
-- `src/DeskBox/Controls/WidgetShellContentHost.cs`
-- `src/DeskBox/Services/WidgetTrayAnimationController.cs`
-- `src/DeskBox/Services/WidgetTitleBarMetrics.cs`
-- `src/DeskBox/Services/WidgetSessionManager.cs`
+- `src/BentoDesk/Controls/WidgetShell.xaml`
+- `src/BentoDesk/Controls/WidgetShell.xaml.cs`
+- `src/BentoDesk/Controls/WidgetShellContentHost.cs`
+- `src/BentoDesk/Services/WidgetTrayAnimationController.cs`
+- `src/BentoDesk/Services/WidgetTitleBarMetrics.cs`
+- `src/BentoDesk/Services/WidgetSessionManager.cs`
 
 Current windows:
 
-- `src/DeskBox/Views/WidgetWindow.xaml.cs`: file widgets.
-- `src/DeskBox/Views/QuickCaptureWidgetWindow.xaml.cs`: QuickCapture / note widget.
-- `src/DeskBox/Views/ContentWidgetWindow.xaml.cs`: Todo, Music, Weather, and future content widgets.
+- `src/BentoDesk/Views/WidgetWindow.xaml.cs`: file widgets.
+- `src/BentoDesk/Views/QuickCaptureWidgetWindow.xaml.cs`: QuickCapture / note widget.
+- `src/BentoDesk/Views/ContentWidgetWindow.xaml.cs`: Todo, Music, Weather, and future content widgets.
 
 Current Todo implementation:
 
-- `src/DeskBox/Controls/WidgetContents/TodoWidgetContent.xaml`
-- `src/DeskBox/Controls/WidgetContents/TodoWidgetContent.xaml.cs`
-- `src/DeskBox/Controls/WidgetContents/TodoWidgetContentAdapter.cs`
-- `src/DeskBox/ViewModels/TodoWidgetViewModel.cs`
-- `src/DeskBox/Services/TodoWidgetStore.cs`
-- `src/DeskBox/Services/TodoWidgetContentProvider.cs`
+- `src/BentoDesk/Controls/WidgetContents/TodoWidgetContent.xaml`
+- `src/BentoDesk/Controls/WidgetContents/TodoWidgetContent.xaml.cs`
+- `src/BentoDesk/Controls/WidgetContents/TodoWidgetContentAdapter.cs`
+- `src/BentoDesk/ViewModels/TodoWidgetViewModel.cs`
+- `src/BentoDesk/Services/TodoWidgetStore.cs`
+- `src/BentoDesk/Services/TodoWidgetContentProvider.cs`
 
 Current Music implementation:
 
-- `src/DeskBox/Controls/WidgetContents/MusicWidgetContent.xaml`
-- `src/DeskBox/Controls/WidgetContents/MusicWidgetContent.xaml.cs`
-- `src/DeskBox/Controls/WidgetContents/MusicWidgetContentAdapter.cs`
-- `src/DeskBox/ViewModels/MusicWidgetViewModel.cs`
-- `src/DeskBox/ViewModels/MusicBarViewModel.cs`
-- `src/DeskBox/Services/MusicSessionService.cs`
-- `src/DeskBox/Services/MusicVolumeService.cs`
-- `src/DeskBox/Services/MusicWidgetContentProvider.cs`
+- `src/BentoDesk/Controls/WidgetContents/MusicWidgetContent.xaml`
+- `src/BentoDesk/Controls/WidgetContents/MusicWidgetContent.xaml.cs`
+- `src/BentoDesk/Controls/WidgetContents/MusicWidgetContentAdapter.cs`
+- `src/BentoDesk/ViewModels/MusicWidgetViewModel.cs`
+- `src/BentoDesk/ViewModels/MusicBarViewModel.cs`
+- `src/BentoDesk/Services/MusicSessionService.cs`
+- `src/BentoDesk/Services/MusicVolumeService.cs`
+- `src/BentoDesk/Services/MusicWidgetContentProvider.cs`
 
 Current Weather implementation:
 
-- `src/DeskBox/Controls/WidgetContents/WeatherWidgetContent.xaml`
-- `src/DeskBox/Controls/WidgetContents/WeatherWidgetContent.xaml.cs`
-- `src/DeskBox/Controls/WidgetContents/WeatherWidgetContentAdapter.cs`
-- `src/DeskBox/ViewModels/WeatherWidgetViewModel.cs`
-- `src/DeskBox/ViewModels/WeatherWidgetViewModel.DataProcessing.cs`
-- `src/DeskBox/ViewModels/WeatherWidgetViewModel.RefreshAndLayout.cs`
-- `src/DeskBox/Services/WeatherService.cs`
-- `src/DeskBox/Helpers/WeatherCodeMapper.cs`
-- `src/DeskBox/Helpers/WindowsLocationHelper.cs`
+- `src/BentoDesk/Controls/WidgetContents/WeatherWidgetContent.xaml`
+- `src/BentoDesk/Controls/WidgetContents/WeatherWidgetContent.xaml.cs`
+- `src/BentoDesk/Controls/WidgetContents/WeatherWidgetContentAdapter.cs`
+- `src/BentoDesk/ViewModels/WeatherWidgetViewModel.cs`
+- `src/BentoDesk/ViewModels/WeatherWidgetViewModel.DataProcessing.cs`
+- `src/BentoDesk/ViewModels/WeatherWidgetViewModel.RefreshAndLayout.cs`
+- `src/BentoDesk/Services/WeatherService.cs`
+- `src/BentoDesk/Helpers/WeatherCodeMapper.cs`
+- `src/BentoDesk/Helpers/WindowsLocationHelper.cs`
 
 ## WidgetRegistry
 
@@ -388,11 +388,11 @@ Menu font and spacing are centralized in `App.xaml`.
 
 Relevant resources include:
 
-- `DeskBoxMenuFontFamily`
-- `DeskBoxMenuPresenterPadding`
-- `DeskBoxMenuItemPadding`
-- `DeskBoxMenuItemMinHeight`
-- `DeskBoxMenuItemFontSize`
+- `BentoDeskMenuFontFamily`
+- `BentoDeskMenuPresenterPadding`
+- `BentoDeskMenuItemPadding`
+- `BentoDeskMenuItemMinHeight`
+- `BentoDeskMenuItemFontSize`
 
 Tray menu, widget title menus, and content menus should use these shared resources. Do not hard-code local menu font or padding unless there is a specific WinUI limitation.
 
@@ -400,23 +400,23 @@ Tray menu, widget title menus, and content menus should use these shared resourc
 
 Main settings:
 
-- `%LocalAppData%/DeskBox/settings.json`
+- `%LocalAppData%/BentoDesk/settings.json`
 
 Widget-specific data:
 
-- `%LocalAppData%/DeskBox/data/widgets/{widgetId}/...`
+- `%LocalAppData%/BentoDesk/data/widgets/{widgetId}/...`
 
 Todo data:
 
-- `%LocalAppData%/DeskBox/data/widgets/{widgetId}/todo.json`
+- `%LocalAppData%/BentoDesk/data/widgets/{widgetId}/todo.json`
 
 QuickCapture data:
 
-- `%LocalAppData%/DeskBox/data/quick-capture/quick-capture.json`
-- `%LocalAppData%/DeskBox/data/quick-capture/images/...`
-- `%LocalAppData%/DeskBox/data/quick-capture/thumbnails/...`
+- `%LocalAppData%/BentoDesk/data/quick-capture/quick-capture.json`
+- `%LocalAppData%/BentoDesk/data/quick-capture/images/...`
+- `%LocalAppData%/BentoDesk/data/quick-capture/thumbnails/...`
 
-Uninstalling the app may remove binaries but should not be assumed to remove `%LocalAppData%/DeskBox`. This is user data.
+Uninstalling the app may remove binaries but should not be assumed to remove `%LocalAppData%/BentoDesk`. This is user data.
 
 ## Adding A New Content Widget
 
@@ -452,7 +452,7 @@ Reasons:
 
 Then:
 
-- `Tags`: internal DeskBox index only, no file metadata writes.
+- `Tags`: internal BentoDesk index only, no file metadata writes.
 
 Last:
 
@@ -479,8 +479,8 @@ Touch these only with focused changes and manual regression.
 Most recent verification:
 
 ```powershell
-dotnet build .\DeskBox.sln -c Debug -p:Platform=x64 --no-restore
-dotnet test .\DeskBox.sln -c Debug -p:Platform=x64 --no-build
+dotnet build .\BentoDesk.sln -c Debug -p:Platform=x64 --no-restore
+dotnet test .\BentoDesk.sln -c Debug -p:Platform=x64 --no-build
 ```
 
 Result:

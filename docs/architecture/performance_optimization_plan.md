@@ -1,4 +1,4 @@
-# DeskBox 性能优化修复方案
+# BentoDesk 性能优化修复方案
 
 > 创建时间：2026-07-09  
 > 状态：待核对，未开始实施  
@@ -25,7 +25,7 @@
 
 ### 2.1 问题根因
 
-文件：`src/DeskBox/Services/WidgetTrayAnimationController.cs`
+文件：`src/BentoDesk/Services/WidgetTrayAnimationController.cs`
 
 当前动画使用 `DispatcherQueueTimer`（硬编码 16ms = 60fps 上限）驱动，每帧 Tick 中：
 
@@ -46,7 +46,7 @@
 
 #### 改动范围
 
-仅修改一个文件：`src/DeskBox/Services/WidgetTrayAnimationController.cs`
+仅修改一个文件：`src/BentoDesk/Services/WidgetTrayAnimationController.cs`
 
 #### 改动内容
 
@@ -238,7 +238,7 @@ public void Stop()
 
 ### 3.1 问题根因
 
-文件：`src/DeskBox/Views/WidgetWindow.xaml` + `WidgetWindow.xaml.cs`
+文件：`src/BentoDesk/Views/WidgetWindow.xaml` + `WidgetWindow.xaml.cs`
 
 1. 每个格子 Border（`Tag="InteractiveSurface"`）注册了 13 个事件，其中 `WidgetItemSurface_PointerMoved`（第 3782-3784 行）是**空方法**
 2. `RootGrid_PointerEntered/Exited` 每次都调用 `ApplyLegacyTitleActionButtonVisibility`，该方法无条件 `Stop()` 两个 Storyboard 再重新设置属性
@@ -470,7 +470,7 @@ private TimeSpan StopBackdropRefreshTimer()
 
 ### 5.1 问题根因
 
-文件：`src/DeskBox/ViewModels/MusicWidgetViewModel.cs`
+文件：`src/BentoDesk/ViewModels/MusicWidgetViewModel.cs`
 
 - `_visualizerTimer`：140ms 间隔，播放时运行
 - `_visualizerTransitionTimer`：33ms 间隔（≈30fps），过渡时运行
@@ -520,7 +520,7 @@ private TimeSpan StopBackdropRefreshTimer()
 
 ### 6.1 问题根因
 
-文件：`src/DeskBox/Services/ThemeService.cs`（第 25-30 行）
+文件：`src/BentoDesk/Services/ThemeService.cs`（第 25-30 行）
 
 `UISettings.ColorValuesChanged` 在系统主题/强调色变化时可能连续触发多次，每次都 dispatch 到 UI 线程并 `ApplyToAllWindows`。
 
@@ -587,7 +587,7 @@ private void OnAppearanceDebounceTick(DispatcherQueueTimer sender, object args)
 
 ### 7.1 问题根因
 
-文件：`src/DeskBox/Helpers/IconHelper.cs`
+文件：`src/BentoDesk/Helpers/IconHelper.cs`
 
 - `MaxCacheEntries = 500`，每个条目含 `byte[]`（PNG 图标数据）+ `BitmapImage`，大量图标时内存占用高
 - `LoadBitmapImageAsync` 路径创建 `BitmapImage` 时未设置 `DecodePixelWidth`，图标以原始 32x32 加载，但 PNG 数据可能更大

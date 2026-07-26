@@ -1,4 +1,4 @@
-# DeskBox 格子标题样式与窗口外壳模式设计
+# BentoDesk 格子标题样式与窗口外壳模式设计
 
 日期：2026-06-30
 
@@ -250,12 +250,12 @@ CanUseOverlayChrome = true
 
 文件：
 
-- `src/DeskBox/Models/AppSettings.cs`
-- `src/DeskBox/Services/SettingsService.cs`
-- `src/DeskBox/ViewModels/SettingsViewModel.cs`
-- `src/DeskBox/Views/SettingsWindow.xaml`
-- `src/DeskBox/Views/SettingsWindow.xaml.cs`
-- `src/DeskBox/Services/LocalizationService.cs`
+- `src/BentoDesk/Models/AppSettings.cs`
+- `src/BentoDesk/Services/SettingsService.cs`
+- `src/BentoDesk/ViewModels/SettingsViewModel.cs`
+- `src/BentoDesk/Views/SettingsWindow.xaml`
+- `src/BentoDesk/Views/SettingsWindow.xaml.cs`
+- `src/BentoDesk/Services/LocalizationService.cs`
 
 需要处理：
 
@@ -269,7 +269,7 @@ CanUseOverlayChrome = true
 
 文件：
 
-- `src/DeskBox/Models/WidgetConfig.cs`
+- `src/BentoDesk/Models/WidgetConfig.cs`
 
 建议：
 
@@ -286,8 +286,8 @@ CanUseOverlayChrome = true
 
 文件：
 
-- `src/DeskBox/Services/WidgetContentDescriptor.cs`
-- `src/DeskBox/Services/WidgetContentFactory.cs`
+- `src/BentoDesk/Services/WidgetContentDescriptor.cs`
+- `src/BentoDesk/Services/WidgetContentFactory.cs`
 
 需要补充：
 
@@ -305,8 +305,8 @@ CanUseOverlayChrome = true
 
 文件：
 
-- `src/DeskBox/Controls/WidgetShell.xaml`
-- `src/DeskBox/Controls/WidgetShell.xaml.cs`
+- `src/BentoDesk/Controls/WidgetShell.xaml`
+- `src/BentoDesk/Controls/WidgetShell.xaml.cs`
 
 这是最关键的改造点。
 
@@ -355,7 +355,7 @@ Overlay / Hidden：
 
 文件：
 
-- `src/DeskBox/Services/WidgetTitleBarMetrics.cs`
+- `src/BentoDesk/Services/WidgetTitleBarMetrics.cs`
 
 当前用于统一标题栏高度、图标、按钮、padding。
 
@@ -381,8 +381,8 @@ WidgetChromeMetricsCalculator.Create(mode, width, ...)
 
 文件：
 
-- `src/DeskBox/Views/ContentWidgetWindow.xaml`
-- `src/DeskBox/Views/ContentWidgetWindow.xaml.cs`
+- `src/BentoDesk/Views/ContentWidgetWindow.xaml`
+- `src/BentoDesk/Views/ContentWidgetWindow.xaml.cs`
 
 优先从这里落地。
 
@@ -405,8 +405,8 @@ WidgetChromeMetricsCalculator.Create(mode, width, ...)
 
 文件：
 
-- `src/DeskBox/Views/WidgetWindow.xaml`
-- `src/DeskBox/Views/WidgetWindow.xaml.cs`
+- `src/BentoDesk/Views/WidgetWindow.xaml`
+- `src/BentoDesk/Views/WidgetWindow.xaml.cs`
 
 风险较高。
 
@@ -435,8 +435,8 @@ WidgetChromeMetricsCalculator.Create(mode, width, ...)
 
 文件：
 
-- `src/DeskBox/Views/QuickCaptureWidgetWindow.xaml`
-- `src/DeskBox/Views/QuickCaptureWidgetWindow.xaml.cs`
+- `src/BentoDesk/Views/QuickCaptureWidgetWindow.xaml`
+- `src/BentoDesk/Views/QuickCaptureWidgetWindow.xaml.cs`
 
 风险中等。
 
@@ -462,8 +462,8 @@ WidgetChromeMetricsCalculator.Create(mode, width, ...)
 
 文件：
 
-- `src/DeskBox/Controls/WidgetContents/TodoWidgetContent.xaml`
-- `src/DeskBox/Views/ContentWidgetWindow.xaml.cs`
+- `src/BentoDesk/Controls/WidgetContents/TodoWidgetContent.xaml`
+- `src/BentoDesk/Views/ContentWidgetWindow.xaml.cs`
 
 Todo 走 `ContentWidgetWindow`，所以可跟随第一阶段一起支持。
 
@@ -768,4 +768,4 @@ Todo 走 `ContentWidgetWindow`，所以可跟随第一阶段一起支持。
 - `WidgetShell` 应该等于“统一窗口外壳能力”。
 - 标准标题栏、紧凑标题栏、悬浮按钮、隐藏标题栏，都只是 Shell 的不同表现模式。
 
-后续新增音乐、天气、系统监控时，应该优先复用这套外壳模式。这样既能保留 DeskBox 的统一行为，也能让不同类型格子获得适合自己的视觉密度。
+后续新增音乐、天气、系统监控时，应该优先复用这套外壳模式。这样既能保留 BentoDesk 的统一行为，也能让不同类型格子获得适合自己的视觉密度。

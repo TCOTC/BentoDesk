@@ -134,14 +134,14 @@
 
 #### Installer and Updater
 
-- **ARM64 installer**: Added `DeskBox.arm64.iss` and `DeskBox.Dependencies.arm64.iss` for native ARM64 Windows builds.
+- **ARM64 installer**: Added `BentoDesk.arm64.iss` and `BentoDesk.Dependencies.arm64.iss` for native ARM64 Windows builds.
 - **Reliable process kill**: Installer now uses a robust process-termination sequence before overwrite, avoiding file-lock failures.
 - **Force-update enforcement**: `AppUpdateService` now enforces mandatory updates when the server flags a version as critical.
-- **Helper cleanup**: Stale update-helper directories under `%LocalAppData%\DeskBox\update-helper` are cleaned up automatically.
+- **Helper cleanup**: Stale update-helper directories under `%LocalAppData%\BentoDesk\update-helper` are cleaned up automatically.
 - **Official download URLs**: Switched all download links to the official GitHub Releases channel.
-- **Migration support**: Added `DeskBox.Migration.iss` for handling data migration during major version upgrades.
+- **Migration support**: Added `BentoDesk.Migration.iss` for handling data migration during major version upgrades.
 - **English installer language**: Added `Languages/English.isl` for proper English installer UI on non-Chinese systems.
-- **Installer language selection**: The installer now shows a language-selection dialog (Chinese, English, Japanese, German, Brazilian Portuguese) pre-selected to the system locale. The chosen language is written to `HKCU\Software\DeskBox\InstallLanguage`, and DeskBox uses it as the default app language on first run (a manual in-app change still wins).
+- **Installer language selection**: The installer now shows a language-selection dialog (Chinese, English, Japanese, German, Brazilian Portuguese) pre-selected to the system locale. The chosen language is written to `HKCU\Software\BentoDesk\InstallLanguage`, and BentoDesk uses it as the default app language on first run (a manual in-app change still wins).
 - **Search popup polish**: The result-list header now aligns with the data rows; the sort header carries a subtle background and shares the menu-bar margins.
 - **Weather capsule fix**: Removed a duplicate title icon so capsule mode shows only the weather emoji.
 - **Capsule hover mask**: Hidden the semi-transparent right-edge hover mask in capsule mode (interaction unchanged).
@@ -157,7 +157,7 @@
 
 #### Fixes
 
-- **QuickLook compatibility (critical)**: Fixed a critical issue where DeskBox could crash QuickLook's single-threaded named-pipe server by connecting without sending data (pipe probe in `CanPreview` and raw `CreateFile` fallback). Availability checks now use process enumeration only; the pipe is touched exclusively when sending a Toggle message.
+- **QuickLook compatibility (critical)**: Fixed a critical issue where BentoDesk could crash QuickLook's single-threaded named-pipe server by connecting without sending data (pipe probe in `CanPreview` and raw `CreateFile` fallback). Availability checks now use process enumeration only; the pipe is touched exclusively when sending a Toggle message.
 - **Wallpaper loss**: Prevented desktop wallpaper loss caused by repeated `WorkerW` window spawns during widget layer operations in `WidgetLayerService`.
 - **Capsule mode defaults**: Aligned `AppSettings` initial values with `ApplyDefaultPreferences` so new installs and global reset produce identical capsule behavior.
 - **Tray menu height**: Fixed tray right-click menu height display issue.
@@ -204,14 +204,14 @@
 
 #### 安装器与更新器
 
-- **ARM64 安装器**：新增 `DeskBox.arm64.iss` 和 `DeskBox.Dependencies.arm64.iss`，支持原生 ARM64 Windows 构建。
+- **ARM64 安装器**：新增 `BentoDesk.arm64.iss` 和 `BentoDesk.Dependencies.arm64.iss`，支持原生 ARM64 Windows 构建。
 - **可靠进程关闭**：安装器现在使用健壮的进程终止序列，避免覆盖安装时的文件锁定失败。
 - **强制更新机制**：`AppUpdateService` 现在在服务器标记版本为关键时强制执行更新。
-- **缓存清理**：自动清理 `%LocalAppData%\DeskBox\update-helper` 下的残留更新缓存目录。
+- **缓存清理**：自动清理 `%LocalAppData%\BentoDesk\update-helper` 下的残留更新缓存目录。
 - **正式下载地址**：所有下载链接切换到正式 GitHub Releases 渠道。
-- **迁移支持**：新增 `DeskBox.Migration.iss` 处理大版本升级时的数据迁移。
+- **迁移支持**：新增 `BentoDesk.Migration.iss` 处理大版本升级时的数据迁移。
 - **英文安装器语言**：新增 `Languages/English.isl`，非中文系统显示英文安装界面。
-- **安装器语言选择**：安装器现在提供语言选择对话框（中文、英文、日语、德语、巴西葡萄牙语），默认按系统区域预选。所选语言写入 `HKCU\Software\DeskBox\InstallLanguage`，DeskBox 首次启动会默认使用该语言（手动在应用内切换仍优先）。
+- **安装器语言选择**：安装器现在提供语言选择对话框（中文、英文、日语、德语、巴西葡萄牙语），默认按系统区域预选。所选语言写入 `HKCU\Software\BentoDesk\InstallLanguage`，BentoDesk 首次启动会默认使用该语言（手动在应用内切换仍优先）。
 - **搜索弹窗打磨**：结果列表表头与数据行现已左对齐；排序表头增加半透明底，并与上方菜单栏左右对齐。
 - **天气胶囊修复**：移除了重复的标题图标，胶囊模式下只显示天气 emoji。
 - **胶囊悬停遮罩**：隐藏胶囊右侧边缘的半透明悬停遮罩（交互行为不变）。
@@ -227,7 +227,7 @@
 
 #### 修复
 
-- **QuickLook 兼容性（严重）**：修复 DeskBox 可能因空连接（连接后不发送数据）导致 QuickLook 单线程命名管道服务器崩溃的严重问题（`CanPreview` 中的管道探测和 raw `CreateFile` 回退）。可用性检查现在仅使用进程枚举；管道仅在发送 Toggle 消息时才连接。
+- **QuickLook 兼容性（严重）**：修复 BentoDesk 可能因空连接（连接后不发送数据）导致 QuickLook 单线程命名管道服务器崩溃的严重问题（`CanPreview` 中的管道探测和 raw `CreateFile` 回退）。可用性检查现在仅使用进程枚举；管道仅在发送 Toggle 消息时才连接。
 - **壁纸丢失**：防止 `WidgetLayerService` 格子层级操作期间反复生成 `WorkerW` 窗口导致桌面壁纸丢失。
 - **胶囊模式默认值**：将 `AppSettings` 初始值与 `ApplyDefaultPreferences` 对齐，确保新安装和全局重置产生一致的胶囊行为。
 - **托盘菜单高度**：修复托盘右键菜单高度显示问题。
@@ -274,7 +274,7 @@
 - **Windows-style Settings redesign**: Reorganized crowded pages into focused detail pages, moved global search into the title area, improved search matching and result navigation, surfaced important choices directly on entry cards, and made per-page hierarchy and reset behavior more consistent.
 - **Backup, restore and attachment health**: Added integrity-checked ZIP export/restore, automatic and pre-restore snapshots, staged restart-safe restore, resilient JSON recovery, and attachment health scans for missing linked files, missing managed files and orphaned managed attachments.
 - **Window and animation reliability**: Refined show/hide transitions, detail-page transitions, title-bar collapse actions, hover hit regions, Z-order, multi-monitor bounds restoration, resize alignment and tray menu sizing. Rapid capsule and stack interactions now use guarded state transitions to reduce flicker and stuck intermediate states.
-- **Installer upgrades**: The installer now closes a running DeskBox process reliably before replacing application files, avoiding the intermittent Retry / Ignore / Cancel prompt during overwrite installs.
+- **Installer upgrades**: The installer now closes a running BentoDesk process reliably before replacing application files, avoiding the intermittent Retry / Ignore / Cancel prompt during overwrite installs.
 - **Maintainability and tests**: Split the largest window, widget, settings, Todo, Quick Capture, Music and Weather classes into focused modules. Expanded regression coverage across attachments, backup safety, settings migration/search, compact bounds and privacy, stacks, animation and positioning.
 
 ### 中文
@@ -284,12 +284,12 @@
 - **胶囊组合排列**：胶囊可独立摆放，也可组成能够整体移动的组合栏。组合栏支持自定义顺序、悬浮或贴边位置、自动排列方向、间距调整，并能稳定恢复原来的自由布局位置。
 - **文件自动叠放**：文件格子可按文件类型或日期自动分组，不移动真实文件。自定义格式规则支持叠放名称、优先级、实时命中预览、形成数量、内部排序，以及未匹配文件保持散开或收入“其他”。
 - **叠放交互与 QuickLook 兼容**：叠放在格子内部散开展开和收回，并支持全选内容与复制路径。若 QuickLook 已经运行，在文件上按空格即可转交预览请求，不增加设置项、启动扫描或强制依赖。
-- **待办与随记工作流**：支持一条内容关联多个文件，可选择关联原路径或复制到 DeskBox；复制文本时会按中英文格式附带附件路径。新增标签页显示配置、拖到标签页直接改变状态、待办“进行中/本周/本月”视图、列表预览行数，以及 Enter 与 Ctrl+Enter 保存行为互换。
+- **待办与随记工作流**：支持一条内容关联多个文件，可选择关联原路径或复制到 BentoDesk；复制文本时会按中英文格式附带附件路径。新增标签页显示配置、拖到标签页直接改变状态、待办“进行中/本周/本月”视图、列表预览行数，以及 Enter 与 Ctrl+Enter 保存行为互换。
 - **外观与自适应内容**：新增云母 Alt、标准亚克力、材质浓度、中性/主题色/无边框颜色，显示密度支持紧凑、标准、宽松和自定义。音乐可强制使用封面或控制布局，纯色材质固定保持完全不透明。
 - **Windows 风格设置重构**：将拥挤页面拆为聚焦的三级页面，把全局搜索移入标题栏并改进匹配与结果跳转；三级入口卡片直接提供最重要的选项，页面层级、前置控制和重置语义更加一致。
 - **备份、恢复与附件健康检查**：新增带完整性校验的 ZIP 导出/恢复、自动快照、恢复前快照、重启后安全应用恢复、JSON 损坏回退，以及缺失关联文件、缺失托管附件和孤立附件扫描。
 - **窗口与动画稳定性**：优化全局显示/隐藏、详情页进出、标题栏收起操作、悬停命中区域、窗口层级、多显示器位置恢复、调整大小参考线和托盘菜单高度。快速操作胶囊与叠放时使用受控状态切换，减少闪烁和卡在中间状态的问题。
-- **覆盖安装体验**：安装器现在会在替换应用文件前可靠关闭正在运行的 DeskBox，避免覆盖安装时偶发弹出“重试 / 忽略 / 取消”提示。
+- **覆盖安装体验**：安装器现在会在替换应用文件前可靠关闭正在运行的 BentoDesk，避免覆盖安装时偶发弹出“重试 / 忽略 / 取消”提示。
 - **可维护性与测试**：拆分体积过大的窗口、格子、设置、待办、随记、音乐和天气类，并扩展附件、备份安全、设置迁移与搜索、胶囊边界与隐私、叠放、动画和窗口定位的回归测试。
 
 ## 1.2.9 - 2026-07-13
@@ -445,14 +445,14 @@
 ### English
 
 - Fixed the in-app update installation handoff after an update has been downloaded.
-- Runs `DeskBox.Updater.exe` from a detached local update-helper directory before starting the installer, so the installer can safely overwrite the DeskBox install directory.
-- Updated installer packaging so old versions can update without the running updater locking `DeskBox.Updater.*`.
+- Runs `BentoDesk.Updater.exe` from a detached local update-helper directory before starting the installer, so the installer can safely overwrite the BentoDesk install directory.
+- Updated installer packaging so old versions can update without the running updater locking `BentoDesk.Updater.*`.
 
 ### 中文
 
-- 修复应用内更新下载完成后，点击安装、确认弹窗后 DeskBox 退出但安装器没有继续执行的问题。
-- 安装更新前会先把 `DeskBox.Updater.exe` 复制到本地更新缓存目录，再从缓存目录启动，避免更新助手锁住 DeskBox 安装目录。
-- 调整安装包规则，旧版本通过应用内更新安装新版时，不再覆盖正在运行的 `DeskBox.Updater.*` 文件。
+- 修复应用内更新下载完成后，点击安装、确认弹窗后 BentoDesk 退出但安装器没有继续执行的问题。
+- 安装更新前会先把 `BentoDesk.Updater.exe` 复制到本地更新缓存目录，再从缓存目录启动，避免更新助手锁住 BentoDesk 安装目录。
+- 调整安装包规则，旧版本通过应用内更新安装新版时，不再覆盖正在运行的 `BentoDesk.Updater.*` 文件。
 
 ## 1.2.3 - 2026-07-06
 
@@ -510,7 +510,7 @@
 
 ### English
 
-- Changed the project license from MIT to GPL-3.0-only for future source code and releases. Previously published MIT-licensed DeskBox versions remain under the MIT License.
+- Changed the project license from MIT to GPL-3.0-only for future source code and releases. Previously published MIT-licensed BentoDesk versions remain under the MIT License.
 - Completed the first large widget architecture refactor after 1.1.10: widgets now share a `WidgetShell`, content host, content factory, registry, session manager, window factory, and diagnostic path instead of keeping each widget type as a separate window implementation.
 - Introduced the feature-widget foundation used by Todo, Quick Capture, Music, and future content widgets, including content providers, persisted widget kinds, lifecycle handling, positioning, z-order/session behavior, and settings integration.
 - Added the Todo widget as a first-class desktop widget with local storage, task completion, filtering, inline editing, full-screen editing, custom due times, and coverage for store/view-model/content-adapter behavior.
@@ -524,7 +524,7 @@
 
 ### 中文
 
-- 项目授权协议从 MIT 调整为 GPL-3.0-only，适用于后续源码和版本；此前已经按 MIT 发布的 DeskBox 旧版本仍保持 MIT 授权。
+- 项目授权协议从 MIT 调整为 GPL-3.0-only，适用于后续源码和版本；此前已经按 MIT 发布的 BentoDesk 旧版本仍保持 MIT 授权。
 - 完成 1.1.10 之后第一轮大规模格子架构重构：文件格子和功能格子开始共享 `WidgetShell`、内容宿主、内容工厂、注册表、会话管理、窗口工厂和诊断路径，不再让每类格子都维护一套孤立窗口实现。
 - 建立功能格子基础设施，用于承载待办、随记、音乐以及后续内容格子：包括内容 Provider、格子类型持久化、生命周期处理、位置管理、层级/会话行为和设置页集成。
 - 新增待办格子作为一等桌面格子：支持本地存储、完成状态、筛选、行内编辑、全屏编辑、自定义结束时间，并补充存储、ViewModel 和内容适配层测试。
@@ -684,33 +684,33 @@
 
 ### English
 
-- Fixed internal dragging for shortcut files (`.lnk`) in managed widgets. DeskBox now keeps its own path-based drag metadata even when Windows cannot convert a shortcut into a `StorageItem`.
+- Fixed internal dragging for shortcut files (`.lnk`) in managed widgets. BentoDesk now keeps its own path-based drag metadata even when Windows cannot convert a shortcut into a `StorageItem`.
 
 ### 中文
 
-- 修复收纳格子内快捷方式（`.lnk`）无法长按拖动的问题。即使 Windows 无法把快捷方式转换为 `StorageItem`，DeskBox 也会使用自身的路径数据继续完成格子内拖拽。
+- 修复收纳格子内快捷方式（`.lnk`）无法长按拖动的问题。即使 Windows 无法把快捷方式转换为 `StorageItem`，BentoDesk 也会使用自身的路径数据继续完成格子内拖拽。
 
 ## 1.1.0 - 2026-06-26
 
 ### English
 
-- Added drag-and-drop diagnostics in Settings with one-click repair for DeskBox compatibility flags, startup entries, and shortcuts. If Windows 10/11 cannot drag files into widgets, run this repair first.
+- Added drag-and-drop diagnostics in Settings with one-click repair for BentoDesk compatibility flags, startup entries, and shortcuts. If Windows 10/11 cannot drag files into widgets, run this repair first.
 - Improved Explorer drag/drop compatibility for managed and mapped widgets, including native shell message allowance, legacy shell format fallback, and more useful drop diagnostics.
 - Fixed widget sorting stability with natural name ordering, deterministic tie-breakers, and correct insertion when new files are added while a sort mode is active.
 - Improved Quick Capture text editing: saved text now opens the inline editor on double-click, while the context menu can edit text in Notepad and sync changes back.
 - Changed the default tray icon style to colorful for new installs and restored defaults.
 - Improved first-run onboarding so it is marked complete after the first install launch and no longer reappears just because widgets are empty.
-- Improved installer and uninstall behavior: current-user install remains the default, the install folder can be changed, startup can be selected during setup, and uninstall can optionally keep or remove local DeskBox app data.
+- Improved installer and uninstall behavior: current-user install remains the default, the install folder can be changed, startup can be selected during setup, and uninstall can optionally keep or remove local BentoDesk app data.
 
 ### 中文
 
-- 新增设置内的拖拽异常诊断和一键修复，可清理 DeskBox 的兼容性标记、启动项和快捷方式。如果 Win10/Win11 遇到文件拖不进格子的问题，请先运行此修复。
+- 新增设置内的拖拽异常诊断和一键修复，可清理 BentoDesk 的兼容性标记、启动项和快捷方式。如果 Win10/Win11 遇到文件拖不进格子的问题，请先运行此修复。
 - 优化资源管理器拖拽兼容，收纳格子和映射格子支持更多原生 shell 拖拽消息和旧格式兜底，并输出更完整的拖拽诊断日志。
 - 修复格子内排序稳定性，使用更接近 Windows 的自然名称排序，补充稳定兜底，并确保新加入文件按当前排序方式插入。
 - 优化随记文本编辑：已保存文本双击进入随记内编辑；右键可选择“在记事本中编辑”，保存关闭后会同步回随记。
 - 新安装和恢复默认设置时，托盘图标默认改为彩色。
 - 优化新用户引导，首次安装启动后即标记为已完成，不会因为格子为空而每次启动重复弹出；仍可在设置中手动打开。
-- 优化安装和卸载体验：继续默认按当前用户安装，支持选择安装目录，安装时可选择开机自启，卸载时可选择保留或删除本地 DeskBox 应用数据。
+- 优化安装和卸载体验：继续默认按当前用户安装，支持选择安装目录，安装时可选择开机自启，卸载时可选择保留或删除本地 BentoDesk 应用数据。
 
 ## 1.0.9 - 2026-06-25
 
@@ -722,7 +722,7 @@
 - Improved Quick Capture tabs, title buttons, hover actions, copy feedback, and shared show/restore behavior with regular widgets.
 - Improved drag/drop compatibility, empty-widget drop handling, managed-vs-mapped drag captions, z-order restoration, icon hydration retries, and Chinese IME support during file/folder rename.
 - Changed the installer to current-user installation by default and added automatic migration from older Program Files administrator installs to reduce Explorer drag/drop permission conflicts.
-- Added clearer guidance for Explorer drag/drop failures: DeskBox should not be run as administrator, because Windows can block file drops from non-elevated Explorer windows into elevated DeskBox windows.
+- Added clearer guidance for Explorer drag/drop failures: BentoDesk should not be run as administrator, because Windows can block file drops from non-elevated Explorer windows into elevated BentoDesk windows.
 - Refined first-run onboarding with shorter Windows-style copy and simpler setup choices.
 
 ### 中文
@@ -732,14 +732,14 @@
 - 优化格子菜单，将标题栏的格子管理操作和内容区的文件操作拆分得更清晰，包括视图切换、排序、粘贴、刷新和映射文件夹操作。
 - 优化随记 Tab、标题栏按钮、悬浮按钮、复制反馈，以及与普通格子一致的显示 / 恢复层级行为。
 - 增强拖拽兼容、空格子拖放、收纳 / 映射拖拽提示、层级恢复、图标加载重试和文件 / 文件夹重命名时的中文输入法支持。
-- 补充拖拽异常排查说明：DeskBox 日常使用不应以管理员权限运行，否则 Windows 可能会阻止普通权限资源管理器向 DeskBox 拖入文件。
+- 补充拖拽异常排查说明：BentoDesk 日常使用不应以管理员权限运行，否则 Windows 可能会阻止普通权限资源管理器向 BentoDesk 拖入文件。
 - 精简新用户引导文案和设置选项，更贴近 Windows 风格。
 
 ## 1.0.8 - 2026-06-24
 
 ### English
 
-- Improved Windows 11 23H2 drag/drop compatibility by launching DeskBox after install as the original user instead of inheriting the installer elevation level.
+- Improved Windows 11 23H2 drag/drop compatibility by launching BentoDesk after install as the original user instead of inheriting the installer elevation level.
 - Improved Explorer drag/drop handling for file widgets by accepting link-style requested operations when the widget can safely resolve them into the configured managed action.
 - Improved drag hover captions so managed storage widgets show "managed widget" and mapped-folder widgets show "mapped folder" as distinct targets.
 - Improved Quick Capture copy feedback by replacing per-row copy bubbles with a stable bottom-centered toast.
@@ -749,7 +749,7 @@
 
 ### 中文
 
-- 优化 Windows 11 23H2 拖拽兼容性，安装完成后启动 DeskBox 时不再继承安装器管理员层级，而是回到原始用户权限。
+- 优化 Windows 11 23H2 拖拽兼容性，安装完成后启动 BentoDesk 时不再继承安装器管理员层级，而是回到原始用户权限。
 - 优化资源管理器拖拽处理，文件格子可兼容部分 link-style 拖拽操作，并按设置中的收纳动作安全处理。
 - 优化拖拽悬浮提示，收纳格子显示“收纳组件”，映射文件夹显示“映射文件夹”，目标更清楚。
 - 优化随记复制反馈，移除每行内部气泡，统一改为底部居中的稳定 toast。
@@ -762,7 +762,7 @@
 ### English
 
 - Improved tray and global-hotkey behavior so file widgets and Quick Capture are raised, hidden, and restored as one group.
-- Added a light WidgetManager restore path that keeps DeskBox widgets together after menu interactions and restores the group only after the user moves back to another app.
+- Added a light WidgetManager restore path that keeps BentoDesk widgets together after menu interactions and restores the group only after the user moves back to another app.
 - Improved full-screen app behavior: F7 can raise widgets again when they are visible but covered, and a keyboard-hook fallback prevents apps such as Axure from consuming the configured hotkey first.
 - Improved widget show/hide animation with linear timing, shorter default duration, and group-aware off-screen slide distances so adjacent widgets move out consistently.
 - Improved Quick Capture layout, hover actions, tab switching, copy/open behavior, image previews, and inline editing for long text.
@@ -790,7 +790,7 @@
 - Added Quick Capture as an optional feature widget for local text, link, screenshot, and recent clipboard capture workflows.
 - Added Quick Capture Records, Pinned, and Recent views with hover actions, compact search, drag-out support, image thumbnails, and save-to-file-widget actions.
 - Added upload-friendly storage access: managed storage can be pinned to Quick Access, opened from the tray, and mirrored with folder shortcuts for file pickers.
-- Improved drag/drop and clipboard behavior so file drags stay file-first, path copying is explicit, and DeskBox's own clipboard writes are ignored by Recent capture.
+- Improved drag/drop and clipboard behavior so file drags stay file-first, path copying is explicit, and BentoDesk's own clipboard writes are ignored by Recent capture.
 - Improved file widgets with custom Explorer icon refresh, filename extension display controls, shortcut-arrow settings placement, and clearer migration progress/result feedback.
 - Improved tray/global-hotkey layering so widgets stay temporarily raised until the user clicks another app, and Settings can join the temporary topmost layer when opened during that state.
 - Improved Quick Capture polish with scoped-search messaging, target-widget refresh/highlight after saving, compact edit dialogs, tighter tab/action layout, and theme-aligned styling.
@@ -801,17 +801,17 @@
 - 新增随记功能格子，用于本地保存文本、链接、截图和最近复制内容，功能可在设置中关闭。
 - 随记支持记录、固定、最近三个视图，并加入悬停操作、紧凑搜索、拖出内容、图片缩略图和保存到文件格子。
 - 增强上传友好入口：收纳路径可固定到快速访问，可从托盘打开，并为文件选择器保留格子文件夹快捷方式。
-- 优化拖拽和剪贴板行为：文件拖拽优先保持文件格式，复制路径改为显式操作，并忽略 DeskBox 自己写入剪贴板造成的最近记录污染。
+- 优化拖拽和剪贴板行为：文件拖拽优先保持文件格式，复制路径改为显式操作，并忽略 BentoDesk 自己写入剪贴板造成的最近记录污染。
 - 优化文件格子：支持资源管理器自定义图标刷新、文件后缀显示控制、快捷方式箭头设置归位，并补充迁移进度和结果反馈。
 - 优化托盘和全局快捷键层级：格子临时置顶后，只有点击其他应用才恢复；此状态下打开设置页也会临时置顶。
-- 优化随记细节：增加当前视图搜索提示，保存到文件格子后刷新并高亮目标文件，编辑弹窗适配小窗口，tab 和操作按钮布局更紧凑，并跟随 DeskBox 主题色。
+- 优化随记细节：增加当前视图搜索提示，保存到文件格子后刷新并高亮目标文件，编辑弹窗适配小窗口，tab 和操作按钮布局更紧凑，并跟随 BentoDesk 主题色。
 - 优化新手引导在高 DPI 缩放下的布局，并修复若干毛玻璃、刷新和界面边界问题。
 
 ## 1.0.5 - 2026-06-18
 
 ### English
 
-- Rebuilt first-run onboarding with a DeskBox logo intro, a five-step guide, looping right-side feature scenes, and Chinese, English, light-mode, and dark-mode support.
+- Rebuilt first-run onboarding with a BentoDesk logo intro, a five-step guide, looping right-side feature scenes, and Chinese, English, light-mode, and dark-mode support.
 - Added an optional global hotkey that triggers the same show, hide, and temporary-raise flow as the tray left-click action.
 - Improved Settings and tray access with managed-storage opening, Quick Access pinning, download-link actions, and maintenance controls.
 - Improved storage and mapping workflows, including default storage migration, mapped shortcut sync, orphan managed-folder cleanup, and steadier drag/drop behavior.
@@ -819,7 +819,7 @@
 
 ### 中文
 
-- 重构新用户引导：加入前置 DeskBox logo 动效、五步引导、右侧循环演示场景，并适配中文、英文、浅色和深色模式。
+- 重构新用户引导：加入前置 BentoDesk logo 动效、五步引导、右侧循环演示场景，并适配中文、英文、浅色和深色模式。
 - 新增全局快捷键，可在设置中启用，用键盘触发与托盘左键一致的显示、隐藏和临时置顶流程。
 - 优化设置和托盘入口，补充打开默认收纳目录、固定到快速访问、下载链接和维护操作。
 - 优化文件收纳与映射流程，包括默认收纳路径迁移、映射快捷方式同步、孤立收纳目录清理和拖拽稳定性。
@@ -829,7 +829,7 @@
 
 ### English
 
-- Improved tray left-click behavior so raised widgets stay on top while the pointer moves, then return to desktop level only after the user clicks another non-DeskBox window.
+- Improved tray left-click behavior so raised widgets stay on top while the pointer moves, then return to desktop level only after the user clicks another non-BentoDesk window.
 - Added follow-up topmost confirmation when raising multiple widgets from the tray so every visible widget is brought forward consistently.
 - Improved tray right-click menu positioning by anchoring the WinUI menu from the actual tray icon rectangle and keeping it out of the tray icon hit area.
 - Added automatic backdrop refresh retries after widget show, tray reveal, theme, and appearance changes to recover acrylic surfaces that occasionally render as flat gray.
@@ -837,7 +837,7 @@
 
 ### 中文
 
-- 优化托盘左键逻辑：格子临时置顶后，移动鼠标不会触发层级恢复，只有点击其他非 DeskBox 窗口才会回到桌面层级。
+- 优化托盘左键逻辑：格子临时置顶后，移动鼠标不会触发层级恢复，只有点击其他非 BentoDesk 窗口才会回到桌面层级。
 - 增加多格子托盘置顶后的二次确认，确保可见格子能更稳定地被一起唤起。
 - 优化托盘右键菜单定位，菜单会基于真实托盘图标位置弹出，并避开托盘图标点击区域。
 - 增加毛玻璃背景自动刷新重试，在显示格子、托盘唤起、主题和外观变化后恢复偶发的灰底问题。
@@ -873,7 +873,7 @@
 - Added a language selector in Settings and refreshed localized text dynamically when the user changes languages.
 - Reworked onboarding to expose important setup choices directly in the flow, including managed-drop behavior, the default storage path, folder mapping, and startup launch.
 - Improved onboarding visuals, right-side step animations, and repeated scene playback so each step better matches the feature being introduced.
-- Fixed startup-launch behavior so DeskBox starts silently to the tray after reboot instead of opening Settings.
+- Fixed startup-launch behavior so BentoDesk starts silently to the tray after reboot instead of opening Settings.
 - Improved tray behavior so right-click "Show all widgets" temporarily raises widgets just like left-clicking the tray icon.
 - Improved widget show/hide animation with a unified right-to-left motion, removed per-widget cascade timing, and reduced mapped-widget flicker.
 - Improved mapped-folder reveal behavior by suppressing duplicate item transitions during window animation.
@@ -890,7 +890,7 @@
 - 在设置中增加语言选择器，切换语言后动态刷新本地化文本。
 - 重构新用户引导，在流程中直接暴露拖入处理方式、默认收纳路径、文件夹映射和开机自启等关键设置。
 - 优化新用户引导视觉、右侧步骤动效和重复播放，让每一步更贴合对应功能。
-- 修复开机自启行为，重启后 DeskBox 会静默启动到托盘，而不是打开设置窗口。
+- 修复开机自启行为，重启后 BentoDesk 会静默启动到托盘，而不是打开设置窗口。
 - 优化托盘行为，右键“显示全部格子”会像左键点击托盘图标一样临时置顶格子。
 - 优化格子显示、隐藏动画，统一为从右向左的动作，移除每个格子的级联延迟，并减少映射格子闪烁。
 - 优化映射文件夹唤起行为，在窗口动画期间抑制重复的项目过渡。

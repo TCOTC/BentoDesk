@@ -26,8 +26,8 @@ function New-RoundedPath {
     return $path
 }
 
-$outputPath = Join-Path $Root 'DeskBox-sspai-cover-1600x1200.png'
-$screenshotPath = Join-Path $Root 'assets\deskbox-desktop-dark.png'
+$outputPath = Join-Path $Root 'BentoDesk-sspai-cover-1600x1200.png'
+$screenshotPath = Join-Path $Root 'assets\bentodesk-desktop-dark.png'
 $logoPath = Join-Path $Root '..\images\brand\logo-200.png'
 
 $bitmap = [System.Drawing.Bitmap]::new(1600, 1200, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
@@ -78,7 +78,7 @@ try {
         $logo.Dispose()
     }
 
-    $graphics.DrawString('DeskBox', $brandFont, $ink, [System.Drawing.PointF]::new(170, 125))
+    $graphics.DrawString('BentoDesk', $brandFont, $ink, [System.Drawing.PointF]::new(170, 125))
     $graphics.DrawString('NATIVE DESKTOP ORGANIZER', $eyebrowFont, $blue, [System.Drawing.PointF]::new(84, 266))
 
     $titleLine = Get-Utf8Text '57uZIFdpbmRvd3Mg5qGM6Z2i'
@@ -118,10 +118,10 @@ try {
     $labelPath = New-RoundedPath -Rectangle $labelRectangle -Radius 7
     $graphics.FillPath($labelFill, $labelPath)
     $graphics.DrawPath($labelBorder, $labelPath)
-    $graphics.DrawString('DESKBOX / WINUI 3', $labelFont, $white, [System.Drawing.PointF]::new(753, 1004))
+    $graphics.DrawString('BENTODESK / WINUI 3', $labelFont, $white, [System.Drawing.PointF]::new(753, 1004))
 
     $graphics.FillRectangle($blue, 84, 1110, 12, 12)
-    $graphics.DrawString('DESKBOX / WINUI 3', $smallFont, $ink, [System.Drawing.PointF]::new(108, 1105))
+    $graphics.DrawString('BENTODESK / WINUI 3', $smallFont, $ink, [System.Drawing.PointF]::new(108, 1105))
 
     $bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Png)
 }

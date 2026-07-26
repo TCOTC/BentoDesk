@@ -2,13 +2,13 @@
 
 Last updated: 2026-07-02
 
-This document is the long-running checklist for moving DeskBox widget UI toward a more native and maintainable Fluent experience.
+This document is the long-running checklist for moving BentoDesk widget UI toward a more native and maintainable Fluent experience.
 
 The product rule is:
 
 1. Prefer Windows Community Toolkit controls when they provide a better standard Fluent control.
 2. Use WinUI native controls when Toolkit does not add meaningful value.
-3. Keep custom drawing and custom templates only when DeskBox-specific desktop widget behavior requires them.
+3. Keep custom drawing and custom templates only when BentoDesk-specific desktop widget behavior requires them.
 
 This plan is intentionally conservative. Widgets contain drag/drop, window dragging, resize handles, tray animation, inline rename, hover actions, compact confirmations, clipboard capture, media sessions, and file-system behavior. These areas should be migrated one control family at a time, with visual checks after every step.
 
@@ -41,15 +41,15 @@ Package policy:
 
 | Surface | Main files | Role |
 | --- | --- | --- |
-| Shared widget shell | `src/DeskBox/Controls/WidgetShell.xaml`, `WidgetShell.xaml.cs` | Title/chrome modes, title actions, overlay name, overlay drag handle, content presenter. |
-| File widget | `src/DeskBox/Views/WidgetWindow.xaml`, `WidgetWindow.xaml.cs` | File/folder storage, mapped folders, icon/list view, drag/drop, selection, context menus, rename, resize. |
-| Quick Capture widget | `src/DeskBox/Views/QuickCaptureWidgetWindow.xaml`, `QuickCaptureWidgetWindow.xaml.cs` | Clipboard records, pinned/recent tabs, search, edit overlay, delete confirmations, save to file widget. |
-| Content widget host | `src/DeskBox/Views/ContentWidgetWindow.xaml`, `ContentWidgetWindow.xaml.cs` | Shared window host for Todo, Music, and future content widgets. |
-| Todo content | `src/DeskBox/Controls/WidgetContents/TodoWidgetContent.xaml`, `.xaml.cs` | Task input, filters, color markers, due dates, sorting, edit overlay, undo. |
-| Music content | `src/DeskBox/Controls/WidgetContents/MusicWidgetContent.xaml`, `.xaml.cs` | Windows media session display/control, artwork, progress, rhythm visuals, backdrop. |
-| Placeholder content | `src/DeskBox/Controls/WidgetContents/PlaceholderWidgetContent.cs` | Future widget placeholder content. |
-| Shared menus | `src/DeskBox/Services/WidgetChromeMenuBuilder.cs`, menu builders in widget windows | Title style menu, per-widget more menus, item context menus, confirmation flyouts. |
-| Shared animation | `src/DeskBox/Services/WidgetTrayAnimationController.cs` | Tray show/hide animation for widget windows. |
+| Shared widget shell | `src/BentoDesk/Controls/WidgetShell.xaml`, `WidgetShell.xaml.cs` | Title/chrome modes, title actions, overlay name, overlay drag handle, content presenter. |
+| File widget | `src/BentoDesk/Views/WidgetWindow.xaml`, `WidgetWindow.xaml.cs` | File/folder storage, mapped folders, icon/list view, drag/drop, selection, context menus, rename, resize. |
+| Quick Capture widget | `src/BentoDesk/Views/QuickCaptureWidgetWindow.xaml`, `QuickCaptureWidgetWindow.xaml.cs` | Clipboard records, pinned/recent tabs, search, edit overlay, delete confirmations, save to file widget. |
+| Content widget host | `src/BentoDesk/Views/ContentWidgetWindow.xaml`, `ContentWidgetWindow.xaml.cs` | Shared window host for Todo, Music, and future content widgets. |
+| Todo content | `src/BentoDesk/Controls/WidgetContents/TodoWidgetContent.xaml`, `.xaml.cs` | Task input, filters, color markers, due dates, sorting, edit overlay, undo. |
+| Music content | `src/BentoDesk/Controls/WidgetContents/MusicWidgetContent.xaml`, `.xaml.cs` | Windows media session display/control, artwork, progress, rhythm visuals, backdrop. |
+| Placeholder content | `src/BentoDesk/Controls/WidgetContents/PlaceholderWidgetContent.cs` | Future widget placeholder content. |
+| Shared menus | `src/BentoDesk/Services/WidgetChromeMenuBuilder.cs`, menu builders in widget windows | Title style menu, per-widget more menus, item context menus, confirmation flyouts. |
+| Shared animation | `src/BentoDesk/Services/WidgetTrayAnimationController.cs` | Tray show/hide animation for widget windows. |
 
 ## Audit Matrix
 
@@ -193,7 +193,7 @@ Keep WinUI native:
 Must remain custom:
 
 - Task row layout because it combines completion state, marker color, multiline text, due text, hover actions, and drag reorder.
-- Completion button visual if the default checkbox does not match DeskBox compact style.
+- Completion button visual if the default checkbox does not match BentoDesk compact style.
 - Undo toast and compact delete confirmations, unless extracted to shared widgets.
 
 Recommended migration:
@@ -226,7 +226,7 @@ Keep WinUI native:
 
 - `Button` for previous/play/next.
 - `Image` for artwork.
-- `Slider` should be evaluated for progress seeking only if it can meet DeskBox visual needs.
+- `Slider` should be evaluated for progress seeking only if it can meet BentoDesk visual needs.
 - `ItemsControl` for lightweight visualizer bars.
 
 Must remain custom:
@@ -334,7 +334,7 @@ Acceptance:
 
 - No code migration yet.
 - Baseline screenshots and behavior notes exist.
-- `dotnet build src\DeskBox\DeskBox.csproj -c Debug -p:UseAppHost=false -p:OutDir=D:\project\wingezi\artifacts\build-check-out\` passes.
+- `dotnet build src\BentoDesk\BentoDesk.csproj -c Debug -p:UseAppHost=false -p:OutDir=D:\project\wingezi\artifacts\build-check-out\` passes.
 
 ### Phase 1: Shared Widget Visual Tokens
 
@@ -613,13 +613,13 @@ Risk:
 Build without touching a running Debug exe:
 
 ```powershell
-dotnet build src\DeskBox\DeskBox.csproj -c Debug -p:UseAppHost=false -p:OutDir=D:\project\wingezi\artifacts\build-check-out\
+dotnet build src\BentoDesk\BentoDesk.csproj -c Debug -p:UseAppHost=false -p:OutDir=D:\project\wingezi\artifacts\build-check-out\
 ```
 
-Run normal Debug build only when DeskBox is closed:
+Run normal Debug build only when BentoDesk is closed:
 
 ```powershell
-dotnet build src\DeskBox\DeskBox.csproj -c Debug
+dotnet build src\BentoDesk\BentoDesk.csproj -c Debug
 ```
 
 Check Git cleanliness:

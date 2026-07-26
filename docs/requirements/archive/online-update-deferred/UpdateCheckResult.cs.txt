@@ -1,4 +1,4 @@
-namespace DeskBox.Models;
+namespace BentoDesk.Models;
 
 public sealed record UpdateCheckResult(
     UpdateCheckStatus Status,

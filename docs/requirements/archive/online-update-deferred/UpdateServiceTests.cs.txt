@@ -1,6 +1,6 @@
-using DeskBox.Services;
+using BentoDesk.Services;
 
-namespace DeskBox.Tests;
+namespace BentoDesk.Tests;
 
 public sealed class UpdateServiceTests
 {

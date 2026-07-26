@@ -1,4 +1,4 @@
-# DeskBox 性能优化 - 快速开始指南
+# BentoDesk 性能优化 - 快速开始指南
 
 **状态：** ✅ 方案 A 已完成  
 **更新日期：** 2024-01-xx  
@@ -18,7 +18,7 @@
 
 ### 代码修改
 
-**文件：** `src/DeskBox/Services/WidgetTrayAnimationController.cs`
+**文件：** `src/BentoDesk/Services/WidgetTrayAnimationController.cs`
 
 **主要变更：**
 ```csharp
@@ -47,7 +47,7 @@ private const double HighPriorityDurationMs = 100.0;
 ```powershell
 # PowerShell
 cd d:\project\wingezi
-dotnet build src/DeskBox/DeskBox.csproj -c Release
+dotnet build src/BentoDesk/BentoDesk.csproj -c Release
 ```
 
 ### 步骤 2: 运行并观察
@@ -56,7 +56,7 @@ dotnet build src/DeskBox/DeskBox.csproj -c Release
 
 #### 方式 A：简单测试（推荐）
 
-1. 直接运行 DeskBox
+1. 直接运行 BentoDesk
 2. 点击托盘图标展开任意格子
 3. **感受动画流畅度** - 应该和之前一样甚至更流畅
 4. 连续操作几次，观察是否有改善
@@ -65,13 +65,13 @@ dotnet build src/DeskBox/DeskBox.csproj -c Release
 
 ```powershell
 # 方法 1: 设置环境变量
-$env:DESKBOX_PERF_LOG="1"
-.\DeskBox.exe
+$env:BENTODESK_PERF_LOG="1"
+.\BentoDesk.exe
 
 # 方法 2: 使用启动脚本
 # 可以在 scripts 目录下创建 run-with-perf.ps1
-$env:DESKBOX_PERF_LOG="1"
-& "$env:LOCALAPPDATA\Microsoft\WindowsApps\wingezi.deskbox.exe"
+$env:BENTODESK_PERF_LOG="1"
+& "$env:LOCALAPPDATA\Microsoft\WindowsApps\wingezi.bentodesk.exe"
 ```
 
 **输出示例：**
@@ -86,7 +86,7 @@ $env:DESKBOX_PERF_LOG="1"
 
 1. **备份当前版本**
    ```powershell
-   Copy-Item -Recurse src/DeskBox obj-backup
+   Copy-Item -Recurse src/BentoDesk obj-backup
    ```
 
 2. **临时回退到原始版本**（注释掉节流代码）
@@ -151,13 +151,13 @@ $env:DESKBOX_PERF_LOG="1"
 **解决方案：**
 ```csharp
 // 确保正确设置了环境变量
-Environment.GetEnvironmentVariable("DESKBOX_PERF_LOG")
+Environment.GetEnvironmentVariable("BENTODESK_PERF_LOG")
 // 应该返回 "1"
 ```
 
 或者在 App.xaml.cs 中添加：
 ```csharp
-Environment.SetEnvironmentVariable("DESKBOX_PERF_LOG", "1");
+Environment.SetEnvironmentVariable("BENTODESK_PERF_LOG", "1");
 ```
 
 ---

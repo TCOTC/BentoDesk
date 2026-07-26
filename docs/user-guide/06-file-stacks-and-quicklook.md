@@ -1,11 +1,11 @@
 ---
-title: "DeskBox 文件自动叠放与 QuickLook 指南"
+title: "BentoDesk 文件自动叠放与 QuickLook 指南"
 description: "介绍文件格子按类型、修改时间和自定义扩展名自动叠放，规则优先级、实时预览、形成数量、未匹配策略、叠放交互和 QuickLook 空格预览。"
 version: "1.3.0"
 updated: "2026-07-19"
 ---
 
-# DeskBox 文件自动叠放与 QuickLook 指南
+# BentoDesk 文件自动叠放与 QuickLook 指南
 
 自动叠放用于整理文件格子中的视觉结构。它不会移动、重命名或新建真实文件，只把相关项目在界面中收成一组。
 
@@ -23,7 +23,7 @@ updated: "2026-07-19"
 
 ### 按文件类型
 
-DeskBox 根据文件类别建立图片、视频、音频、文档、压缩包、快捷方式等叠放。适合普通下载和素材格子。
+BentoDesk 根据文件类别建立图片、视频、音频、文档、压缩包、快捷方式等叠放。适合普通下载和素材格子。
 
 ### 按修改时间
 
@@ -98,7 +98,7 @@ DeskBox 根据文件类别建立图片、视频、音频、文档、压缩包、
 
 点击叠放后，文件在当前格子内部散开展开。原位置保留明确的收回入口，避免展开和收回使用完全相同的视觉导致误解。
 
-快速点击、在多个叠放之间切换或在动画过程中再次操作时，DeskBox 会终止旧状态并进入新的目标状态。不要在文件仍处于拖动或编辑时强制重新分组。
+快速点击、在多个叠放之间切换或在动画过程中再次操作时，BentoDesk 会终止旧状态并进入新的目标状态。不要在文件仍处于拖动或编辑时强制重新分组。
 
 展开期间，文件仍然属于原格子。叠放不是新文件夹，也不是弹出的独立面板。
 
@@ -115,29 +115,29 @@ DeskBox 根据文件类别建立图片、视频、音频、文档、压缩包、
 
 ## QuickLook 空格预览
 
-DeskBox 对 QuickLook 使用被动兼容方式。
+BentoDesk 对 QuickLook 使用被动兼容方式。
 
 生效条件
 
 1. Windows 已安装 QuickLook。
 2. QuickLook 进程已经运行。
-3. 在 DeskBox 文件格子中选中了真实存在的文件或目录。
+3. 在 BentoDesk 文件格子中选中了真实存在的文件或目录。
 4. 按下 Space。
 
-DeskBox 会把预览请求发送给 QuickLook，再按 Space 可以切换关闭。它不会
+BentoDesk 会把预览请求发送给 QuickLook，再按 Space 可以切换关闭。它不会
 
 - 自动查找安装目录。
 - 自动启动 QuickLook。
 - 在设置里增加集成开关。
-- 把 QuickLook 变成 DeskBox 的必需依赖。
+- 把 QuickLook 变成 BentoDesk 的必需依赖。
 
-没有安装或没有运行 QuickLook 时，Space 不应触发 DeskBox 错误。
+没有安装或没有运行 QuickLook 时，Space 不应触发 BentoDesk 错误。
 
 QuickLook 项目地址
 
 <https://github.com/QL-Win/QuickLook>
 
-> [图片占位：选中文件后按 Space，右侧出现 QuickLook 预览窗口。画面同时保留 DeskBox 文件格子]
+> [图片占位：选中文件后按 Space，右侧出现 QuickLook 预览窗口。画面同时保留 BentoDesk 文件格子]
 
 ## 推荐规则模板
 

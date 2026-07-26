@@ -1,32 +1,28 @@
-# DeskBox License Change
+# License Notes
 
-DeskBox changed its project license from the MIT License to the GNU General
-Public License version 3 only (`GPL-3.0-only`).
+BentoDesk is a fork of [DeskBox](https://github.com/Tianyu199509/DeskBox) by Tianyu Zhu.
 
-## Effective Scope
+## Current License
 
-- DeskBox versions and source revisions that were already published under the
-  MIT License remain available under the MIT License.
-- Source code and releases published after this license change are licensed
-  under `GPL-3.0-only`, unless a file or third-party dependency states a
-  different license.
-- The license change is not retroactive. It does not revoke rights that users
-  already received under the MIT License for earlier DeskBox versions.
+This repository is licensed under the GNU General Public License version 3 only
+(`GPL-3.0-only`), matching the current DeskBox upstream license.
+
+## Upstream History
+
+DeskBox previously published some versions under the MIT License, then changed
+to `GPL-3.0-only`. That upstream change is not retroactive for already-published
+MIT DeskBox versions. Details remain in the upstream project documentation.
 
 ## What This Means
 
-You may use, study, modify, and redistribute GPL-licensed DeskBox versions under
-the terms of GPLv3.
+You may use, study, modify, and redistribute BentoDesk under the terms of GPLv3.
 
-If you distribute a modified GPL-licensed DeskBox version, you must also provide
+If you distribute a modified GPL-licensed BentoDesk version, you must also provide
 the corresponding source code under GPLv3.
 
 ## Branding
 
-The DeskBox name, logo, icons, release packaging, website copy, and other
-branding assets are not automatically granted for use in unofficial commercial
-or misleading distributions. Please do not present modified builds as official
-DeskBox releases.
-
-For questions about commercial cooperation, redistribution, or branding usage,
-please contact the project author first.
+The BentoDesk name used in this fork, and the original DeskBox name/logo/branding,
+are not automatically granted for misleading redistribution. Please do not present
+modified builds as official DeskBox or official BentoDesk releases without clear
+attribution.

@@ -1,10 +1,10 @@
-# DeskBox 发版提交范围对照清单
+# BentoDesk 发版提交范围对照清单
 
 日期：2026-07-06
 
 本文档用于每次发版前整理 Git 提交范围，避免把本地构建产物、测试包、公众号草稿、网站临时改动或 Store 本地签名文件混进应用发布提交。
 
-如果后续 DeskBox 的发布通道、打包脚本、网站发布策略、文档目录或自动更新流程发生调整，必须及时更新本文档。不要只改代码不改这份清单，否则后面发版很容易再次混入不该提交的文件。
+如果后续 BentoDesk 的发布通道、打包脚本、网站发布策略、文档目录或自动更新流程发生调整，必须及时更新本文档。不要只改代码不改这份清单，否则后面发版很容易再次混入不该提交的文件。
 
 ## 一、基本原则
 
@@ -21,9 +21,9 @@
 
 | 范围 | 是否提交 | 说明 |
 | --- | --- | --- |
-| `src/DeskBox/` | 提交 | 主程序、Store/Direct 通道、更新服务、设置页、定位服务等应用代码 |
-| `src/DeskBox.Updater/` | 提交 | Direct 官网版应用内更新器 |
-| `tests/DeskBox.Tests/` | 提交 | 与本次改动相关的单元测试 |
+| `src/BentoDesk/` | 提交 | 主程序、Store/Direct 通道、更新服务、设置页、定位服务等应用代码 |
+| `src/BentoDesk.Updater/` | 提交 | Direct 官网版应用内更新器 |
+| `tests/BentoDesk.Tests/` | 提交 | 与本次改动相关的单元测试 |
 | `installer/` | 提交 | Direct 官网版 Inno 安装器、运行时依赖检测 |
 | `scripts/` | 提交 | Store MSIX 构建脚本等发版脚本 |
 | `docs/architecture/` | 提交 | 架构说明、升级方案、双通道操作手册、提交范围清单 |
@@ -31,7 +31,7 @@
 | `README.md` | 提交 | 英文说明同步版本、运行时、下载和功能变化 |
 | `README.zh-CN.md` | 提交 | 中文说明同步版本、运行时、下载和功能变化 |
 | `CHANGELOG.md` | 提交 | 版本更新日志 |
-| `DeskBox.sln` | 提交 | 如果新增项目或解决方案结构变化 |
+| `BentoDesk.sln` | 提交 | 如果新增项目或解决方案结构变化 |
 
 ## 三、需要单独判断的内容
 
@@ -39,7 +39,7 @@
 
 | 范围 | 默认处理 | 何时可以提交 |
 | --- | --- | --- |
-| `deskbox-site/` | 不跟应用提交混在一起 | 官网内容确实要同步发布时，单独做网站提交 |
+| `bentodesk-site/` | 不跟应用提交混在一起 | 官网内容确实要同步发布时，单独做网站提交 |
 | `docs/wechat/` | 默认不提交 | 只有明确要把某个公开素材纳入仓库时才提交 |
 | `store-assets-html/` | 默认不提交 | 仅作为本地 Microsoft Store 截图/图标 HTML 画布；导出的 PNG 可手动上传 Partner Center，但源目录不进应用提交 |
 | 宣传封面、产品长图、公众号配图 | 默认不提交 | README 或官网实际引用时才提交到合适目录 |
@@ -93,11 +93,11 @@ git status --short | Select-String -Pattern '\.codex-temp|artifacts|bin/|obj/|\.
 检查 Store 包是否误带 Direct 更新器或捐赠二维码：
 
 ```powershell
-$msix = "path\to\DeskBox_版本_x64.msix"
+$msix = "path\to\BentoDesk_版本_x64.msix"
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zip = [System.IO.Compression.ZipFile]::OpenRead($msix)
 $zip.Entries | Where-Object {
-  $_.FullName -like "*DeskBox.Updater*" -or
+  $_.FullName -like "*BentoDesk.Updater*" -or
   $_.FullName -like "*donation-*"
 } | Select-Object FullName
 $zip.Dispose()
@@ -114,22 +114,22 @@ git add .
 推荐按范围 staged：
 
 ```powershell
-git add src/DeskBox src/DeskBox.Updater tests/DeskBox.Tests installer scripts
-git add README.md README.zh-CN.md CHANGELOG.md DeskBox.sln
+git add src/BentoDesk src/BentoDesk.Updater tests/BentoDesk.Tests installer scripts
+git add README.md README.zh-CN.md CHANGELOG.md BentoDesk.sln
 git add docs/architecture docs/requirements/online-update.md
 ```
 
 如果本轮不提交官网：
 
 ```powershell
-git restore --staged deskbox-site
+git restore --staged bentodesk-site
 ```
 
 如果本轮要提交官网，建议单独提交：
 
 ```powershell
-git add deskbox-site
-git commit -m "Update DeskBox website for version x.y.z"
+git add bentodesk-site
+git commit -m "Update BentoDesk website for version x.y.z"
 ```
 
 应用代码提交建议：

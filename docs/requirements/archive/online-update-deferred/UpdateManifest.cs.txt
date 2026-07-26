@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace DeskBox.Models;
+namespace BentoDesk.Models;
 
 public sealed class UpdateManifest
 {

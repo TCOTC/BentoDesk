@@ -1,4 +1,4 @@
-# DeskBox 性能优化 - 方案 A 测试验证指南
+# BentoDesk 性能优化 - 方案 A 测试验证指南
 
 **版本:** 1.0  
 **状态:** 待测试  
@@ -37,7 +37,7 @@
 #### 测试项 A1: 单格子展开动画
 
 **步骤：**
-1. 启动 DeskBox
+1. 启动 BentoDesk
 2. 点击托盘图标展开任意一个格子
 3. 观察动画流畅度
 
@@ -80,20 +80,20 @@
 
 ```powershell
 # PowerShell
-$env:DESKBOX_PERF_LOG="1"
-.\DeskBox.exe
+$env:BENTODESK_PERF_LOG="1"
+.\BentoDesk.exe
 ```
 
 或创建快捷方式，目标添加：
 ```
-"C:\path\to\DeskBox.exe" /perflog=1
+"C:\path\to\BentoDesk.exe" /perflog=1
 ```
 
 **方法 2：代码配置**
 
 在 `App.xaml.cs` 的 `OnLaunched` 开头添加：
 ```csharp
-Environment.SetEnvironmentVariable("DESKBOX_PERF_LOG", "1");
+Environment.SetEnvironmentVariable("BENTODESK_PERF_LOG", "1");
 ```
 
 **查看日志输出：**
@@ -180,7 +180,7 @@ Environment.SetEnvironmentVariable("DESKBOX_PERF_LOG", "1");
 **场景：** 持续 2 小时以上
 
 **步骤：**
-1. 正常使用 DeskBox 2 小时
+1. 正常使用 BentoDesk 2 小时
 2. 期间频繁展开/收起格子
 3. 观察性能变化
 
@@ -369,7 +369,7 @@ UI 线程延迟 | 8ms | 5ms | 降低 38%
 
 **技术支持：** 项目 Issue Tracker  
 **紧急问题：** 直接联系开发团队  
-**性能报告：** 发送至 performance@deskbox.dev（虚构）
+**性能报告：** 发送至 performance@bentodesk.dev（虚构）
 
 ---
 

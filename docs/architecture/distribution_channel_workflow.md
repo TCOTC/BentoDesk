@@ -1,8 +1,8 @@
-# DeskBox 双通道开发与打包操作手册
+# BentoDesk 双通道开发与打包操作手册
 
 日期：2026-07-06
 
-本文档用于后续开发、调试和发布 DeskBox 时区分两个发布通道：
+本文档用于后续开发、调试和发布 BentoDesk 时区分两个发布通道：
 
 - 官网/GitHub 版，也称 Direct 版。
 - Microsoft Store 版，也称 Store 版。
@@ -13,12 +13,12 @@
 
 | 项目 | Direct 官网版 | Microsoft Store 版 |
 | --- | --- | --- |
-| 默认构建通道 | 是 | 否，需要显式传入 `DeskBoxDistribution=Store` |
+| 默认构建通道 | 是 | 否，需要显式传入 `BentoDeskDistribution=Store` |
 | 安装形态 | Inno Setup 安装包 | MSIX / Partner Center |
-| 更新方式 | 应用内更新 + `DeskBox.Updater.exe` + Inno 覆盖安装 | `Windows.Services.Store.StoreContext` + Microsoft Store 更新 |
+| 更新方式 | 应用内更新 + `BentoDesk.Updater.exe` + Inno 覆盖安装 | `Windows.Services.Store.StoreContext` + Microsoft Store 更新 |
 | 开机自启 | HKCU Run 注册表 | MSIX `StartupTask` |
 | 包身份 | 无 package identity | 有 package identity |
-| 数据路径 | 当前继续使用 DeskBox 自有本地数据目录 | 首版 Store 也继续使用相同数据目录，避免用户切换通道后数据丢失 |
+| 数据路径 | 当前继续使用 BentoDesk 自有本地数据目录 | 首版 Store 也继续使用相同数据目录，避免用户切换通道后数据丢失 |
 | 关于页渠道文案 | `官网版` | `Microsoft Store` |
 | 捐赠二维码 | 显示 | 隐藏 |
 | 国内网盘入口 | 可显示 | 不作为独立卡片显示，更新失败时只提供合适提示 |
@@ -28,15 +28,15 @@
 当前项目使用的关键 MSBuild 属性：
 
 ```xml
-<DeskBoxDistribution Condition="'$(DeskBoxDistribution)' == ''">Direct</DeskBoxDistribution>
-<DefineConstants Condition="'$(DeskBoxDistribution)' == 'Store'">$(DefineConstants);DESKBOX_STORE</DefineConstants>
+<BentoDeskDistribution Condition="'$(BentoDeskDistribution)' == ''">Direct</BentoDeskDistribution>
+<DefineConstants Condition="'$(BentoDeskDistribution)' == 'Store'">$(DefineConstants);BENTODESK_STORE</DefineConstants>
 ```
 
 规则：
 
-- 不传 `DeskBoxDistribution` 时，一律是 Direct。
-- 传 `-p:DeskBoxDistribution=Store` 时，启用 Store 编译常量和 MSIX 相关配置。
-- 不要在业务代码里到处写 `#if DESKBOX_STORE`。优先通过 `AppDistributionService`、`IAppUpdateService`、`IStartupService` 等服务边界分流。
+- 不传 `BentoDeskDistribution` 时，一律是 Direct。
+- 传 `-p:BentoDeskDistribution=Store` 时，启用 Store 编译常量和 MSIX 相关配置。
+- 不要在业务代码里到处写 `#if BENTODESK_STORE`。优先通过 `AppDistributionService`、`IAppUpdateService`、`IStartupService` 等服务边界分流。
 
 ## 二、开发时怎么跑
 
@@ -45,7 +45,7 @@
 日常 UI、格子、设置、文件、待办、随记、音乐等功能开发，默认跑 Direct 版即可。
 
 ```powershell
-dotnet build .\src\DeskBox\DeskBox.csproj `
+dotnet build .\src\BentoDesk\BentoDesk.csproj `
   -c Debug `
   -p:Platform=x64 `
   -v:minimal
@@ -65,8 +65,8 @@ dotnet build .\src\DeskBox\DeskBox.csproj `
 
 注意：
 
-- 日常 Debug 启动脚本会固定运行 `src\DeskBox\bin\x64\Debug\<TargetFramework>\DeskBox.exe`。
-- 不要手动运行 `src\DeskBox\bin\x64\Debug\<TargetFramework>\win-x64\DeskBox.exe`，这个目录可能残留旧 RID 构建产物，容易出现“进程启动后立刻崩溃”或“跑的不是最新代码”。
+- 日常 Debug 启动脚本会固定运行 `src\BentoDesk\bin\x64\Debug\<TargetFramework>\BentoDesk.exe`。
+- 不要手动运行 `src\BentoDesk\bin\x64\Debug\<TargetFramework>\win-x64\BentoDesk.exe`，这个目录可能残留旧 RID 构建产物，容易出现“进程启动后立刻崩溃”或“跑的不是最新代码”。
 - 只有 Release 发布、Direct 安装器产物、Store/MSIX 打包检查需要显式使用 `RuntimeIdentifier`。
 
 预期：
@@ -75,25 +75,25 @@ dotnet build .\src\DeskBox\DeskBox.csproj `
 - 捐赠二维码显示。
 - 应用内更新使用 Direct 下载/安装逻辑。
 - 开机自启走注册表。
-- 输出目录包含 `DeskBox.Updater.exe`。
+- 输出目录包含 `BentoDesk.Updater.exe`。
 
 ### 2.2 Store 编译检查
 
 Store 通道要至少做一次编译检查，确认 Store 专用服务和资源没有编译错误。
 
 ```powershell
-dotnet build .\src\DeskBox\DeskBox.csproj `
+dotnet build .\src\BentoDesk\BentoDesk.csproj `
   -c Debug `
   -p:Platform=x64 `
   -p:RuntimeIdentifier=win-x64 `
-  -p:DeskBoxDistribution=Store `
+  -p:BentoDeskDistribution=Store `
   -v:minimal
 ```
 
 注意：
 
 - 未打包的 Store Debug 输出不一定能直接运行。
-- 如果直接运行普通 `DeskBox.exe` 出现 Windows App Runtime 初始化异常，优先按 MSIX 方式验证。
+- 如果直接运行普通 `BentoDesk.exe` 出现 Windows App Runtime 初始化异常，优先按 MSIX 方式验证。
 - Store 更新、Store 开机自启、package identity 相关能力必须在 MSIX 安装后测试。
 
 ### 2.3 Store 本地真实验证
@@ -117,7 +117,7 @@ artifacts\store-msix\
 本地安装后启动方式：
 
 ```powershell
-$pkg = Get-AppxPackage DeskBox.Desktop
+$pkg = Get-AppxPackage BentoDesk.Desktop
 Start-Process "shell:AppsFolder\$($pkg.PackageFamilyName)!App"
 ```
 
@@ -126,7 +126,7 @@ Start-Process "shell:AppsFolder\$($pkg.PackageFamilyName)!App"
 - 进程路径在 `C:\Program Files\WindowsApps\...`。
 - 关于页版本行显示 `Microsoft Store`。
 - 捐赠二维码隐藏。
-- `DeskBox.Updater.exe` 不在包内。
+- `BentoDesk.Updater.exe` 不在包内。
 - Store 更新入口显示为商店更新逻辑。
 - 开机自启走 `StartupTask`。
 
@@ -137,21 +137,21 @@ Start-Process "shell:AppsFolder\$($pkg.PackageFamilyName)!App"
 两个通道发布前都要做：
 
 1. 更新版本号。
-   - `src/DeskBox/DeskBox.csproj`
-   - `src/DeskBox/Package.appxmanifest`
+   - `src/BentoDesk/BentoDesk.csproj`
+   - `src/BentoDesk/Package.appxmanifest`
    - Inno 脚本中的版本信息
    - README / CHANGELOG 中的版本说明
 
 2. 跑基础构建和测试。
 
 ```powershell
-dotnet build .\src\DeskBox\DeskBox.csproj `
+dotnet build .\src\BentoDesk\BentoDesk.csproj `
   -c Debug `
   -p:Platform=x64 `
   -p:RuntimeIdentifier=win-x64 `
   -v:minimal
 
-dotnet test .\DeskBox.sln `
+dotnet test .\BentoDesk.sln `
   -c Debug `
   -p:Platform=x64 `
   -p:RuntimeIdentifier=win-x64 `
@@ -161,7 +161,7 @@ dotnet test .\DeskBox.sln `
 3. 检查 Git 范围。
    - 可以提交：`src/`、`installer/`、`scripts/`、`tests/`、`docs/architecture/`、README、CHANGELOG。
    - 不要提交：`.codex-temp/`、`artifacts/`、`bin/`、`obj/`、本地签名 MSIX、`.cer`、`.pfx`、`store-assets-html/`、临时截图和本地草稿。
-   - 网站 `deskbox-site/` 是否提交要单独决定，不要混进应用发版提交里。
+   - 网站 `bentodesk-site/` 是否提交要单独决定，不要混进应用发版提交里。
 
 ### 3.2 Direct 官网版打包
 
@@ -169,8 +169,8 @@ Direct 版继续走现有 Inno 链路。
 
 关键要求：
 
-- `DeskBoxDistribution` 保持默认 `Direct`。
-- 需要构建并复制 `DeskBox.Updater.exe`。
+- `BentoDeskDistribution` 保持默认 `Direct`。
+- 需要构建并复制 `BentoDesk.Updater.exe`。
 - 安装器需要检测 `.NET 10` 和 Windows App Runtime 2.2。
 - 应用内更新 manifest 指向 Direct 安装包。
 - 关于页保留官网、GitHub、捐赠等入口。
@@ -189,7 +189,7 @@ Direct 版继续走现有 Inno 链路。
 Direct 应用内更新默认先读取：
 
 ```text
-https://deskbox.fun/update/stable.json
+https://github.com/TCOTC/BentoDesk/releases/latest
 ```
 
 如果该清单不可用，客户端会兜底读取 GitHub 最新 Release API。官网清单仍然是主通道，因为它可以控制稳定版本、国内网盘入口、SHA-256、灰度和回滚；GitHub 兜底只用于防止清单漏发时完全无法检查更新。
@@ -197,8 +197,8 @@ https://deskbox.fun/update/stable.json
 每次发布 Direct 版本时必须执行：
 
 1. 发布 GitHub Release，并上传：
-   - `DeskBox_Setup_x.y.z_x64.exe`
-   - `DeskBox_Setup_x.y.z_x64.exe.sha256`
+   - `BentoDesk_Setup_x.y.z_x64.exe`
+   - `BentoDesk_Setup_x.y.z_x64.exe.sha256`
 
 2. 核对 GitHub Release 资产：
    - tag 是 `vx.y.z`
@@ -208,7 +208,7 @@ https://deskbox.fun/update/stable.json
    - 安装包 digest / `.sha256` 和本地 `Get-FileHash` 一致
 
 3. 更新并部署官网清单：
-   - `deskbox-site/public/update/stable.json`
+   - `bentodesk-site/public/update/stable.json`
    - `version`
    - `downloadUrl`
    - `sha256`
@@ -219,7 +219,7 @@ https://deskbox.fun/update/stable.json
 4. 部署后从公网验证：
 
 ```powershell
-curl.exe -i https://deskbox.fun/update/stable.json
+curl.exe -i https://github.com/TCOTC/BentoDesk/releases/latest
 ```
 
 预期：
@@ -232,9 +232,9 @@ curl.exe -i https://deskbox.fun/update/stable.json
    - 检查更新
    - 下载更新
    - 点击安装
-   - DeskBox 退出
+   - BentoDesk 退出
    - 安装器继续执行
-   - 安装完成后 DeskBox 重启
+   - 安装完成后 BentoDesk 重启
    - 数据和设置保留
 
 6. 如果后续更新流程、清单字段、下载源、网盘链接、安装器参数或 GitHub 兜底策略有调整，必须同步更新本文档。
@@ -256,10 +256,10 @@ Store 版必须显式传入 Store 通道：
   -Configuration Release `
   -Platform x64 `
   -SignPackage `
-  -PackageCertificateKeyFile "path\to\DeskBox.pfx"
+  -PackageCertificateKeyFile "path\to\BentoDesk.pfx"
 ```
 
-上架前必须替换 `src\DeskBox\Package.appxmanifest` 中的占位信息：
+上架前必须替换 `src\BentoDesk\Package.appxmanifest` 中的占位信息：
 
 - `Identity Name`
 - `Publisher`
@@ -270,7 +270,7 @@ Store 产品页截图/图标素材如果使用 `store-assets-html/` 生成，该
 
 验收清单：
 
-- 包内没有 `DeskBox.Updater.exe`。
+- 包内没有 `BentoDesk.Updater.exe`。
 - 包内没有 `Assets\donation-wechat.png` 和 `Assets\donation-alipay.png`。
 - 关于页显示 `Microsoft Store`。
 - 捐赠二维码隐藏。
@@ -282,11 +282,11 @@ Store 产品页截图/图标素材如果使用 `store-assets-html/` 生成，该
 检查 MSIX 内是否误带资源：
 
 ```powershell
-$msix = "path\to\DeskBox_版本_x64.msix"
+$msix = "path\to\BentoDesk_版本_x64.msix"
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zip = [System.IO.Compression.ZipFile]::OpenRead($msix)
 $zip.Entries | Where-Object {
-  $_.FullName -like "*DeskBox.Updater*" -or
+  $_.FullName -like "*BentoDesk.Updater*" -or
   $_.FullName -like "*donation-*" -or
   $_.FullName -like "*store-assets-html*"
 } | Select-Object FullName
@@ -307,14 +307,14 @@ $zip.Dispose()
 - 更新相关只通过 `IAppUpdateService`。
 - 开机自启只通过 `IStartupService`。
 - 通道判断只通过 `AppDistributionService`。
-- 数据目录只通过 `DeskBoxDataPathService` 或现有统一数据入口。
+- 数据目录只通过 `BentoDeskDataPathService` 或现有统一数据入口。
 - UI 尽量绑定 ViewModel 暴露的 `Visibility`、文案、命令，不在 XAML 里写复杂通道判断。
 - Store 禁止或不适合出现的入口，优先在 ViewModel 层隐藏，并在 MSIX 包资源层二次移除。
 
 不要做：
 
-- 不要在多个页面散落 `#if DESKBOX_STORE`。
-- 不要让 Store 版引用 `DeskBox.Updater`。
+- 不要在多个页面散落 `#if BENTODESK_STORE`。
+- 不要让 Store 版引用 `BentoDesk.Updater`。
 - 不要在 Store 包里带捐赠二维码、外部支付引导等可能触碰政策的资源。
 - 不要在 Store 首版随意迁移数据目录。
 - 不要用未打包 exe 验证 Store 更新和 StartupTask。
@@ -336,7 +336,7 @@ Store 通道启用 MSIX / Windows App Runtime 相关能力后，普通未打包 
 如果后续需要清理本地测试包：
 
 ```powershell
-Get-AppxPackage DeskBox.Desktop | Remove-AppxPackage
+Get-AppxPackage BentoDesk.Desktop | Remove-AppxPackage
 ```
 
 如果需要清理本地测试证书，先确认 thumbprint，再删除：
@@ -344,7 +344,7 @@ Get-AppxPackage DeskBox.Desktop | Remove-AppxPackage
 ```powershell
 Get-ChildItem Cert:\CurrentUser\My,Cert:\CurrentUser\Root,Cert:\CurrentUser\TrustedPeople,
   Cert:\LocalMachine\Root,Cert:\LocalMachine\TrustedPeople |
-  Where-Object { $_.Subject -eq "CN=DeskBox" } |
+  Where-Object { $_.Subject -eq "CN=BentoDesk" } |
   Select-Object Subject, Thumbprint, NotAfter
 ```
 

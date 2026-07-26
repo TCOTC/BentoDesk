@@ -1,4 +1,4 @@
-$file = "src\DeskBox\Views\WidgetWindow.xaml.cs"
+$file = "src\BentoDesk\Views\WidgetWindow.xaml.cs"
 $content = [System.IO.File]::ReadAllText((Resolve-Path $file))
 $lines = $content -split "`r`n|`r|`n"
 

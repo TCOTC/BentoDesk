@@ -1,8 +1,8 @@
-# DeskBox .NET 10 / Windows App SDK 2.2 / Microsoft Store 升级综合方案
+# BentoDesk .NET 10 / Windows App SDK 2.2 / Microsoft Store 升级综合方案
 
 日期：2026-07-06
 
-本文档用于评估 DeskBox 从当前 `.NET 8 + Windows App SDK 2.1.3 + Inno Setup` 升级到 `.NET 10 + Windows App SDK 2.2`，并为后续上架 Microsoft Store、支持商店更新做技术规划。
+本文档用于评估 BentoDesk 从当前 `.NET 8 + Windows App SDK 2.1.3 + Inno Setup` 升级到 `.NET 10 + Windows App SDK 2.2`，并为后续上架 Microsoft Store、支持商店更新做技术规划。
 
 结论先说：
 
@@ -14,25 +14,25 @@
 
 ## 一、当前项目基线
 
-根据当前仓库文件和本机环境，DeskBox 现状如下：
+根据当前仓库文件和本机环境，BentoDesk 现状如下：
 
 | 项目 | 当前状态 |
 | --- | --- |
-| 主程序 | `src/DeskBox/DeskBox.csproj` |
-| 更新器 | `src/DeskBox.Updater/DeskBox.Updater.csproj` |
-| 测试项目 | `tests/DeskBox.Tests/DeskBox.Tests.csproj` |
+| 主程序 | `src/BentoDesk/BentoDesk.csproj` |
+| 更新器 | `src/BentoDesk.Updater/BentoDesk.Updater.csproj` |
+| 测试项目 | `tests/BentoDesk.Tests/BentoDesk.Tests.csproj` |
 | 目标框架 | `net8.0-windows10.0.22621.0` |
 | Windows App SDK | `Microsoft.WindowsAppSDK 2.1.3` |
 | Windows SDK BuildTools | `10.0.26100.4654` |
 | MVVM Toolkit | `CommunityToolkit.Mvvm 8.4.0` |
 | WinUI Toolkit 控件 | `CommunityToolkit.WinUI.* 8.2.251219` |
 | 托盘库 | `H.NotifyIcon.WinUI 2.1.0` |
-| 当前发布方式 | `WindowsPackageType=None`，Inno Setup 安装到 `%LocalAppData%\Programs\DeskBox` |
-| 当前更新方式 | `AppUpdateService` 下载 manifest 和 Inno 安装包，再启动 `DeskBox.Updater.exe` 覆盖安装 |
+| 当前发布方式 | `WindowsPackageType=None`，Inno Setup 安装到 `%LocalAppData%\Programs\BentoDesk` |
+| 当前更新方式 | `AppUpdateService` 下载 manifest 和 Inno 安装包，再启动 `BentoDesk.Updater.exe` 覆盖安装 |
 | 当前安装器依赖 | 检测 `.NET 8 Runtime x64` 和 `Windows App Runtime 2.1.3 x64` |
 | 本机 SDK | 当前只安装了 .NET 8 SDK / Runtime，还没有 .NET 10 SDK |
 
-当前 `dotnet list DeskBox.sln package --outdated --include-transitive` 显示主要可升级项：
+当前 `dotnet list BentoDesk.sln package --outdated --include-transitive` 显示主要可升级项：
 
 | 包 | 当前 | 最新稳定 |
 | --- | --- | --- |
@@ -70,7 +70,7 @@
 
 - 当前官方稳定通道是 Windows App SDK `2.2.0`，不是 `2.3`。如果后续 2.3 正式进入 Stable，需要重新跑一次官方源和 NuGet 校验，不要根据预览版或二手信息直接升级。
 - `.NET 10` 是 LTS，适合作为下一轮长期基线。
-- DeskBox 当前主打 Windows 11，如果 Store 版也只希望支持 Win11，后续 MSIX manifest / Partner Center 中应明确最低系统要求，避免 Win10 用户安装后遇到材质、窗口或 API 体验缺失。
+- BentoDesk 当前主打 Windows 11，如果 Store 版也只希望支持 Win11，后续 MSIX manifest / Partner Center 中应明确最低系统要求，避免 Win10 用户安装后遇到材质、窗口或 API 体验缺失。
 
 推荐项目文件目标：
 
@@ -107,12 +107,12 @@ git checkout -b codex/upgrade-dotnet10-wasdk22-store
 
 | 文件 | 修改点 |
 | --- | --- |
-| `src/DeskBox/DeskBox.csproj` | `TargetFramework` 改为 `net10.0-windows10.0.22621.0`；Windows App SDK 改为 `2.2.0`；BuildTools 改为 `10.0.28000.2270`；MVVM Toolkit 可改为 `8.4.2` |
-| `src/DeskBox.Updater/DeskBox.Updater.csproj` | 同步改为 `net10.0-windows10.0.22621.0` |
-| `tests/DeskBox.Tests/DeskBox.Tests.csproj` | 同步改为 `net10.0-windows10.0.22621.0` |
-| `installer/DeskBox.Dependencies.iss` | `.NET 8` 检测改为 `.NET 10`；Windows App Runtime `2.1.3` 检测改为 `2.2.0` |
-| `installer/DeskBox.iss` | 构建命令、`AppComments`、版本相关文案同步 |
-| `src/DeskBox/Services/LocalizationService.cs` | 关于页 `WinUI 3 / .NET 8` 改成 `.NET 10` |
+| `src/BentoDesk/BentoDesk.csproj` | `TargetFramework` 改为 `net10.0-windows10.0.22621.0`；Windows App SDK 改为 `2.2.0`；BuildTools 改为 `10.0.28000.2270`；MVVM Toolkit 可改为 `8.4.2` |
+| `src/BentoDesk.Updater/BentoDesk.Updater.csproj` | 同步改为 `net10.0-windows10.0.22621.0` |
+| `tests/BentoDesk.Tests/BentoDesk.Tests.csproj` | 同步改为 `net10.0-windows10.0.22621.0` |
+| `installer/BentoDesk.Dependencies.iss` | `.NET 8` 检测改为 `.NET 10`；Windows App Runtime `2.1.3` 检测改为 `2.2.0` |
+| `installer/BentoDesk.iss` | 构建命令、`AppComments`、版本相关文案同步 |
+| `src/BentoDesk/Services/LocalizationService.cs` | 关于页 `WinUI 3 / .NET 8` 改成 `.NET 10` |
 | `README.md` / `README.zh-CN.md` | 依赖说明、构建要求、badge 同步 |
 | `CHANGELOG.md` / `docs/releases/*` | 新版本发布说明同步 |
 
@@ -145,10 +145,10 @@ git checkout -b codex/upgrade-dotnet10-wasdk22-store
 建议先跑：
 
 ```powershell
-dotnet restore .\DeskBox.sln -p:Platform=x64 -p:RuntimeIdentifier=win-x64
-dotnet build .\src\DeskBox\DeskBox.csproj -c Debug -p:Platform=x64 -p:RuntimeIdentifier=win-x64 -v:minimal
-dotnet test .\DeskBox.sln -c Debug -p:Platform=x64 -p:RuntimeIdentifier=win-x64 -v:minimal
-dotnet publish .\src\DeskBox\DeskBox.csproj -c Release -p:Platform=x64 -p:RuntimeIdentifier=win-x64 -p:SelfContained=false -p:WindowsAppSDKSelfContained=false -o .\artifacts\publish\DeskBox\x64 -v:minimal
+dotnet restore .\BentoDesk.sln -p:Platform=x64 -p:RuntimeIdentifier=win-x64
+dotnet build .\src\BentoDesk\BentoDesk.csproj -c Debug -p:Platform=x64 -p:RuntimeIdentifier=win-x64 -v:minimal
+dotnet test .\BentoDesk.sln -c Debug -p:Platform=x64 -p:RuntimeIdentifier=win-x64 -v:minimal
+dotnet publish .\src\BentoDesk\BentoDesk.csproj -c Release -p:Platform=x64 -p:RuntimeIdentifier=win-x64 -p:SelfContained=false -p:WindowsAppSDKSelfContained=false -o .\artifacts\publish\BentoDesk\x64 -v:minimal
 ```
 
 ### 4.4 Direct 版本验收清单
@@ -205,7 +205,7 @@ public enum AppDistributionChannel
 2. 判断版本
 3. 下载 Inno 安装包
 4. 校验 SHA256
-5. 启动 `DeskBox.Updater.exe`
+5. 启动 `BentoDesk.Updater.exe`
 6. 退出主程序并覆盖安装
 
 Store 版不能继续走这套逻辑。Store 版应由 Microsoft Store 管理包更新。
@@ -265,10 +265,10 @@ Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
 - 日志
 - 缩略图
 
-建议新增 `DeskBoxDataPathService`：
+建议新增 `BentoDeskDataPathService`：
 
-- Direct 版继续用 `%LocalAppData%\DeskBox`
-- Store 第一版也建议继续读写 `%LocalAppData%\DeskBox`
+- Direct 版继续用 `%LocalAppData%\BentoDesk`
+- Store 第一版也建议继续读写 `%LocalAppData%\BentoDesk`
 - 后续如果迁移到 package local folder，再做一次性迁移
 
 原因：Store 首版如果同时改变数据路径，用户从官网版切换到 Store 版时容易“设置全没了”。这会制造大量无意义反馈。
@@ -287,12 +287,12 @@ Windows App SDK 2.2 新增的 `ApplicationData.GetForUnpackaged()` 可以作为�
 
 Store 版需要新增 MSIX 配置。推荐优先尝试 single-project MSIX。
 
-当前风险点：主项目构建时会复制 `DeskBox.Updater.exe`。Single-project MSIX 对多可执行文件不友好，而且 Store 版本来也不应该带 Direct 更新器。
+当前风险点：主项目构建时会复制 `BentoDesk.Updater.exe`。Single-project MSIX 对多可执行文件不友好，而且 Store 版本来也不应该带 Direct 更新器。
 
 因此 Store 配置下应：
 
-- 不构建 `DeskBox.Updater`
-- 不复制 `DeskBox.Updater.exe`
+- 不构建 `BentoDesk.Updater`
+- 不复制 `BentoDesk.Updater.exe`
 - About/设置页更新入口切换到 Store 更新逻辑
 - 隐藏 Direct 版“网盘下载 / 手动下载安装包”等入口
 
@@ -300,7 +300,7 @@ Store 版需要新增 MSIX 配置。推荐优先尝试 single-project MSIX。
 
 ### 5.6 关于页捐赠入口要单独评估
 
-DeskBox 当前关于页有微信/支付宝收款码。Direct 版没有问题，但 Store 版要谨慎。
+BentoDesk 当前关于页有微信/支付宝收款码。Direct 版没有问题，但 Store 版要谨慎。
 
 Microsoft Store 政策对应用内收款、捐赠、外部支付有要求。尤其是：
 
@@ -385,7 +385,7 @@ net10.0-windows10.0.22621.0
 
 ### 7.1 .NET 10 带来的收益
 
-对 DeskBox 比较实际的收益：
+对 BentoDesk 比较实际的收益：
 
 - Runtime/JIT 优化：对启动、后台循环、列表处理、图片缩略图缓存、配置加载都有间接收益。
 - System.Text.Json 增强：后续可以优化配置、更新 manifest、随记/待办数据读写。
@@ -401,11 +401,11 @@ net10.0-windows10.0.22621.0
 不建议作为本次目标：
 
 - NativeAOT：WinUI 3、XAML、WinRT、反射和第三方库场景风险很高。
-- trimming：DeskBox 的 XAML、WinRT、反射、本地化和 Toolkit 依赖较多，当前收益不确定，风险偏高。
+- trimming：BentoDesk 的 XAML、WinRT、反射、本地化和 Toolkit 依赖较多，当前收益不确定，风险偏高。
 
 ### 7.2 Windows App SDK 2.2 带来的收益
 
-对 DeskBox 有价值的点：
+对 BentoDesk 有价值的点：
 
 1. `ApplicationData.GetForUnpackaged()`
    - 可以作为未来统一 Direct/Store 数据路径的基础。
@@ -451,11 +451,11 @@ Store 版可以使用：
 
 1. 分散的数据路径代码
    - 当前多处直接取 `%LocalAppData%`。
-   - 可用 `DeskBoxDataPathService` 集中。
+   - 可用 `BentoDeskDataPathService` 集中。
    - 未来再接 `ApplicationData.GetForUnpackaged()`。
 
 2. Store 版的更新器 helper
-   - Store 版不需要 `DeskBox.Updater.exe`。
+   - Store 版不需要 `BentoDesk.Updater.exe`。
    - Store 构建下可以完全排除。
 
 3. Store 版的 Inno 依赖检测
@@ -486,7 +486,7 @@ Store 版可以使用：
 - CoreAudio 系统音量 COM 逻辑
 - 当前托盘兜底逻辑
 
-这些是 DeskBox 的核心稳定性来源。升级后最多做回归测试和局部收口，不要一刀切。
+这些是 BentoDesk 的核心稳定性来源。升级后最多做回归测试和局部收口，不要一刀切。
 
 ## 九、Microsoft Store 上架与商店更新方案
 
@@ -506,7 +506,7 @@ MSIX package + package identity + StoreContext 更新
 
 | 通道 | 安装方式 | 更新方式 | 适合用户 |
 | --- | --- | --- | --- |
-| Direct | 官网/GitHub Inno 安装包 | DeskBox 自己检查、下载、安装 | 国内网络、GitHub/官网用户、需要网盘兜底 |
+| Direct | 官网/GitHub Inno 安装包 | BentoDesk 自己检查、下载、安装 | 国内网络、GitHub/官网用户、需要网盘兜底 |
 | Microsoft Store | Store/MSIX | Store 自动更新 + 应用内 StoreContext 检查 | 希望系统托管更新的普通用户 |
 
 两个通道不要互相覆盖安装：
@@ -514,7 +514,7 @@ MSIX package + package identity + StoreContext 更新
 - Direct 版不要覆盖 Store 版。
 - Store 版不要覆盖 Direct 版。
 - 关于页显示渠道，方便用户反馈问题时定位。
-- 如果用户想从 Direct 切到 Store，第一版可引导“先退出/卸载 Direct 版，再安装 Store 版”，但数据仍读取 `%LocalAppData%\DeskBox`。
+- 如果用户想从 Direct 切到 Store，第一版可引导“先退出/卸载 Direct 版，再安装 Store 版”，但数据仍读取 `%LocalAppData%\BentoDesk`。
 
 ### 9.3 Store 版更新体验
 
@@ -532,7 +532,7 @@ Direct 版保持：
 - 手动检查
 - 下载进度
 - 安装包校验
-- 启动 `DeskBox.Updater.exe`
+- 启动 `BentoDesk.Updater.exe`
 - 国内网盘兜底
 
 ### 9.4 Store 版 .NET Runtime 策略
@@ -573,14 +573,14 @@ Release-Store
 或：
 
 ```powershell
--p:DeskBoxDistribution=Direct
--p:DeskBoxDistribution=Store
+-p:BentoDeskDistribution=Direct
+-p:BentoDeskDistribution=Store
 ```
 
 Store 构建下：
 
 - 不构建 updater 项目
-- 不复制 `DeskBox.Updater.exe`
+- 不复制 `BentoDesk.Updater.exe`
 - 启用 MSIX
 - 使用 Store 渠道标记
 - About 页显示 Microsoft Store 渠道
@@ -600,7 +600,7 @@ Direct 构建下：
 大致流程：
 
 1. 注册/登录 Partner Center。
-2. 预留产品名 `DeskBox`。
+2. 预留产品名 `BentoDesk`。
 3. 配置应用基本信息、年龄分级、隐私政策、支持链接、官网链接。
 4. 准备中英文 Store 文案和截图。
 5. 生成 MSIX / MSIX upload 包。
@@ -612,13 +612,13 @@ Store 更新后：
 
 - 用户默认由 Microsoft Store 自动更新。
 - 用户也可以在 Microsoft Store 手动更新。
-- DeskBox 应用内可以提供“检查商店更新”入口，但不应下载自己的 exe 覆盖安装。
+- BentoDesk 应用内可以提供“检查商店更新”入口，但不应下载自己的 exe 覆盖安装。
 
 ### 9.7 Store 审核重点
 
 需要提前检查：
 
-- 隐私政策：DeskBox 有 OCR、剪贴板、文件操作、本地数据，需要说明清楚。
+- 隐私政策：BentoDesk 有 OCR、剪贴板、文件操作、本地数据，需要说明清楚。
 - 文件访问：说明为什么需要用户拖拽/选择文件夹。
 - 后台行为：开机自启、托盘、全局快捷键要在 UI 中可关闭。
 - 外部下载：Store 版不要引导用户下载 Inno 安装包。
@@ -635,8 +635,8 @@ Store 更新后：
 | Store/MSIX | 高 | 分发模型、权限、更新模型变化 | 单独分支，不和 Direct 升级混做 |
 | Store 更新 | 中高 | 要替换当前 exe 更新逻辑 | 抽象 `IAppUpdateService` |
 | 开机自启 | 中 | Direct 和 Store 推荐实现不同 | 抽象 `IStartupService` |
-| 数据路径 | 高 | 用户配置不能丢 | Store 首版继续读旧 `%LocalAppData%\DeskBox` |
-| 文件拖拽 | 高 | DeskBox 核心能力，MSIX 下必须实测 | 不删旧兜底，逐项回归 |
+| 数据路径 | 高 | 用户配置不能丢 | Store 首版继续读旧 `%LocalAppData%\BentoDesk` |
+| 文件拖拽 | 高 | BentoDesk 核心能力，MSIX 下必须实测 | 不删旧兜底，逐项回归 |
 | 托盘 | 中 | 第三方库 + MSIX 场景需要验证 | 暂不升级托盘库 |
 | 捐赠入口 | 中 | Store 审核政策风险 | Store 构建可隐藏或改官网链接 |
 
@@ -685,7 +685,7 @@ Store 更新后：
 - `AppDistributionService`
 - `IAppUpdateService`
 - `IStartupService`
-- `DeskBoxDataPathService`
+- `BentoDeskDataPathService`
 
 先在 Direct 版下不改变行为，只把边界抽出来。
 
@@ -735,7 +735,7 @@ Store 首版建议：
 4. 再做 Store MSIX、StoreContext 更新、StartupTask、Store 包审核。
 5. Store 首版不要同时迁移数据路径，不要同时重写拖拽，不要同时升级托盘库，不要启用 NativeAOT/trimming。
 
-这次升级的重点是给 DeskBox 建立更长期的运行时基线，以及未来 Direct/Store 双通道发布能力。只要边界拆清楚，后面维护会舒服很多；如果一开始把官网更新、Store 更新、安装器、数据路径混在一起，后续用户反馈会非常难排查。
+这次升级的重点是给 BentoDesk 建立更长期的运行时基线，以及未来 Direct/Store 双通道发布能力。只要边界拆清楚，后面维护会舒服很多；如果一开始把官网更新、Store 更新、安装器、数据路径混在一起，后续用户反馈会非常难排查。
 
 ## 十四、参考来源
 

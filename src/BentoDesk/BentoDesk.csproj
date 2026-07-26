@@ -1,0 +1,153 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
+    <RootNamespace>BentoDesk</RootNamespace>
+<Version>1.3.3</Version>
+<AssemblyVersion>1.3.3.0</AssemblyVersion>
+<FileVersion>1.3.3.0</FileVersion>
+<InformationalVersion>1.3.3</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <PublishSingleFile>false</PublishSingleFile>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <AppxPackage>false</AppxPackage>
+    <BentoDeskDistribution Condition="'$(BentoDeskDistribution)' == ''">Direct</BentoDeskDistribution>
+    <DefineConstants Condition="'$(BentoDeskDistribution)' == 'Store'">$(DefineConstants);BENTODESK_STORE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationIcon>Assets\bentodesk.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(BentoDeskDistribution)' == 'Store'">
+    <WindowsPackageType>MSIX</WindowsPackageType>
+    <DefaultLanguage>zh-CN</DefaultLanguage>
+    <AppxPackageSigningEnabled Condition="'$(AppxPackageSigningEnabled)' == ''">false</AppxPackageSigningEnabled>
+    <UapAppxPackageBuildMode Condition="'$(UapAppxPackageBuildMode)' == ''">SideloadOnly</UapAppxPackageBuildMode>
+    <AppxPackage Condition="'$(BentoDeskCreateMsixPackage)' == 'true'">true</AppxPackage>
+    <GenerateAppxPackageOnBuild Condition="'$(BentoDeskCreateMsixPackage)' == 'true'">true</GenerateAppxPackageOnBuild>
+    <AppxBundle Condition="'$(BentoDeskCreateMsixPackage)' == 'true' and '$(AppxBundle)' == ''">Never</AppxBundle>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.251219" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.ColorPicker" Version="8.2.251219" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.Segmented" Version="8.2.251219" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2270" />
+    <PackageReference Include="H.NotifyIcon.WinUI" Version="2.5.0-beta.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\bentodesk.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\bentodesk.svg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\bentodesk-tray-light.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\bentodesk-tray-dark.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\bentodesk-tray-light.svg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\bentodesk-tray-dark.svg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\wechat-qrcode.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\donation-wechat.png" Condition="'$(BentoDeskDistribution)' != 'Store'">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\donation-alipay.png" Condition="'$(BentoDeskDistribution)' != 'Store'">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\SettingsNavIcons\*.svg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\WidgetTitleIcons\*.svg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Store\*.png" />
+    <EmbeddedResource Include="Assets\Cities\cities.json" />
+<EmbeddedResource Include="Strings\zh-CN.json" />
+<EmbeddedResource Include="Strings\en-US.json" />
+<EmbeddedResource Include="Strings\ja-JP.json" />
+<EmbeddedResource Include="Strings\de-DE.json" />
+<EmbeddedResource Include="Strings\pt-BR.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Manifest Include="$(ApplicationManifest)" />
+  </ItemGroup>
+
+  <!-- Upstream WIP stub: missing ImageWidgetViewModel / .xaml; not wired into any factory. -->
+  <ItemGroup>
+    <Compile Remove="Controls\WidgetContents\ImageWidgetContent.xaml.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)' != 'true' and '$(EnableMsixTooling)' == 'true'">
+    <ProjectCapability Include="Msix" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)' != 'true' and '$(EnableMsixTooling)' == 'true'">
+    <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
+  </PropertyGroup>
+
+  <Target Name="BuildBentoDeskUpdater" BeforeTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskDistribution)' != 'Store'">
+    <MSBuild
+      Projects="..\BentoDesk.Updater\BentoDesk.Updater.csproj"
+      Targets="Build"
+      Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=$(RuntimeIdentifier)" />
+  </Target>
+
+  <Target Name="CopyBentoDeskUpdater" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskDistribution)' != 'Store'">
+    <ItemGroup>
+      <BentoDeskUpdaterOutput Include="..\BentoDesk.Updater\bin\$(Platform)\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\BentoDesk.Updater.*" Condition="'$(RuntimeIdentifier)' != ''" />
+      <BentoDeskUpdaterOutput Include="..\BentoDesk.Updater\bin\$(Platform)\$(Configuration)\$(TargetFramework)\BentoDesk.Updater.*" Condition="'$(RuntimeIdentifier)' == ''" />
+    </ItemGroup>
+    <Copy SourceFiles="@(BentoDeskUpdaterOutput)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="PublishBentoDeskUpdater" AfterTargets="Publish" Condition="'$(DesignTimeBuild)' != 'true' and '$(BentoDeskDistribution)' != 'Store'">
+    <MSBuild
+      Projects="..\BentoDesk.Updater\BentoDesk.Updater.csproj"
+      Targets="Publish"
+      Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=$(SelfContained);PublishSingleFile=false;PublishDir=$(PublishDir)" />
+  </Target>
+
+  <Target Name="RemoveStoreRestrictedAssetsFromPri"
+          BeforeTargets="_GenerateProjectPriConfigurationFiles;_GenerateProjectPriFileCore"
+          Condition="'$(BentoDeskDistribution)' == 'Store'">
+    <ItemGroup>
+      <Image Remove="Assets\donation-wechat.png;Assets\donation-alipay.png" />
+      <Content Remove="Assets\donation-wechat.png;Assets\donation-alipay.png" />
+      <None Remove="Assets\donation-wechat.png;Assets\donation-alipay.png" />
+      <PRIResource Remove="Assets\donation-wechat.png;Assets\donation-alipay.png" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="RemoveStoreRestrictedAssetsFromAppxPayload"
+          AfterTargets="_ComputeAppxPackagePayload"
+          BeforeTargets="_GenerateAppxPackageRecipe;_GenerateAppxPackageFile"
+          Condition="'$(BentoDeskDistribution)' == 'Store'">
+    <ItemGroup>
+      <AppxPackagePayload Remove="@(AppxPackagePayload)"
+                          Condition="'%(AppxPackagePayload.TargetPath)' == 'Assets\donation-wechat.png' Or '%(AppxPackagePayload.TargetPath)' == 'Assets\donation-alipay.png'" />
+    </ItemGroup>
+  </Target>
+
+</Project>

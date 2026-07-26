@@ -1,4 +1,4 @@
-﻿; DeskBox 简体中文安装器语言文件
+﻿; BentoDesk 简体中文安装器语言文件
 
 [LangOptions]
 LanguageName=简体中文
@@ -322,5 +322,5 @@ WizardUninstalling=卸载状态
 CreateDesktopIcon=创建桌面快捷方式
 AdditionalIcons=附加快捷方式
 WindowsIntegration=Windows 集成
-AutoStart=开机时自动启动 DeskBox
+AutoStart=开机时自动启动 BentoDesk
 LaunchProgram=启动 %1

@@ -1,0 +1,943 @@
+<?xml version="1.0" encoding="utf-8"?>
+<views:WidgetWindowBase
+    x:Class="BentoDesk.Views.QuickCaptureWidgetWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:BentoDesk.Controls"
+    xmlns:views="using:BentoDesk.Views"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="BentoDesk Quick Capture">
+
+    <Grid
+        x:Name="RootGrid"
+        Background="Transparent"
+        IsTabStop="True"
+        KeyDown="RootGrid_KeyDown"
+        AllowDrop="True"
+        DragOver="RootGrid_DragOver"
+        Drop="RootGrid_Drop">
+        <Grid.Resources>
+            <Style x:Key="QuickCaptureIconButtonStyle" TargetType="Button">
+                <Setter Property="Width" Value="22" />
+                <Setter Property="Height" Value="22" />
+                <Setter Property="MinWidth" Value="22" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+
+            <Style x:Key="QuickCaptureItemActionButtonStyle" TargetType="Button" BasedOn="{StaticResource WidgetItemActionButtonStyle}" />
+
+            <Style x:Key="QuickCaptureItemButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Padding" Value="10,8" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            </Style>
+
+            <Style x:Key="QuickCaptureSegmentButtonStyle" TargetType="Button">
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="MinHeight" Value="24" />
+                <Setter Property="Height" Value="24" />
+                <Setter Property="Padding" Value="4,0" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="6" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="FontSize" Value="12" />
+            </Style>
+
+            <Style x:Key="QuickCaptureConfirmCommandButtonStyle" TargetType="Button" BasedOn="{StaticResource WidgetConfirmCommandButtonStyle}" />
+
+            <Style x:Key="QuickCaptureDetailIconButtonStyle" TargetType="Button" BasedOn="{StaticResource SubtleButtonStyle}">
+                <Setter Property="Width" Value="30" />
+                <Setter Property="Height" Value="30" />
+                <Setter Property="MinWidth" Value="30" />
+                <Setter Property="MinHeight" Value="30" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+
+        <Style x:Key="QuickCaptureDetailConfirmButtonStyle" TargetType="Button" BasedOn="{StaticResource QuickCaptureDetailIconButtonStyle}">
+                <Setter Property="Width" Value="30" />
+                <Setter Property="Height" Value="30" />
+                <Setter Property="MinWidth" Value="30" />
+                <Setter Property="MinHeight" Value="30" />
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+
+            <Style x:Key="QuickCaptureAttachmentActionButtonStyle" TargetType="Button" BasedOn="{StaticResource SubtleButtonStyle}">
+                <Setter Property="Width" Value="22" />
+                <Setter Property="Height" Value="22" />
+                <Setter Property="MinWidth" Value="22" />
+                <Setter Property="MinHeight" Value="22" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Background" Value="{ThemeResource WidgetOverlayInputSurfaceBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource WidgetOverlayStrokeBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+            </Style>
+
+            <Style x:Key="QuickCaptureMaterialButtonStyle" TargetType="Button" BasedOn="{StaticResource SubtleButtonStyle}">
+                <Setter Property="Width" Value="28" />
+                <Setter Property="Height" Value="24" />
+                <Setter Property="MinWidth" Value="28" />
+                <Setter Property="MinHeight" Value="24" />
+                <Setter Property="Padding" Value="3" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="46" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:WidgetShell
+            x:Name="QuickCaptureShell"
+            Grid.RowSpan="2"
+            AddRequested="AddButton_Click"
+            CloseRequested="CloseButton_Click"
+            DragHandlePointerMoved="DragHandle_PointerMoved"
+            DragHandlePointerPressed="DragHandle_PointerPressed"
+            DragHandlePointerReleased="DragHandle_PointerReleased"
+            MoreRequested="MoreButton_Click"
+            PositionLockRequested="PositionLockButton_Click"
+            SizeLockRequested="SizeLockButton_Click"
+            OverlayTitle="{Binding DisplayName}"
+            IsTitleEditable="True"
+            TitleDoubleTapped="QuickCaptureShell_TitleDoubleTapped"
+            TitlePointerMoved="TitleBarGrid_PointerMoved"
+            TitlePointerPressed="TitleBarGrid_PointerPressed"
+            TitlePointerReleased="TitleBarGrid_PointerReleased"
+            TitleRightTapped="TitleBarGrid_RightTapped"
+            RightTapped="QuickCaptureShell_RightTapped">
+            <controls:WidgetShell.ShellContent>
+                <Grid Padding="{Binding RootPadding}" RowSpacing="{Binding RootRowSpacing}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid x:Name="ListPage" Grid.RowSpan="4" RowSpacing="4">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+            <Grid Grid.Row="2" Visibility="{Binding InputAreaVisibility}">
+                <TextBox
+                    x:Name="InputTextBox"
+                    Visibility="Collapsed"
+                    Height="{Binding InputHeight}"
+                    MinHeight="{Binding InputHeight}"
+                    Padding="{Binding InputPadding}"
+                    FontSize="{Binding TextSize}"
+                    PlaceholderText="{Binding InputPlaceholderText}"
+                    Style="{StaticResource WidgetBorderlessInputTextBoxStyle}"
+                    Text="{Binding InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    KeyDown="InputTextBox_KeyDown" />
+                <Button
+                    x:Name="ExpandInputButton"
+                    Visibility="Collapsed"
+                    Click="ExpandInputButton_Click"
+                    Width="{Binding InputButtonSize}"
+                    Height="{Binding InputButtonSize}"
+                    MinWidth="{Binding InputButtonSize}"
+                    MinHeight="{Binding InputButtonSize}"
+                    Style="{StaticResource WidgetCompactIconButtonStyle}"
+                    ToolTipService.ToolTip="{Binding ExpandInputTooltipText}">
+                    <FontIcon FontSize="{Binding InputActionIconSize}" Glyph="&#xE740;" />
+                </Button>
+            </Grid>
+
+            <Border Grid.Row="1" Height="1" Margin="0,1"
+                Visibility="{Binding InputAreaVisibility}" />
+
+            <Grid Grid.Row="0" ColumnSpacing="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid
+                    x:Name="TabHost"
+                    Grid.Column="0"
+                    HorizontalAlignment="Stretch"
+                    Visibility="{Binding TabBarVisibility}">
+                    <toolkit:Segmented
+                        x:Name="QuickCaptureViewSegmented"
+                        MinHeight="{Binding SegmentHeight}"
+                        FontSize="{Binding SegmentTextSize}"
+                        HorizontalAlignment="Stretch"
+                        Loaded="QuickCaptureViewSegmented_Loaded"
+                        SelectionChanged="QuickCaptureViewSegmented_SelectionChanged"
+                        SelectedIndex="0"
+                        SizeChanged="QuickCaptureViewSegmented_SizeChanged">
+                        <toolkit:SegmentedItem
+                            AllowDrop="True"
+                            DragOver="QuickCaptureTab_DragOver"
+                            Drop="QuickCaptureTab_Drop"
+                            Tag="Records"
+                            Visibility="{Binding RecordsTabVisibility}"
+                            ToolTipService.ToolTip="{Binding RecordsTabText}">
+                            <TextBlock
+                                MinWidth="0"
+                                VerticalAlignment="Center"
+                                FontSize="{Binding SegmentTextSize}"
+                                MaxLines="1"
+                                Text="{Binding RecordsTabText}"
+                                TextAlignment="Center"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="NoWrap" />
+                        </toolkit:SegmentedItem>
+                        <toolkit:SegmentedItem
+                            AllowDrop="True"
+                            DragOver="QuickCaptureTab_DragOver"
+                            Drop="QuickCaptureTab_Drop"
+                            Tag="Pinned"
+                            Visibility="{Binding PinnedTabVisibility}"
+                            ToolTipService.ToolTip="{Binding PinnedTabText}">
+                            <TextBlock
+                                MinWidth="0"
+                                VerticalAlignment="Center"
+                                FontSize="{Binding SegmentTextSize}"
+                                MaxLines="1"
+                                Text="{Binding PinnedTabText}"
+                                TextAlignment="Center"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="NoWrap" />
+                        </toolkit:SegmentedItem>
+                        <toolkit:SegmentedItem
+                            AllowDrop="True"
+                            DragOver="QuickCaptureTab_DragOver"
+                            Drop="QuickCaptureTab_Drop"
+                            Tag="Recent"
+                            Visibility="{Binding RecentTabVisibility}"
+                            ToolTipService.ToolTip="{Binding RecentTabText}">
+                            <TextBlock
+                                MinWidth="0"
+                                VerticalAlignment="Center"
+                                FontSize="{Binding SegmentTextSize}"
+                                MaxLines="1"
+                                Text="{Binding RecentTabText}"
+                                TextAlignment="Center"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="NoWrap" />
+                        </toolkit:SegmentedItem>
+                    </toolkit:Segmented>
+                </Grid>
+                <Button
+                    x:Name="SearchButton"
+                    Grid.Column="1"
+                    Click="SearchButton_Click"
+                    Width="22"
+                    Height="22"
+                    MinWidth="22"
+                    Style="{StaticResource QuickCaptureIconButtonStyle}"
+                    ToolTipService.ToolTip="{Binding SearchPlaceholderText}"
+                    Visibility="{Binding SearchButtonVisibility}">
+                    <FontIcon FontSize="12" Glyph="&#xE721;" />
+                </Button>
+                <TextBox
+                    x:Name="SearchTextBox"
+                    Grid.Column="0"
+                    Height="{Binding InputHeight}"
+                    MinHeight="{Binding InputHeight}"
+                    Padding="{Binding InputPadding}"
+                    FontSize="{Binding TextSize}"
+                    KeyDown="SearchTextBox_KeyDown"
+                    PlaceholderText="{Binding SearchPlaceholderText}"
+                    Style="{StaticResource WidgetSearchTextBoxStyle}"
+                    Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    Visibility="{Binding SearchBoxVisibility}" />
+                <Button
+                    x:Name="CloseSearchButton"
+                    Grid.Column="1"
+                    Click="CloseSearchButton_Click"
+                    Width="{Binding InputButtonSize}"
+                    Height="{Binding InputButtonSize}"
+                    MinWidth="{Binding InputButtonSize}"
+                    MinHeight="{Binding InputButtonSize}"
+                    Style="{StaticResource WidgetCompactIconButtonStyle}"
+                    Visibility="{Binding SearchBoxVisibility}">
+                    <FontIcon FontSize="{Binding InputActionIconSize}" Glyph="&#xE711;" />
+                </Button>
+            </Grid>
+
+            <TextBlock
+                Grid.Row="2"
+                Margin="2,-2,6,0"
+                FontSize="{Binding SecondaryTextSize}"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="{Binding SearchScopeText}"
+                TextAlignment="Center"
+                TextTrimming="CharacterEllipsis"
+                Visibility="{Binding SearchScopeVisibility}" />
+
+            <TextBlock
+                Grid.Row="2"
+                Margin="2,-2,6,0"
+                FontSize="{Binding SecondaryTextSize}"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="{Binding RecentCaptureStatusText}"
+                TextAlignment="Center"
+                TextTrimming="CharacterEllipsis"
+                Visibility="{Binding RecentCaptureStatusVisibility}" />
+
+            <Grid Grid.Row="3">
+                <Grid
+                    x:Name="EmptyStateHost"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Visibility="{Binding EmptyStateVisibility}">
+                    <StackPanel
+                        x:Name="EmptyState"
+                        Margin="0,-8,0,0"
+                        Spacing="7"
+                        Style="{StaticResource WidgetEmptyStatePanelStyle}">
+                        <FontIcon
+                            x:Name="EmptyStateIcon"
+                            Margin="0,0,0,2"
+                            FontSize="{Binding EmptyIconSize}"
+                            Glyph="&#xE8A5;"
+                            Style="{StaticResource WidgetEmptyStateIconStyle}" />
+                        <TextBlock
+                            FontSize="{Binding TitleTextSize}"
+                            FontWeight="SemiBold"
+                            MaxLines="1"
+                            Style="{StaticResource WidgetEmptyStateTitleTextStyle}"
+                            Text="{Binding EmptyStateTitle}"
+                            TextWrapping="NoWrap" />
+                        <TextBlock
+                            FontSize="{Binding TextSize}"
+                            MaxLines="2"
+                            Style="{StaticResource WidgetEmptyStateDescriptionTextStyle}"
+                            Text="{Binding EmptyStateText}" />
+                        <Button
+                            Click="EnableRecentCaptureButton_Click"
+                            FontSize="{Binding SegmentTextSize}"
+                            HorizontalAlignment="Center"
+                            Style="{StaticResource QuickCaptureSegmentButtonStyle}"
+                            Content="{Binding EnableRecentCaptureText}"
+                            Visibility="{Binding RecentCaptureActionVisibility}" />
+                    </StackPanel>
+                </Grid>
+
+                <ListView
+                    x:Name="ItemsListView"
+                    AllowDrop="True"
+                    CanDragItems="True"
+                    CanReorderItems="True"
+                    Background="Transparent"
+                    HorizontalContentAlignment="Stretch"
+                    ItemsSource="{Binding Items}"
+                    DragItemsCompleted="ItemsListView_DragItemsCompleted"
+                    DragItemsStarting="ItemsListView_DragItemsStarting"
+                    KeyDown="ItemsListView_KeyDown"
+                    PointerPressed="ItemsListView_PointerPressed"
+                    PointerMoved="ItemsListView_PointerMoved"
+                    PointerReleased="ItemsListView_PointerReleased"
+                    PointerCaptureLost="ItemsListView_PointerCaptureLost"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                    ScrollViewer.HorizontalScrollMode="Disabled"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    SelectionMode="Single"
+                    SelectionChanged="ItemsListView_SelectionChanged"
+                    Visibility="{Binding ListVisibility}">
+                    <ListView.Resources>
+                        <SolidColorBrush x:Key="ListViewItemBackgroundPointerOver" Color="Transparent" />
+                        <SolidColorBrush x:Key="ListViewItemBackgroundPressed" Color="Transparent" />
+                        <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="Transparent" />
+                        <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="Transparent" />
+                        <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="Transparent" />
+                        <SolidColorBrush x:Key="ListViewItemBackgroundSelectedDisabled" Color="Transparent" />
+                    </ListView.Resources>
+                    <ListView.Header>
+                        <Button
+                            x:Name="AddNoteCardButton"
+                            Margin="{Binding AddCardMargin}"
+                            MinHeight="{Binding AddCardMinHeight}"
+                            Padding="{Binding AddCardPadding}"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Stretch"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            Click="AddNoteCardButton_Click"
+                            CornerRadius="4"
+                            Visibility="{Binding InputAreaVisibility}">
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="32" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon
+                                    Grid.Column="0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="{Binding PrimaryIconSize}"
+                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                    Glyph="&#xE710;" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    FontSize="{Binding TextSize}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="{Binding AddNoteText}" />
+                            </Grid>
+                        </Button>
+                    </ListView.Header>
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Margin" Value="0" />
+                            <Setter Property="MinHeight" Value="0" />
+                            <Setter Property="UseSystemFocusVisuals" Value="False" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="BorderBrush" Value="Transparent" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="HorizontalAlignment" Value="Stretch" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                            <Setter Property="Transitions">
+                                <Setter.Value>
+                                    <TransitionCollection>
+                                        <AddDeleteThemeTransition />
+                                        <ReorderThemeTransition />
+                                    </TransitionCollection>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid
+                                x:Name="QuickCaptureItemRoot"
+                                AllowDrop="True"
+                                HorizontalAlignment="Stretch"
+                                Margin="{Binding ElementName=ItemsListView, Path=DataContext.ItemMargin}"
+                                Padding="{Binding ElementName=ItemsListView, Path=DataContext.ItemPadding}"
+                                Background="Transparent"
+                                DataContextChanged="QuickCaptureItem_DataContextChanged"
+                                DragLeave="QuickCaptureItem_DragLeave"
+                                DragOver="QuickCaptureItem_DragOver"
+                                Drop="QuickCaptureItem_Drop"
+                                PointerEntered="QuickCaptureItem_PointerEntered"
+                                PointerExited="QuickCaptureItem_PointerExited"
+                                RightTapped="QuickCaptureItem_RightTapped"
+                                Tapped="QuickCaptureItem_Tapped">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="28" />
+                                </Grid.ColumnDefinitions>
+                                <Border
+                                    x:Name="ItemMaterialBackground"
+                                    Grid.ColumnSpan="2"
+                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                    BorderThickness="0"
+                                    CornerRadius="4"
+                                    Margin="{Binding ElementName=ItemsListView, Path=DataContext.ItemChromeMargin}" />
+                                <Border
+                                    x:Name="ItemHoverBackground"
+                                    Grid.ColumnSpan="2"
+                                    Margin="{Binding ElementName=ItemsListView, Path=DataContext.ItemChromeMargin}"
+                                    Style="{StaticResource WidgetRowHoverBackgroundStyle}" />
+                                <Border
+                                    Grid.ColumnSpan="2"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    CornerRadius="4"
+                                    Margin="{Binding ElementName=ItemsListView, Path=DataContext.ItemChromeMargin}"
+                                    Opacity="0.18"
+                                    Visibility="{Binding CopySelectionVisibility}" />
+                                    <StackPanel
+                                        x:Name="ItemContentHost"
+                                        Grid.Column="0"
+                                        Margin="0"
+                                        MinWidth="0"
+                                        Spacing="0"
+                                        VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontSize="{Binding TextSize}"
+                                        FontWeight="SemiBold"
+                                        MaxLines="1"
+                                        Text="{Binding Title}"
+                                        TextTrimming="CharacterEllipsis"
+                                        Visibility="Collapsed" />
+                                    <ScrollViewer
+                                        MaxWidth="360"
+                                        HorizontalAlignment="Left"
+                                        HorizontalScrollBarVisibility="Auto"
+                                        HorizontalScrollMode="Enabled"
+                                        VerticalScrollBarVisibility="Disabled"
+                                        VerticalScrollMode="Disabled"
+                                        Visibility="{Binding ImageAttachmentsVisibility}">
+                                        <ItemsControl ItemsSource="{Binding ImageAttachments}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" Spacing="5" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid
+                                                        Width="116"
+                                                        Height="72"
+                                                        Loaded="QuickCaptureAttachmentPreview_Loaded">
+                                                        <Border
+                                                            Padding="2"
+                                                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="4">
+                                                            <Image Source="{Binding Thumbnail}" Stretch="Uniform" />
+                                                        </Border>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                    <TextBlock
+                                        x:Name="ItemTextBlock"
+                                        FontSize="{Binding TextSize}"
+                                        CharacterSpacing="8"
+                                        LineHeight="{Binding ElementName=ItemsListView, Path=DataContext.ItemTextLineHeight}"
+                                        LineStackingStrategy="BlockLineHeight"
+                                        MaxLines="{Binding ElementName=ItemsListView, Path=DataContext.ItemPreviewLineCount}"
+                                        Text="{Binding DisplayText}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="Wrap"
+                                        Visibility="{Binding TextPreviewVisibility}" />
+                                    <TextBlock
+                                        FontSize="{Binding SecondaryTextSize}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        LineHeight="{Binding ElementName=ItemsListView, Path=DataContext.ItemMetaLineHeight}"
+                                        LineStackingStrategy="BlockLineHeight"
+                                        Text="{Binding CreatedAtText}"
+                                        Visibility="{Binding ElementName=ItemsListView, Path=DataContext.CreatedTimeVisibility}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="3" Visibility="{Binding AttachmentSummaryVisibility}">
+                                        <FontIcon FontSize="{Binding TypeIconSize}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Glyph="&#xE723;" />
+                                        <TextBlock FontSize="{Binding SecondaryTextSize}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="{Binding AttachmentSummaryText}" />
+                                    </StackPanel>
+                                    </StackPanel>
+                                <Button
+                                    x:Name="CopyItemButton"
+                                    Grid.Column="1"
+                                    Width="28"
+                                    Height="28"
+                                    MinWidth="28"
+                                    MinHeight="28"
+                                    Padding="0"
+                                    Click="CopyItemButton_Click"
+                                    Style="{StaticResource SubtleButtonStyle}"
+                                    Tag="{Binding}"
+                                    VerticalAlignment="Center">
+                                    <FontIcon FontSize="{Binding ActionIconSize}" Glyph="&#xE8C8;" />
+                                </Button>
+                                <Border
+                                    x:Name="ItemActionHost"
+                                    Grid.ColumnSpan="2"
+                                    Canvas.ZIndex="2"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    Margin="0,0,34,0"
+                                    HorizontalAlignment="Right"
+                                    Style="{StaticResource WidgetHoverActionHostStyle}"
+                                    VerticalAlignment="Center"
+                                    Visibility="Collapsed">
+                                    <StackPanel
+                                        x:Name="ItemActionButtons"
+                                        HorizontalAlignment="Right"
+                                        Orientation="Horizontal"
+                                        Spacing="4"
+                                        VerticalAlignment="Center">
+                                        <Button
+                                            x:Name="MovePinnedItemUpButton"
+                                            Click="MovePinnedItemUpButton_Click"
+                                            IsEnabled="{Binding CanMovePinnedUp}"
+                                            AutomationProperties.Name="{Binding MoveUpTooltip}"
+                                            Style="{StaticResource QuickCaptureItemActionButtonStyle}"
+                                            Tag="{Binding}"
+                                            ToolTipService.ToolTip="{Binding MoveUpTooltip}"
+                                            Visibility="{Binding PinnedSortControlsVisibility}">
+                                            <FontIcon FontSize="11" Glyph="&#xE70E;" />
+                                        </Button>
+                                        <Button
+                                            x:Name="MovePinnedItemDownButton"
+                                            Click="MovePinnedItemDownButton_Click"
+                                            IsEnabled="{Binding CanMovePinnedDown}"
+                                            AutomationProperties.Name="{Binding MoveDownTooltip}"
+                                            Style="{StaticResource QuickCaptureItemActionButtonStyle}"
+                                            Tag="{Binding}"
+                                            ToolTipService.ToolTip="{Binding MoveDownTooltip}"
+                                            Visibility="{Binding PinnedSortControlsVisibility}">
+                                            <FontIcon FontSize="11" Glyph="&#xE70D;" />
+                                        </Button>
+                                        <Button
+                                            x:Name="SaveRecentItemButton"
+                                            Click="SaveRecentItemButton_Click"
+                                            Style="{StaticResource QuickCaptureItemActionButtonStyle}"
+                                            Tag="{Binding}">
+                                            <FontIcon FontSize="11" Glyph="&#xE74E;" />
+                                        </Button>
+                                        <Button
+                                            x:Name="PinItemButton"
+                                            Click="PinItemButton_Click"
+                                            AutomationProperties.Name="{Binding PinTooltip}"
+                                            Style="{StaticResource QuickCaptureItemActionButtonStyle}"
+                                            Tag="{Binding}"
+                                            ToolTipService.ToolTip="{Binding PinTooltip}">
+                                            <FontIcon FontSize="11" Glyph="{Binding PinGlyph}" />
+                                        </Button>
+                                        <Button
+                                            x:Name="DeleteItemButton"
+                                            Click="DeleteItemButton_Click"
+                                            Style="{StaticResource QuickCaptureItemActionButtonStyle}"
+                                            Tag="{Binding}">
+                                            <FontIcon FontSize="11" Glyph="&#xE74D;" />
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <Canvas
+                    x:Name="SelectionOverlay"
+                    Background="Transparent"
+                    IsHitTestVisible="False">
+                    <Border
+                        x:Name="SelectionRectangle"
+                        Width="0"
+                        Height="0"
+                        BorderThickness="1"
+                        CornerRadius="0"
+                        Visibility="Collapsed" />
+                </Canvas>
+
+                <Grid
+                    Background="Transparent"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding ViewSwitchLoadingVisibility}">
+                    <Border
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Padding="9"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Opacity="0.92">
+                        <ProgressRing
+                            Width="20"
+                            Height="20"
+                            IsActive="{Binding IsSwitchingView}" />
+                    </Border>
+                </Grid>
+            </Grid>
+            </Grid>
+
+            <Grid
+                x:Name="DetailPage"
+                Grid.RowSpan="4"
+                Canvas.ZIndex="8"
+                Background="Transparent"
+                Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Border
+                    Grid.Row="0"
+                    MinHeight="40"
+                    Padding="8,4"
+                    Background="Transparent"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="0,0,0,1">
+                    <Grid MinHeight="32" ColumnSpacing="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="30" />
+                            <ColumnDefinition Width="30" />
+                            <ColumnDefinition Width="30" />
+                        </Grid.ColumnDefinitions>
+                        <Button
+                            Click="DetailBackButton_Click"
+                            Style="{StaticResource QuickCaptureDetailConfirmButtonStyle}"
+                            ToolTipService.ToolTip="{Binding DetailBackText}"
+                            VerticalAlignment="Center">
+                            <FontIcon
+                                FontSize="{Binding ActionIconSize}"
+                                Glyph="&#xE73E;"
+                                RenderTransformOrigin="0.5,0.5">
+                                <FontIcon.RenderTransform>
+                                    <ScaleTransform ScaleX="1.3" ScaleY="1.3" />
+                                </FontIcon.RenderTransform>
+                            </FontIcon>
+                        </Button>
+                        <TextBox
+                            x:Name="DetailTitleTextBox"
+                            Grid.Column="1"
+                            Visibility="Collapsed" />
+                        <TextBlock
+                            x:Name="DetailTimestampText"
+                            Grid.Column="1"
+                            Margin="4,0"
+                            VerticalAlignment="Center"
+                            FontSize="{Binding DetailHeaderTextSize}"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                            MaxLines="1"
+                            TextTrimming="CharacterEllipsis"
+                            Visibility="{Binding CreatedTimeVisibility}" />
+                        <Button
+                            x:Name="DetailPinButton"
+                            Grid.Column="2"
+                            Click="DetailPinButton_Click"
+                            Style="{StaticResource QuickCaptureDetailIconButtonStyle}"
+                            VerticalAlignment="Center">
+                            <Grid Width="18" Height="18">
+                                <FontIcon x:Name="DetailPinIcon" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="{Binding ActionIconSize}" Glyph="&#xE718;" />
+                                <Border
+                                    x:Name="DetailUnpinSlash"
+                                    Width="15"
+                                    Height="1.4"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Background="{ThemeResource TextFillColorPrimaryBrush}"
+                                    CornerRadius="1"
+                                    RenderTransformOrigin="0.5,0.5"
+                                    Visibility="Collapsed">
+                                    <Border.RenderTransform>
+                                        <RotateTransform Angle="-45" />
+                                    </Border.RenderTransform>
+                                </Border>
+                            </Grid>
+                        </Button>
+                        <Button
+                            Grid.Column="3"
+                            Click="DetailCopyButton_Click"
+                            Style="{StaticResource QuickCaptureDetailIconButtonStyle}"
+                            ToolTipService.ToolTip="{Binding DetailCopyText}"
+                            VerticalAlignment="Center">
+                            <FontIcon FontSize="{Binding ActionIconSize}" Glyph="&#xE8C8;" />
+                        </Button>
+                        <Button
+                            Grid.Column="4"
+                            Click="DetailDeleteButton_Click"
+                            Style="{StaticResource QuickCaptureDetailIconButtonStyle}"
+                            ToolTipService.ToolTip="{Binding DetailDeleteText}"
+                            VerticalAlignment="Center">
+                            <FontIcon FontSize="{Binding ActionIconSize}" Glyph="&#xE74D;" />
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <Grid Grid.Row="1" Margin="0,0,0,7" RowSpacing="7">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Border
+                        x:Name="DetailMaterialSurface"
+                        Grid.Row="0"
+                        MinHeight="132"
+                        Padding="10,2,10,8"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4">
+                        <Grid RowSpacing="3">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <ScrollViewer
+                                x:Name="DetailAttachmentScroller"
+                                Grid.Row="0"
+                                MaxHeight="118"
+                                HorizontalScrollBarVisibility="Auto"
+                                HorizontalScrollMode="Enabled"
+                                VerticalScrollBarVisibility="Disabled"
+                                VerticalScrollMode="Disabled"
+                                Visibility="Collapsed">
+                                <ItemsControl x:Name="DetailAttachmentsList">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="5" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Width="116" Height="96" Loaded="QuickCaptureAttachmentPreview_Loaded">
+                                                <Button
+                                                    Padding="3"
+                                                    HorizontalContentAlignment="Stretch"
+                                                    VerticalContentAlignment="Stretch"
+                                                    Click="DetailOpenAttachmentButton_Click"
+                                                    Style="{StaticResource SubtleButtonStyle}">
+                                                    <Grid RowSpacing="2">
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="68" />
+                                                            <RowDefinition Height="*" />
+                                                        </Grid.RowDefinitions>
+                                                        <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}" CornerRadius="3">
+                                                            <Grid>
+                                                                <Image Source="{Binding Thumbnail}" Stretch="Uniform" Visibility="{Binding ThumbnailVisibility}" />
+                                                                <FontIcon FontSize="24" Glyph="{Binding Glyph}" Visibility="{Binding FileIconVisibility}" />
+                                                            </Grid>
+                                                        </Border>
+                                                        <TextBlock Grid.Row="1" FontSize="{Binding ElementName=ItemsListView, Path=DataContext.SecondaryTextSize}" MaxLines="1" Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" />
+                                                    </Grid>
+                                                </Button>
+                                                <StackPanel
+                                                    Margin="3"
+                                                    HorizontalAlignment="Right"
+                                                    VerticalAlignment="Top"
+                                                    Canvas.ZIndex="2"
+                                                    Orientation="Horizontal"
+                                                    Spacing="3">
+                                                    <Button
+                                                        AutomationProperties.Name="{Binding ElementName=ItemsListView, Path=DataContext.DetailCopyImageText}"
+                                                        Click="QuickCaptureAttachmentCopyButton_Click"
+                                                        Style="{StaticResource QuickCaptureAttachmentActionButtonStyle}"
+                                                        ToolTipService.ToolTip="{Binding ElementName=ItemsListView, Path=DataContext.DetailCopyImageText}"
+                                                        Visibility="{Binding ImageCopyVisibility}">
+                                                        <FontIcon FontSize="10" Glyph="&#xE8C8;" />
+                                                    </Button>
+                                                    <Button
+                                                        AutomationProperties.Name="{Binding ElementName=ItemsListView, Path=DataContext.DetailRemoveAttachmentText}"
+                                                        Click="DetailRemoveAttachmentButton_Click"
+                                                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                                        Style="{StaticResource QuickCaptureAttachmentActionButtonStyle}"
+                                                        ToolTipService.ToolTip="{Binding ElementName=ItemsListView, Path=DataContext.DetailRemoveAttachmentText}">
+                                                        <FontIcon FontSize="10" Glyph="&#xE74D;" />
+                                                    </Button>
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                            <TextBox
+                                x:Name="DetailBodyTextBox"
+                                Grid.Row="2"
+                                MinHeight="80"
+                                AcceptsReturn="True"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="0"
+                                FontSize="{Binding TextSize}"
+                                FontWeight="Normal"
+                                Padding="8,6"
+                                PlaceholderText="{Binding DetailBodyPlaceholderText}"
+                                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                Style="{StaticResource WidgetBorderlessInputTextBoxStyle}"
+                                TextWrapping="Wrap"
+                                VerticalContentAlignment="Top" />
+                            <Button
+                                x:Name="DetailAddFileButton"
+                                Grid.Row="1"
+                                MinHeight="32"
+                                Padding="6,3"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Click="DetailAddFileButton_Click"
+                                Style="{StaticResource SubtleButtonStyle}">
+                                <StackPanel Orientation="Horizontal" Spacing="7">
+                                    <FontIcon FontSize="{Binding ActionIconSize}" Glyph="&#xE723;" />
+                                    <TextBlock VerticalAlignment="Center" FontSize="{Binding TextSize}" Text="{Binding AddFileText}" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel Grid.Row="1" Margin="2,0,0,0" Orientation="Horizontal" Spacing="5">
+                            <Button x:Name="DefaultMaterialButton" Click="MaterialButton_Click" Style="{StaticResource QuickCaptureMaterialButtonStyle}" Tag="Default" ToolTipService.ToolTip="{Binding MaterialDefaultText}"><Border Width="18" Height="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="3" /></Button>
+                            <Button x:Name="PaperMaterialButton" Click="MaterialButton_Click" Style="{StaticResource QuickCaptureMaterialButtonStyle}" Tag="Paper" ToolTipService.ToolTip="{Binding MaterialPaperText}"><Border Width="18" Height="12" Background="#FFF4EEE2" CornerRadius="3" /></Button>
+                            <Button x:Name="YellowMaterialButton" Click="MaterialButton_Click" Style="{StaticResource QuickCaptureMaterialButtonStyle}" Tag="StickyYellow" ToolTipService.ToolTip="{Binding MaterialYellowText}"><Border Width="18" Height="12" Background="#FFFFD96A" CornerRadius="3" /></Button>
+                            <Button x:Name="RoseMaterialButton" Click="MaterialButton_Click" Style="{StaticResource QuickCaptureMaterialButtonStyle}" Tag="Rose" ToolTipService.ToolTip="{Binding MaterialRoseText}"><Border Width="18" Height="12" Background="#FFF2A7B8" CornerRadius="3" /></Button>
+                            <Button x:Name="MintMaterialButton" Click="MaterialButton_Click" Style="{StaticResource QuickCaptureMaterialButtonStyle}" Tag="Mint" ToolTipService.ToolTip="{Binding MaterialMintText}"><Border Width="18" Height="12" Background="#FFA8D8B5" CornerRadius="3" /></Button>
+                            <Button x:Name="BlueMaterialButton" Click="MaterialButton_Click" Style="{StaticResource QuickCaptureMaterialButtonStyle}" Tag="MistBlue" ToolTipService.ToolTip="{Binding MaterialBlueText}"><Border Width="18" Height="12" Background="#FFA9C7E8" CornerRadius="3" /></Button>
+                    </StackPanel>
+                </Grid>
+
+            </Grid>
+                </Grid>
+            </controls:WidgetShell.ShellContent>
+        </controls:WidgetShell>
+
+        <Border
+            x:Name="StatusToast"
+            Grid.Row="1"
+            Canvas.ZIndex="10"
+            Margin="12,0,12,12"
+            Style="{StaticResource WidgetCompactToastStyle}">
+            <StackPanel
+                Orientation="Horizontal"
+                Spacing="10">
+                <TextBlock
+                    x:Name="StatusToastText"
+                    FontSize="{Binding TextSize}"
+                    MaxLines="2"
+                    TextAlignment="Center"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="Wrap"
+                    VerticalAlignment="Center" />
+                <Button
+                    x:Name="StatusToastActionButton"
+                    Click="StatusToastActionButton_Click"
+                    Style="{StaticResource WidgetToastActionButtonStyle}"
+                    Visibility="Collapsed" />
+            </StackPanel>
+        </Border>
+
+        <controls:WidgetInlineEditor
+            x:Name="QuickCaptureInlineEditor"
+            Grid.Row="1"
+            Canvas.ZIndex="20"
+            Margin="10,6,6,8"
+            CancelRequested="EditCancelButton_Click"
+            CommandFontSize="{Binding SegmentTextSize}"
+            EditorFontSize="{Binding TextSize}"
+            EditorKeyDown="EditTextBox_KeyDown"
+            SaveRequested="EditSaveButton_Click"
+            TitleFontSize="{Binding TextSize}"
+            Visibility="Collapsed">
+        </controls:WidgetInlineEditor>
+
+        <Grid
+            x:Name="ResizeGrid"
+            Grid.RowSpan="2"
+            IsHitTestVisible="True">
+            <Border x:Name="ResizeTop" Height="6" VerticalAlignment="Top" Background="Transparent" Tag="Top" PointerPressed="ResizeBorder_PointerPressed" />
+            <Border x:Name="ResizeBottom" Height="6" VerticalAlignment="Bottom" Background="Transparent" Tag="Bottom" PointerPressed="ResizeBorder_PointerPressed" />
+            <Border x:Name="ResizeLeft" Width="6" HorizontalAlignment="Left" Background="Transparent" Tag="Left" PointerPressed="ResizeBorder_PointerPressed" />
+            <Border x:Name="ResizeRight" Width="6" HorizontalAlignment="Right" Background="Transparent" Tag="Right" PointerPressed="ResizeBorder_PointerPressed" />
+            <Border x:Name="ResizeTopLeft" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent" Tag="TopLeft" PointerPressed="ResizeBorder_PointerPressed" />
+            <Border x:Name="ResizeTopRight" Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent" Tag="TopRight" PointerPressed="ResizeBorder_PointerPressed" />
+            <Border x:Name="ResizeBottomLeft" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" Tag="BottomLeft" PointerPressed="ResizeBorder_PointerPressed" />
+            <Border x:Name="ResizeBottomRight" Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Transparent" Tag="BottomRight" PointerPressed="ResizeBorder_PointerPressed" />
+        </Grid>
+    </Grid>
+</views:WidgetWindowBase>

@@ -3,13 +3,13 @@ using System.Globalization;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text.Json;
-using DeskBox.Models;
+using BentoDesk.Models;
 
-namespace DeskBox.Services;
+namespace BentoDesk.Services;
 
 public sealed class UpdateService : IDisposable
 {
-    public const string DefaultManifestUrl = "https://update.deskbox.app/deskbox/v1/stable/win-x64.json";
+    public const string DefaultManifestUrl = "https://update.bentodesk.app/bentodesk/v1/stable/win-x64.json";
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -268,7 +268,7 @@ public sealed class UpdateService : IDisposable
     {
         return Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "DeskBox",
+            "BentoDesk",
             "updates");
     }
 
@@ -280,7 +280,7 @@ public sealed class UpdateService : IDisposable
 
         if (string.IsNullOrWhiteSpace(fileName))
         {
-            fileName = "DeskBox_Update.exe";
+            fileName = "BentoDesk_Update.exe";
         }
 
         foreach (char invalid in Path.GetInvalidFileNameChars())

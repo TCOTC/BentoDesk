@@ -1,8 +1,8 @@
-# DeskBox 在线更新方案
+# BentoDesk 在线更新方案
 
 ## 背景
 
-DeskBox 当前是 WinUI 3 / .NET 10 桌面应用，发布方式为 Inno Setup 安装包。安装包支持覆盖安装，并会保留用户设置、格子配置和收纳目录内容。因此第一阶段不建议做复杂的差分更新或热替换，优先采用“检查更新 -> 展示更新日志 -> 下载新版安装包 -> 校验 -> 启动安装器覆盖安装”的稳定方案。
+BentoDesk 当前是 WinUI 3 / .NET 10 桌面应用，发布方式为 Inno Setup 安装包。安装包支持覆盖安装，并会保留用户设置、格子配置和收纳目录内容。因此第一阶段不建议做复杂的差分更新或热替换，优先采用“检查更新 -> 展示更新日志 -> 下载新版安装包 -> 校验 -> 启动安装器覆盖安装”的稳定方案。
 
 用户已有一台 VPS 和备案域名，后续还计划建设官网。国内访问 GitHub 不稳定，因此更新清单和安装包下载应优先走自有域名。
 
@@ -19,12 +19,12 @@ DeskBox 当前是 WinUI 3 / .NET 10 桌面应用，发布方式为 Inno Setup �
 
 不能直接复用的地方：
 
-- 没有发现现成的 DeskBox 更新服务。
+- 没有发现现成的 BentoDesk 更新服务。
 - 旧 Nginx 配置没有 HTTPS 段，正式更新必须使用 HTTPS。
-- 旧配置服务的是 `sallo-research`，路径和站点名称都需要为 DeskBox 重新规划。
+- 旧配置服务的是 `sallo-research`，路径和站点名称都需要为 BentoDesk 重新规划。
 - `hosts` 文件主要是内网/测试域名映射，对面向用户的更新服务没有直接价值。
 
-结论：这份备份可以作为“恢复 VPS 登录和参考 Nginx 配置”的线索，但 DeskBox 更新系统需要新建目录、域名和发布流程。
+结论：这份备份可以作为“恢复 VPS 登录和参考 Nginx 配置”的线索，但 BentoDesk 更新系统需要新建目录、域名和发布流程。
 
 ## 推荐部署结构
 
@@ -35,14 +35,14 @@ DeskBox 当前是 WinUI 3 / .NET 10 桌面应用，发布方式为 Inno Setup �
 
 也可以先用一个域名：
 
-- `https://deskbox.your-domain.com/update/stable/win-x64.json`
-- `https://deskbox.your-domain.com/download/DeskBox_Setup_1.0.5_x64.exe`
-- `https://deskbox.your-domain.com/releases/1.0.5`
+- `https://bentodesk.your-domain.com/update/stable/win-x64.json`
+- `https://bentodesk.your-domain.com/download/BentoDesk_Setup_1.0.5_x64.exe`
+- `https://bentodesk.your-domain.com/releases/1.0.5`
 
 第一版更推荐静态文件方案，不需要数据库和后端服务：
 
 ```text
-/var/www/deskbox/
+/var/www/bentodesk/
   index.html
   update/
     stable/
@@ -52,7 +52,7 @@ DeskBox 当前是 WinUI 3 / .NET 10 桌面应用，发布方式为 Inno Setup �
     1.0.5.json
     1.0.5.html
   downloads/
-    DeskBox_Setup_1.0.5_x64.exe
+    BentoDesk_Setup_1.0.5_x64.exe
 ```
 
 后续官网复杂后，再把官网前端、后台、更新清单分开即可。
@@ -62,7 +62,7 @@ DeskBox 当前是 WinUI 3 / .NET 10 桌面应用，发布方式为 Inno Setup �
 客户端检查更新时请求：
 
 ```text
-GET https://update.your-domain.com/deskbox/v1/stable/win-x64.json
+GET https://update.your-domain.com/bentodesk/v1/stable/win-x64.json
 ```
 
 返回示例：
@@ -78,15 +78,15 @@ GET https://update.your-domain.com/deskbox/v1/stable/win-x64.json
   "force": false,
   "rolloutPercent": 100,
   "download": {
-    "url": "https://download.your-domain.com/deskbox/DeskBox_Setup_1.0.5_x64.exe",
-    "fileName": "DeskBox_Setup_1.0.5_x64.exe",
+    "url": "https://download.your-domain.com/bentodesk/BentoDesk_Setup_1.0.5_x64.exe",
+    "fileName": "BentoDesk_Setup_1.0.5_x64.exe",
     "size": 22546453,
     "sha256": "..."
   },
   "releaseNotes": {
-    "title": "DeskBox 1.0.5",
+    "title": "BentoDesk 1.0.5",
     "summary": "优化上传场景、快捷键唤起和收纳目录入口。",
-    "url": "https://deskbox.your-domain.com/releases/1.0.5",
+    "url": "https://bentodesk.your-domain.com/releases/1.0.5",
     "items": [
       {
         "type": "feature",
@@ -140,7 +140,7 @@ GET https://update.your-domain.com/deskbox/v1/stable/win-x64.json
 2. 对比本地版本和 `latestVersion`。
 3. 有新版本时展示更新日志。
 4. 用户点击下载。
-5. 下载到 `%LocalAppData%/DeskBox/updates/`。
+5. 下载到 `%LocalAppData%/BentoDesk/updates/`。
 6. 下载完成后计算 SHA-256。
 7. 校验通过后启动安装器。
 8. 当前应用退出。
@@ -176,21 +176,21 @@ GET https://update.your-domain.com/deskbox/v1/stable/win-x64.json
 比如所有版本都访问：
 
 ```text
-https://update.your-domain.com/deskbox/v1/stable/win-x64.json
+https://update.your-domain.com/bentodesk/v1/stable/win-x64.json
 ```
 
 以后换 VPS、换对象存储、换 CDN，只要保持这个域名和路径仍能访问，老版本就能继续检查更新。
 
 为了兼容老版本：
 
-- 不要删除旧的 `/deskbox/v1/...` 路径。
+- 不要删除旧的 `/bentodesk/v1/...` 路径。
 - 新字段只追加，不改变旧字段含义。
 - 旧安装包和旧 release notes 至少保留一段时间。
 - 如果必须换域名，旧域名要长期保留并返回跳转或新的清单。
 
 ## 成本预估
 
-当前 DeskBox 安装包大约 22.5 MB。
+当前 BentoDesk 安装包大约 22.5 MB。
 
 粗略流量：
 

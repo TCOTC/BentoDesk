@@ -2,13 +2,13 @@
 
 Last updated: 2026-07-01
 
-This document is the working checklist for moving DeskBox UI toward a more polished WinUI / Fluent style.
+This document is the working checklist for moving BentoDesk UI toward a more polished WinUI / Fluent style.
 
 The product rule is:
 
 1. Use Windows Community Toolkit controls when they provide a better, standard Fluent control.
 2. Use WinUI native controls when Toolkit does not add value.
-3. Keep custom controls only for DeskBox-specific behavior or visuals that no standard control covers.
+3. Keep custom controls only for BentoDesk-specific behavior or visuals that no standard control covers.
 
 The goal is not to "use Toolkit everywhere" mechanically. The goal is to make the UI feel native, consistent, and maintainable while keeping desktop-widget behavior stable.
 
@@ -58,7 +58,7 @@ Before each migration:
 After each migration:
 
 - Build with:
-  `dotnet build src\DeskBox\DeskBox.csproj -c Debug -p:UseAppHost=false -p:OutDir=D:\project\wingezi\artifacts\build-check-out\`
+  `dotnet build src\BentoDesk\BentoDesk.csproj -c Debug -p:UseAppHost=false -p:OutDir=D:\project\wingezi\artifacts\build-check-out\`
 - Check light theme, dark theme, Chinese, English, narrow settings window, reset defaults, and existing saved settings.
 - Launch and visually inspect. Settings rows especially need text wrapping and control alignment checks.
 
@@ -82,7 +82,7 @@ After each migration:
 | Large destructive confirmations | `ContentDialog` | WinUI `ContentDialog` | none | Keep | Use only for app-wide destructive actions. |
 | Text input | WinUI `TextBox` | Keep WinUI native | none | Keep | Improve styles, not control type. |
 | Date selection | WinUI date picker / custom flyout | Prefer WinUI native picker | none | Review | Avoid oversized dialogs inside small widgets. |
-| File grid | `GridView` + custom item visuals | Keep custom item template | none | Keep | Core DeskBox file behavior. |
+| File grid | `GridView` + custom item visuals | Keep custom item template | none | Keep | Core BentoDesk file behavior. |
 | Widget shell | Custom `WidgetShell` | Keep custom | none | Keep | Owns chrome, drag, resize, overlay/hidden modes. |
 | Widget animations | Custom `WidgetTrayAnimationController` | Keep custom | none | Keep | Desktop-window animation behavior is product-specific. |
 | Music visualizer | Custom XAML/C# visuals | Keep custom | none | Keep | Toolkit does not cover this product visual. |
@@ -399,26 +399,26 @@ Validation:
 
 Settings migration:
 
-- `src/DeskBox/Views/SettingsWindow.xaml`
-- `src/DeskBox/Views/SettingsWindow.xaml.cs`
-- `src/DeskBox/ViewModels/SettingsViewModel.cs`
-- `src/DeskBox/Services/LocalizationService.cs`
-- `src/DeskBox/DeskBox.csproj`
+- `src/BentoDesk/Views/SettingsWindow.xaml`
+- `src/BentoDesk/Views/SettingsWindow.xaml.cs`
+- `src/BentoDesk/ViewModels/SettingsViewModel.cs`
+- `src/BentoDesk/Services/LocalizationService.cs`
+- `src/BentoDesk/BentoDesk.csproj`
 
 Widget tab migration:
 
-- `src/DeskBox/Views/QuickCaptureWidgetWindow.xaml`
-- `src/DeskBox/Views/QuickCaptureWidgetWindow.xaml.cs`
-- `src/DeskBox/Controls/WidgetContents/TodoWidgetContent.xaml`
-- `src/DeskBox/Controls/WidgetContents/TodoWidgetContent.xaml.cs`
+- `src/BentoDesk/Views/QuickCaptureWidgetWindow.xaml`
+- `src/BentoDesk/Views/QuickCaptureWidgetWindow.xaml.cs`
+- `src/BentoDesk/Controls/WidgetContents/TodoWidgetContent.xaml`
+- `src/BentoDesk/Controls/WidgetContents/TodoWidgetContent.xaml.cs`
 
 Do not change unless the task specifically needs it:
 
-- `src/DeskBox/Controls/WidgetShell.xaml`
-- `src/DeskBox/Controls/WidgetShell.xaml.cs`
-- `src/DeskBox/Services/WidgetManager.cs`
-- `src/DeskBox/Services/WidgetTrayAnimationController.cs`
-- `src/DeskBox/Views/WidgetWindow.xaml.cs` drag/drop paths
+- `src/BentoDesk/Controls/WidgetShell.xaml`
+- `src/BentoDesk/Controls/WidgetShell.xaml.cs`
+- `src/BentoDesk/Services/WidgetManager.cs`
+- `src/BentoDesk/Services/WidgetTrayAnimationController.cs`
+- `src/BentoDesk/Views/WidgetWindow.xaml.cs` drag/drop paths
 
 ## Current Backups
 

@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
-$project = Join-Path $repoRoot "src\DeskBox\DeskBox.csproj"
+$project = Join-Path $repoRoot "src\BentoDesk\BentoDesk.csproj"
 $dotnetFromRepo = Join-Path $repoRoot ".codex-temp\dotnet10\dotnet.exe"
 $dotnet = if (Test-Path $dotnetFromRepo) { $dotnetFromRepo } else { "dotnet" }
 $runtimeIdentifier = if ($Platform -eq "ARM64") { "win-arm64" } else { "win-x64" }
@@ -33,8 +33,8 @@ $signingEnabled = if ($SignPackage.IsPresent) { "true" } else { "false" }
 $properties = @(
     "-p:Platform=$Platform",
     "-p:RuntimeIdentifier=$runtimeIdentifier",
-    "-p:DeskBoxDistribution=Store",
-    "-p:DeskBoxCreateMsixPackage=true",
+    "-p:BentoDeskDistribution=Store",
+    "-p:BentoDeskCreateMsixPackage=true",
     "-p:SelfContained=true",
     "-p:PublishSingleFile=false",
     "-p:PublishTrimmed=false",

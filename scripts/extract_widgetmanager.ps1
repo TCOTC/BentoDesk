@@ -1,6 +1,6 @@
 # Extract methods from WidgetManager.cs into 4 partial class files
 param(
-    [string]$SourceFile = "src/DeskBox/Services/WidgetManager.cs"
+    [string]$SourceFile = "src/BentoDesk/Services/WidgetManager.cs"
 )
 
 $lines = Get-Content $SourceFile -Encoding UTF8
@@ -39,9 +39,9 @@ $groups = @{
         'IsCursorOverAnyWidget',
         'IsCursorOverWindow',
         'TrayLayerRestoreTimer_Tick',
-        'IsPointerOverDeskBoxWindow',
-        'IsForegroundDeskBoxWindow',
-        'IsDeskBoxForegroundWindow',
+        'IsPointerOverBentoDeskWindow',
+        'IsForegroundBentoDeskWindow',
+        'IsBentoDeskForegroundWindow',
         'IsPointerOverTaskbar',
         'IsTaskbarWindow',
         'IsDesktopShellWindow',
@@ -70,8 +70,8 @@ $groups = @{
         'GetExistingMappedWidgetShortcutPath',
         'BuildAvailableMappedShortcutPath',
         'CanUseMappedShortcutPath',
-        'IsDeskBoxMappedWidgetShortcut',
-        'GetDeskBoxMappedWidgetShortcutId',
+        'IsBentoDeskMappedWidgetShortcut',
+        'GetBentoDeskMappedWidgetShortcutId',
         'BuildMappedWidgetShortcutDescription',
         'ApplyWidgetRemovalActionAsync',
         'MoveManagedFolderContentsToDesktopAsync',
@@ -253,18 +253,18 @@ foreach ($groupName in $groups.Keys) {
 
     # Write the partial file
     $usingLines = @(
-        "// Copyright (c) DeskBox. All rights reserved.",
+        "// Copyright (c) BentoDesk. All rights reserved.",
         "",
-        "using DeskBox.Models;",
-        "using DeskBox.Helpers;",
-        "using DeskBox.Controls.WidgetContents;",
-        "using DeskBox.ViewModels;",
-        "using DeskBox.Views;",
+        "using BentoDesk.Models;",
+        "using BentoDesk.Helpers;",
+        "using BentoDesk.Controls.WidgetContents;",
+        "using BentoDesk.ViewModels;",
+        "using BentoDesk.Views;",
         "using Microsoft.UI.Dispatching;",
         "using Microsoft.UI.Windowing;",
         "using Microsoft.UI.Xaml;",
         "",
-        "namespace DeskBox.Services;",
+        "namespace BentoDesk.Services;",
         "",
         "/// <summary>",
         "/// Partial class containing $groupName logic for WidgetManager.",
@@ -292,7 +292,7 @@ foreach ($groupName in $groups.Keys) {
 
     $output.Add("}")
 
-    $outputPath = "src/DeskBox/Services/WidgetManager.$groupName.cs"
+    $outputPath = "src/BentoDesk/Services/WidgetManager.$groupName.cs"
     $output -join "`r`n" | Set-Content $outputPath -Encoding UTF8 -NoNewline
     Write-Host "Created: $outputPath ($($output.Count) lines)`n"
 }

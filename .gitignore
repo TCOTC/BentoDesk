@@ -40,17 +40,17 @@ build_*.txt
 # CI test results
 .github-test-results-*/
 
-# Old website (replaced by deskbox-site)
+# Old website (replaced by bentodesk-site)
 website/
 
 # Website source moved to private repository
-deskbox-site/
+bentodesk-site/
 deploy.ps1
 ssh_run.ps1
 fail2ban-nginx.conf
-deskbox-site/node_modules/
-deskbox-site/.next/
-deskbox-site/out/
+bentodesk-site/node_modules/
+bentodesk-site/.next/
+bentodesk-site/out/
 
 # Local backup patches
 backups/

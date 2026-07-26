@@ -5,11 +5,11 @@ Created: 2026-06-17
 
 ## Goal
 
-Add a configurable global hotkey that triggers the same behavior as left-clicking the DeskBox tray icon:
+Add a configurable global hotkey that triggers the same behavior as left-clicking the BentoDesk tray icon:
 
 - If widgets are hidden behind other windows, temporarily raise them.
 - Pointer movement should not restore widget layering.
-- Clicking another non-DeskBox window should restore widgets to desktop level.
+- Clicking another non-BentoDesk window should restore widgets to desktop level.
 - If widgets are already raised from the tray, use the existing tray-left-click toggle behavior.
 
 ## Recommended Default
@@ -56,8 +56,8 @@ Suggested message:
 Limitations:
 
 - Windows does not expose which app owns an already registered hotkey.
-- DeskBox should not claim to identify the occupying app.
-- DeskBox should not force override another app's global hotkey.
+- BentoDesk should not claim to identify the occupying app.
+- BentoDesk should not force override another app's global hotkey.
 
 ## Non-Goals
 
@@ -69,7 +69,7 @@ Reasons:
 
 - Keyboard hooks are heavier than needed for this feature.
 - Hooks can interfere with other apps, games, full-screen windows, elevated windows, and security software.
-- The native global hotkey API is safer and better aligned with DeskBox as a lightweight desktop tool.
+- The native global hotkey API is safer and better aligned with BentoDesk as a lightweight desktop tool.
 
 ## Implementation Notes
 

@@ -1,5 +1,5 @@
-$file = "src\DeskBox\Views\WidgetWindow.xaml.cs"
-$newFile = "src\DeskBox\Views/WidgetWindow.ItemSurface.cs"
+$file = "src\BentoDesk\Views\WidgetWindow.xaml.cs"
+$newFile = "src\BentoDesk\Views/WidgetWindow.ItemSurface.cs"
 $content = [System.IO.File]::ReadAllText((Resolve-Path $file))
 $lines = $content -split "`r`n|`r|`n"
 
@@ -58,18 +58,18 @@ foreach ($m in $methods) {
 
 # Build the new partial class file
 $header = @"
-// Copyright (c) DeskBox. All rights reserved.
+// Copyright (c) BentoDesk. All rights reserved.
 
-using DeskBox.Helpers;
-using DeskBox.Models;
-using DeskBox.Services;
+using BentoDesk.Helpers;
+using BentoDesk.Models;
+using BentoDesk.Services;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 
-namespace DeskBox.Views;
+namespace BentoDesk.Views;
 
 /// <summary>
 /// Partial class containing widget item surface styling, brush cache, and pointer state logic.

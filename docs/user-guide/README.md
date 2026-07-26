@@ -1,17 +1,17 @@
 ---
-title: "DeskBox 用户帮助中心"
-description: "DeskBox 1.3.0 官方中文使用指南，覆盖安装、文件格子、待办、随记、胶囊模式、自动叠放、外观设置、备份恢复、进阶工作流与故障排查。"
+title: "BentoDesk 用户帮助中心"
+description: "BentoDesk 1.3.0 官方中文使用指南，覆盖安装、文件格子、待办、随记、胶囊模式、自动叠放、外观设置、备份恢复、进阶工作流与故障排查。"
 version: "1.3.0"
 updated: "2026-07-19"
 ---
 
-# DeskBox 用户帮助中心
+# BentoDesk 用户帮助中心
 
-这组文档面向第一次使用 DeskBox 的用户，也适合已经完成基础配置、希望进一步整理桌面工作流的人。
+这组文档面向第一次使用 BentoDesk 的用户，也适合已经完成基础配置、希望进一步整理桌面工作流的人。
 
-DeskBox 是一款 Windows 11 桌面整理工具。它通过文件格子、映射文件夹、待办、随记、音乐、天气、胶囊模式和自动叠放，为原生 Windows 桌面补充一层轻量整理能力。文件仍然是普通文件，资源管理器仍然是主要文件管理工具。
+BentoDesk 是一款 Windows 11 桌面整理工具。它通过文件格子、映射文件夹、待办、随记、音乐、天气、胶囊模式和自动叠放，为原生 Windows 桌面补充一层轻量整理能力。文件仍然是普通文件，资源管理器仍然是主要文件管理工具。
 
-> [图片占位：帮助中心首图。展示 DeskBox 完整桌面、设置窗口和一个胶囊组合栏，右下角标注版本 1.3.0]
+> [图片占位：帮助中心首图。展示 BentoDesk 完整桌面、设置窗口和一个胶囊组合栏，右下角标注版本 1.3.0]
 
 ## 按使用阶段阅读
 
@@ -42,7 +42,7 @@ DeskBox 是一款 Windows 11 桌面整理工具。它通过文件格子、映射
 
 ### 主要使用待办和随记
 
-阅读 03、04 和 08。重点理解附件的「关联原路径」与「复制到 DeskBox」，以及备份能够保护哪些数据。
+阅读 03、04 和 08。重点理解附件的「关联原路径」与「复制到 BentoDesk」，以及备份能够保护哪些数据。
 
 ### 想使用胶囊和自动叠放
 
@@ -51,18 +51,18 @@ DeskBox 是一款 Windows 11 桌面整理工具。它通过文件格子、映射
 ## 文档约定
 
 - 菜单路径使用 `设置 > 分类 > 页面` 表示。
-- 「格子」是 DeskBox 桌面窗口的统称。
+- 「格子」是 BentoDesk 桌面窗口的统称。
 - 「收起状态」和「胶囊」指同一种紧凑显示状态。
 - 「随记」在部分代码或旧资料中可能写作 Quick Capture，用户界面统一使用「随记」。
 - 文档中的设置名称以简体中文界面为准，切换 English 后位置和作用不变。
 
 ## 适用版本
 
-本文档对应 DeskBox 1.3.0、Windows 11 x64、.NET 10 和 Windows App SDK 2.2。后续版本调整界面或默认值时，应同步更新文档顶部的版本和日期。
+本文档对应 BentoDesk 1.3.0、Windows 11 x64、.NET 10 和 Windows App SDK 2.2。后续版本调整界面或默认值时，应同步更新文档顶部的版本和日期。
 
 官方信息
 
-- 官网：<https://deskbox.fun>
-- GitHub：<https://github.com/Tianyu199509/DeskBox>
-- 1.3.0 下载：<https://github.com/Tianyu199509/DeskBox/releases/tag/v1.3.0>
+- 官网：<https://github.com/TCOTC/BentoDesk>
+- GitHub：<https://github.com/TCOTC/BentoDesk>
+- 1.3.0 下载：<https://github.com/TCOTC/BentoDesk/releases/tag/v1.3.0>
 

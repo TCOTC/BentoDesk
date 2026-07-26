@@ -1,6 +1,6 @@
-# DeskBox 待办重复任务设计
+# BentoDesk 待办重复任务设计
 
-本文档用于定义 DeskBox `待办重复任务` 的第一阶段实现方案，目标是：
+本文档用于定义 BentoDesk `待办重复任务` 的第一阶段实现方案，目标是：
 
 1. 保持当前 Todo 的轻量、原生、桌面化体验。
 2. 在不引入重型项目管理复杂度的前提下，补齐高频刚需。
@@ -12,7 +12,7 @@
 
 ### 1. 产品目标
 
-DeskBox 的重复任务，不是为了追求和 Todoist / TickTick 同级别规则系统，而是为了解决最常见的桌面场景：
+BentoDesk 的重复任务，不是为了追求和 Todoist / TickTick 同级别规则系统，而是为了解决最常见的桌面场景：
 
 - 每天要做的事
 - 每周固定要做的事
@@ -114,7 +114,7 @@ DeskBox 的重复任务，不是为了追求和 Todoist / TickTick 同级别规�
 - 改重复模式：只影响当前任务及它未来生成出的后续任务
 - 清除截止时间：自动清除重复模式
 
-这个语义简单，也符合 DeskBox 当前轻量定位。
+这个语义简单，也符合 BentoDesk 当前轻量定位。
 
 ## 四、数据结构设计
 
@@ -354,16 +354,16 @@ public TodoRecurrence? Recurrence { get; set; }
 
 ### 1. 数据层
 
-- `src/DeskBox/Models/TodoItem.cs`
+- `src/BentoDesk/Models/TodoItem.cs`
 - 新增 `TodoRecurrence.cs`
-- `src/DeskBox/Models/TodoWidgetData.cs`
-- `src/DeskBox/Services/TodoWidgetStore.cs`
+- `src/BentoDesk/Models/TodoWidgetData.cs`
+- `src/BentoDesk/Services/TodoWidgetStore.cs`
 
 ### 2. 逻辑层
 
 建议新增一个纯计算服务：
 
-`src/DeskBox/Services/TodoRecurrenceService.cs`
+`src/BentoDesk/Services/TodoRecurrenceService.cs`
 
 职责：
 
@@ -458,4 +458,4 @@ public TodoRecurrence? Recurrence { get; set; }
 2. `完成后推进稳定`
 3. `不生成脏的下一次任务`
 
-只要这三点做好，DeskBox 的 Todo 就会从“桌面轻待办”迈到“可以长期养成使用习惯”的阶段，而且不会破坏你现在这套轻量原生的方向。
+只要这三点做好，BentoDesk 的 Todo 就会从“桌面轻待办”迈到“可以长期养成使用习惯”的阶段，而且不会破坏你现在这套轻量原生的方向。

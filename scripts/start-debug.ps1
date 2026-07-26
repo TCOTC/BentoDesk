@@ -19,7 +19,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
-$project = Join-Path $repoRoot "src\DeskBox\DeskBox.csproj"
+$project = Join-Path $repoRoot "src\BentoDesk\BentoDesk.csproj"
 $dotnetFromRepo = Join-Path $repoRoot ".codex-temp\dotnet10\dotnet.exe"
 $dotnet = if (Test-Path -LiteralPath $dotnetFromRepo) { $dotnetFromRepo } else { "dotnet" }
 
@@ -37,7 +37,7 @@ if ([string]::IsNullOrWhiteSpace($RuntimeIdentifier)) {
 }
 
 if (-not $NoStop.IsPresent) {
-    Get-Process -Name DeskBox -ErrorAction SilentlyContinue | Stop-Process -Force
+    Get-Process -Name BentoDesk -ErrorAction SilentlyContinue | Stop-Process -Force
     Start-Sleep -Milliseconds 800
 }
 
@@ -46,7 +46,7 @@ if ($Build.IsPresent) {
         -c $Configuration `
         -p:Platform=$Platform `
         -p:RuntimeIdentifier=$RuntimeIdentifier `
-        -p:DeskBoxDistribution=$Distribution `
+        -p:BentoDeskDistribution=$Distribution `
         -v:minimal
 
     if ($LASTEXITCODE -ne 0) {
@@ -54,11 +54,11 @@ if ($Build.IsPresent) {
     }
 }
 
-$outputDir = Join-Path $repoRoot "src\DeskBox\bin\$Platform\$Configuration\$targetFramework\$RuntimeIdentifier"
-$exe = Join-Path $outputDir "DeskBox.exe"
+$outputDir = Join-Path $repoRoot "src\BentoDesk\bin\$Platform\$Configuration\$targetFramework\$RuntimeIdentifier"
+$exe = Join-Path $outputDir "BentoDesk.exe"
 
 if (-not (Test-Path -LiteralPath $exe)) {
-    throw "DeskBox.exe was not found at $exe. Run this script with -Build first."
+    throw "BentoDesk.exe was not found at $exe. Run this script with -Build first."
 }
 
 $process = Start-Process `
