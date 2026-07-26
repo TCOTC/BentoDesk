@@ -375,16 +375,19 @@ public partial class WidgetViewModel
             .ThenBy(item => item.SortOrder)
             .ToList();
 
-        for (int start = 0; start < items.Count; start += IconHydrationBatchSize)
+        int start = 0;
+        while (start < items.Count)
         {
             if (generation != Volatile.Read(ref _itemHydrationGeneration))
             {
                 return;
             }
 
+            bool isPriority = start < IconHydrationPriorityCount;
+            int batchSize = isPriority ? IconHydrationBatchSize : IconHydrationTailBatchSize;
             var batch = items
                 .Skip(start)
-                .Take(IconHydrationBatchSize)
+                .Take(batchSize)
                 .Where(item => Items.Contains(item) && !string.IsNullOrWhiteSpace(item.Path))
                 .Select(item => HydrateIconAsync(item, generation, clearCacheBeforeLoad))
                 .ToArray();
@@ -406,7 +409,15 @@ public partial class WidgetViewModel
                 SetItemIcon(item, icon, item.Path, generation);
             }
 
-            await Task.Yield();
+            start += batchSize;
+            if (isPriority)
+            {
+                await Task.Yield();
+            }
+            else
+            {
+                await Task.Delay(IconHydrationTailYieldMs);
+            }
         }
     }
 
@@ -468,7 +479,11 @@ public partial class WidgetViewModel
 
             if (processed % FolderCountHydrationBatchSize == 0)
             {
-                await Task.Delay(FolderCountHydrationYieldMs);
+                // 首批文件夹计数尽快完成；余量沿用既有 yield，避免扫盘尖峰。
+                int yieldMs = processed <= FolderCountHydrationPriorityCount
+                    ? FolderCountHydrationYieldMs
+                    : FolderCountHydrationYieldMs + IconHydrationTailYieldMs;
+                await Task.Delay(yieldMs);
             }
         }
     }
@@ -480,16 +495,19 @@ public partial class WidgetViewModel
             .OrderBy(item => item.SortOrder)
             .ToList();
 
-        for (int start = 0; start < items.Count; start += ShellKindHydrationBatchSize)
+        int start = 0;
+        while (start < items.Count)
         {
             if (generation != Volatile.Read(ref _itemHydrationGeneration))
             {
                 return;
             }
 
+            bool isPriority = start < ShellKindHydrationPriorityCount;
+            int batchSize = isPriority ? ShellKindHydrationBatchSize : ShellKindHydrationTailBatchSize;
             var batch = items
                 .Skip(start)
-                .Take(ShellKindHydrationBatchSize)
+                .Take(batchSize)
                 .Where(item => Items.Contains(item) && !string.IsNullOrWhiteSpace(item.Path))
                 .Select(async item =>
                 {
@@ -509,7 +527,15 @@ public partial class WidgetViewModel
                     generation);
             }
 
-            await Task.Yield();
+            start += batchSize;
+            if (isPriority)
+            {
+                await Task.Yield();
+            }
+            else
+            {
+                await Task.Delay(ShellKindHydrationTailYieldMs);
+            }
         }
     }
 

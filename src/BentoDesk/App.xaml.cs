@@ -743,9 +743,6 @@ public partial class App : Application
             // A prepared restore is applied before any service reads or normalizes app data.
             BentoDeskRestoreApplyResult restoreResult = await DataBackupService.ApplyPendingRestoreAsync();
 
-            // Capture the previous session's data before any startup normalization writes.
-            await DataBackupService.CreateAutomaticSnapshotIfDueAsync();
-
             // Phase 1: Load settings (must complete first)
             await SettingsService.LoadAsync();
 
@@ -831,8 +828,8 @@ public partial class App : Application
                                 UpdateTrayLayerStateText(raised: false);
                             }
                         });
-                    DesktopDoubleClickService.RefreshRegistration();
-                    Log("[Init] DesktopDoubleClickService created");
+                    // WH_MOUSE_LL 延后到 FreeDesktop + RestoreWidgets 之后安装，避免启动重活拖慢整机输入。
+                    Log("[Init] DesktopDoubleClickService created (hook deferred)");
                 }
                 catch (Exception ex)
                 {
@@ -840,8 +837,7 @@ public partial class App : Application
                 }
             }
 
-            // Phase 3: Restore widgets (includes uncategorized default), then hide native desktop icons.
-            await WidgetManager.RestoreWidgetsAsync();
+            // Phase 3: Hide native desktop icons first, then restore widgets (avoid dual shell load).
             try
             {
                 await FreeDesktopService.StartAsync();
@@ -852,8 +848,21 @@ public partial class App : Application
                 Log($"[Init] FreeDesktop start failed: {ex}");
             }
 
+            await WidgetManager.RestoreWidgetsAsync();
+
+            // Install the low-level mouse hook only after the critical startup path settles.
+            try
+            {
+                DesktopDoubleClickService?.RefreshRegistration();
+            }
+            catch (Exception ex)
+            {
+                Log($"[Init] DesktopDoubleClickService late registration failed: {ex}");
+            }
+
             StartNativeNotificationService();
             ShowDataRestoreResultNotification(restoreResult);
+            ScheduleDeferredAutomaticSnapshot();
 
             if (!IsStartupMode && !SettingsService.Settings.HasCompletedOnboarding)
             {
@@ -945,6 +954,26 @@ public partial class App : Application
             catch (Exception ex)
             {
                 Log($"[Update] Background check crashed: {ex}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Captures an automatic snapshot after first paint so zip I/O does not contend with
+    /// widget restore and icon hydration on the startup critical path.
+    /// </summary>
+    private void ScheduleDeferredAutomaticSnapshot()
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(IsStartupMode ? TimeSpan.FromSeconds(10) : TimeSpan.FromSeconds(5));
+                await DataBackupService.CreateAutomaticSnapshotIfDueAsync();
+            }
+            catch (Exception ex)
+            {
+                Log($"[DataBackup] Deferred automatic snapshot failed: {ex}");
             }
         });
     }

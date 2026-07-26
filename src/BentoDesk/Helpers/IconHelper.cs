@@ -86,7 +86,6 @@ public static class IconHelper
 
     // Image list size flags for SHGetImageList
     private const int SHIL_EXTRALARGE = 0x2; // 48x48
-    private const int SHIL_JUMBO = 0x4;      // 256x256 (Vista+)
 
     private static readonly Guid s_iidIImageList = new("46EB5926-582E-4017-9FDF-E899822AA8B3");
 
@@ -542,8 +541,8 @@ public static class IconHelper
                 }
             }
 
-            // Get the system icon index, then extract the highest-resolution
-            // version available via SHGetImageList (Jumbo 256 → ExtraLarge 48 → Large 32).
+            // Get the system icon index, then extract a list-sized icon via SHGetImageList.
+            // Widget lists decode at ~48px; skip Jumbo (256) to cut cold-start shell/CPU cost.
             var shinfo = new SHFILEINFO();
             IntPtr hImg = SHGetFileInfo(
                 iconSource.Path,
@@ -560,15 +559,8 @@ public static class IconHelper
 
             int iconIndex = shinfo.iIcon;
 
-            // Try Jumbo (256×256) first — gives crisp icons on high-DPI displays.
-            byte[]? bytes = TryGetIconFromImageList(SHIL_JUMBO, iconIndex);
-            if (bytes is not null)
-            {
-                return bytes;
-            }
-
-            // Fall back to Extra Large (48×48).
-            bytes = TryGetIconFromImageList(SHIL_EXTRALARGE, iconIndex);
+            // Extra Large (48×48) matches list display size.
+            byte[]? bytes = TryGetIconFromImageList(SHIL_EXTRALARGE, iconIndex);
             if (bytes is not null)
             {
                 return bytes;

@@ -16,6 +16,9 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
 {
     private const int IncrementalRefreshBatchThreshold = 24;
     private const int IconHydrationBatchSize = 8;
+    private const int IconHydrationTailBatchSize = 4;
+    private const int IconHydrationPriorityCount = 32;
+    private const int IconHydrationTailYieldMs = 12;
     private const int IconHydrationRetryCount = 3;
     private static readonly TimeSpan[] s_iconHydrationRetryDelays =
     [
@@ -24,7 +27,11 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
         TimeSpan.FromMilliseconds(2600)
     ];
     private const int FolderCountHydrationBatchSize = 8;
+    private const int FolderCountHydrationPriorityCount = 32;
     private const int ShellKindHydrationBatchSize = 8;
+    private const int ShellKindHydrationTailBatchSize = 4;
+    private const int ShellKindHydrationPriorityCount = 32;
+    private const int ShellKindHydrationTailYieldMs = 12;
     private const int FolderCountHydrationYieldMs = 24;
 
     private readonly DispatcherQueue _dispatcherQueue;
