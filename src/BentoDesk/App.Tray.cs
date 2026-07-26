@@ -93,13 +93,7 @@ public partial class App
             MenuActivation = PopupActivationMode.None,
             NoLeftClickDelay = true,
             RightClickCommand = new RelayCommand(ShowTrayContextMenuFromTray),
-            LeftClickCommand = new RelayCommand(() =>
-            {
-                if (WidgetManager is not null)
-                {
-                    _ = ToggleTrayWidgetsAsync();
-                }
-            })
+            LeftClickCommand = new RelayCommand(ShowTrayContextMenuFromTray)
         };
         _trayIcon.ContextFlyout = contextMenu;
         SynchronizeSecondWindowTrayFlyout(contextMenu);
