@@ -95,7 +95,6 @@ public sealed partial class SettingsWindow : Window
             ["About"] = new("About", "Settings.Nav.About", null, "About"),
             ["FileDisplaySettings"] = new("FileDisplaySettings", "Settings.Group.FileLayout.Title", "AppearanceDetail", "AppearanceDetail"),
             ["FileStorageSettings"] = new("FileStorageSettings", "Settings.Group.FileStorage.Title", "AppearanceDetail", "AppearanceDetail"),
-            ["ManagedStorage"] = new("ManagedStorage", "Settings.ManagedStorage.PageTitle", "FileStorageSettings", "AppearanceDetail"),
             ["FileStackSettings"] = new("FileStackSettings", "Settings.FileStacks.PageTitle", "AppearanceDetail", "AppearanceDetail"),
             ["MusicSettings"] = new("MusicSettings", "Settings.Music.Title", "FeatureWidgets", "FeatureWidgets"),
             ["AppearanceMaterialSettings"] = new("AppearanceMaterialSettings", "Settings.Material.Title", "Appearance", "Appearance"),
@@ -219,7 +218,6 @@ public sealed partial class SettingsWindow : Window
     {
         CollectResponsiveRows(SettingsRoot);
         RefreshFeatureWidgetList();
-        _ = ViewModel.RefreshQuickAccessStateAsync();
         ViewModel.RefreshGlobalHotkeyState();
         RefreshGlobalHotkeyControls();
         UpdateResponsiveLayout(GetWindowWidth());
@@ -268,7 +266,6 @@ public sealed partial class SettingsWindow : Window
         Localized.UntrackTree(SettingsRoot);
         SettingsRoot.DataContext = null;
         ClearFeatureWidgetRows();
-        ManagedStorageFolderList.Children.Clear();
         ViewModel.Dispose();
         _settingRows.Clear();
         _metricRows.Clear();
@@ -423,12 +420,6 @@ public sealed partial class SettingsWindow : Window
 
         ContentHost.Width = Math.Min(ContentMaxWidth, availableContentWidth);
         ContentHost.MaxWidth = ContentMaxWidth;
-        PathActionsPanel.HorizontalAlignment = isNarrow ? HorizontalAlignment.Stretch : HorizontalAlignment.Right;
-        PathActionsPanel.Orientation = isNarrow ? Orientation.Vertical : Orientation.Horizontal;
-        OpenPathButton.HorizontalAlignment = isNarrow ? HorizontalAlignment.Stretch : HorizontalAlignment.Left;
-        PinQuickAccessButton.HorizontalAlignment = isNarrow ? HorizontalAlignment.Stretch : HorizontalAlignment.Left;
-        ChangePathButton.HorizontalAlignment = isNarrow ? HorizontalAlignment.Stretch : HorizontalAlignment.Left;
-        CleanupStorageButton.HorizontalAlignment = isNarrow ? HorizontalAlignment.Stretch : HorizontalAlignment.Left;
         AboutInfoActionsPanel.HorizontalAlignment = isNarrow ? HorizontalAlignment.Stretch : HorizontalAlignment.Right;
         AboutInfoActionsPanel.Orientation = isNarrow ? Orientation.Vertical : Orientation.Horizontal;
         AboutReasonButton.HorizontalAlignment = isNarrow ? HorizontalAlignment.Stretch : HorizontalAlignment.Left;

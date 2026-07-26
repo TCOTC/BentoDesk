@@ -162,33 +162,6 @@ public partial class WidgetViewModel
         StartItemHydration();
     }
 
-    private string CreateAvailableManagedFolderName(string displayName, string widgetId)
-    {
-        string baseFolderName = FileService.SanitizeFileSystemName(displayName);
-        if (string.IsNullOrWhiteSpace(baseFolderName))
-        {
-            baseFolderName = _localizationService.T("Widget.ManagedFolderBaseName");
-        }
-
-        string rootPath = SettingsService.NormalizeManagedStorageRootPath(_settingsService.Settings.DefaultManagedStorageRootPath);
-        var usedNames = _settingsService.Settings.Widgets
-            .Where(widget => widget.WidgetKind == WidgetKind.File &&
-                             widget.FollowsDefaultStoragePath &&
-                             !string.IsNullOrWhiteSpace(widget.ManagedFolderName) &&
-                             !string.Equals(widget.Id, widgetId, StringComparison.Ordinal))
-            .Select(widget => widget.ManagedFolderName!)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        string candidate = baseFolderName;
-        int suffix = 2;
-        while (usedNames.Contains(candidate) || Directory.Exists(Path.Combine(rootPath, candidate)))
-        {
-            candidate = $"{baseFolderName} ({suffix++})";
-        }
-
-        return candidate;
-    }
-
     private async Task LoadFolderContentsAsync(string folderPath, bool clearIconCacheBeforeHydration = false)
     {
         using var perfScope = PerformanceLogger.Measure(

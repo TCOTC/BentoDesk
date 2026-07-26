@@ -56,39 +56,8 @@ $groups = @{
         'FormatPoint'
     )
     "Storage" = @(
-        'CanCleanupManagedStorageForWidget',
-        'GetOrphanManagedStorageFolders',
-        'MoveOrphanManagedStorageFolderContentsToDesktopAsync',
-        'DeleteOrphanManagedStorageFolderAsync',
-        'RestoreOrphanManagedStorageFoldersAsync',
-        'SyncMappedWidgetShortcut',
-        'SyncStorageFolderEntries',
-        'RemoveMappedWidgetShortcut',
-        'DeleteMappedWidgetShortcut',
-        'RemoveStaleMappedWidgetShortcuts',
-        'RemoveAllMappedWidgetShortcuts',
-        'GetExistingMappedWidgetShortcutPath',
-        'BuildAvailableMappedShortcutPath',
-        'CanUseMappedShortcutPath',
-        'IsBentoDeskMappedWidgetShortcut',
-        'GetBentoDeskMappedWidgetShortcutId',
-        'BuildMappedWidgetShortcutDescription',
-        'ApplyWidgetRemovalActionAsync',
-        'MoveManagedFolderContentsToDesktopAsync',
-        'ValidateOrphanManagedStorageFolderPath',
-        'IsDefaultManagedStorageFolder',
-        'GetPossibleManagedStoragePaths',
-        'CountDirectoryEntries',
-        'BuildManagedFolderPath',
-        'GetManagedStorageRootPath',
-        'CreateManagedFolderName',
-        'IsManagedWidgetNameInUse',
-        'IsUnavailableManagedFolderPath',
-        'ShouldMoveManagedItems',
-        'UpdateDefaultManagedStorageRootAsync',
-        'SetManagedStorageMigrationBusy',
-        'RenameManagedWidgetFolderAsync',
-        'NotifyItemsMovedOutAsync'
+        'NotifyItemsMovedOutAsync',
+        'EnsureManagedWidgetDisplayNameAvailable'
     )
     "FeatureWidgets" = @(
         'GetFeatureWidget',

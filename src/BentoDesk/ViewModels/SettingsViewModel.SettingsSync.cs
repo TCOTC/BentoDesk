@@ -135,7 +135,6 @@ public partial class SettingsViewModel
             MusicEnableCoverHoverMotion = settings.MusicEnableCoverHoverMotion;
             SelectedMusicDisplayMode = SettingsService.NormalizeMusicDisplayMode(settings.MusicDisplayMode);
 
-            ManagedStorageRootPath = SettingsService.NormalizeManagedStorageRootPath(settings.DefaultManagedStorageRootPath);
             GlobalHotkeyEnabled = settings.GlobalHotkeyEnabled;
         }
         finally
@@ -151,7 +150,6 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(AccentColorDescription));
         OnPropertyChanged(nameof(FeatureWidgetEntries));
         NotifyCapsuleOverridePropertiesChanged();
-        _ = RefreshQuickAccessStateAsync();
     }
 
     private void RefreshLocalizedProperties()
@@ -179,9 +177,6 @@ public partial class SettingsViewModel
                 UpdateDetailText = GetReadyUpdateDetailText();
             }
         }
-        OnPropertyChanged(nameof(QuickAccessStatusText));
-        OnPropertyChanged(nameof(PinQuickAccessButtonText));
-        OnPropertyChanged(nameof(PinQuickAccessToolTipText));
         OnPropertyChanged(nameof(GlobalHotkeyDescription));
         OnPropertyChanged(nameof(GlobalHotkeyText));
         OnPropertyChanged(nameof(GlobalHotkeyStatusText));

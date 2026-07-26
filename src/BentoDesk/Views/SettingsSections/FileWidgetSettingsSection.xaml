@@ -61,25 +61,17 @@
             </Border>
 
             <Border Style="{StaticResource SettingsGroupStyle}">
-                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12" Margin="4">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="4">
                     <Button Grid.Column="0" Click="NestedSettingsButton_Click" Style="{StaticResource DrillDownRowStyle}" Tag="FileStorageSettings">
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                             <FontIcon Grid.Column="0" FontSize="18" Glyph="&#xE8B7;" IsHitTestVisible="False" VerticalAlignment="Center" />
                             <StackPanel Grid.Column="1" IsHitTestVisible="False" Spacing="3" VerticalAlignment="Center">
                                 <TextBlock Style="{StaticResource SettingTitleTextStyle}" svc:Localized.Key="Settings.Group.FileStorage.Title" />
-                                <TextBlock MaxLines="1" Style="{StaticResource SettingDescriptionTextStyle}" Text="{Binding ManagedStorageRootPath}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Style="{StaticResource SettingDescriptionTextStyle}" svc:Localized.Key="Settings.DropAction.Description" />
                             </StackPanel>
                         </Grid>
                     </Button>
-                    <Button
-                        Grid.Column="1"
-                        Click="OpenManagedStoragePathButton_Click"
-                        Style="{StaticResource IconActionButtonStyle}"
-                        VerticalAlignment="Center"
-                        svc:Localized.ToolTipKey="Settings.ManagedPath.OpenTooltip">
-                        <SymbolIcon Symbol="OpenFile" />
-                    </Button>
-                    <FontIcon Grid.Column="2" FontSize="12" Glyph="&#xE76C;" IsHitTestVisible="False" VerticalAlignment="Center" />
+                    <FontIcon Grid.Column="1" FontSize="12" Glyph="&#xE76C;" IsHitTestVisible="False" VerticalAlignment="Center" />
                 </Grid>
             </Border>
         </StackPanel>

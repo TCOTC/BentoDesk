@@ -297,11 +297,6 @@ public class AppSettings
     public string ManagedDropAction { get; set; } = "Move";
 
     /// <summary>
-    /// Root folder used by widgets that follow the default managed storage path.
-    /// </summary>
-    public string DefaultManagedStorageRootPath { get; set; } = string.Empty;
-
-    /// <summary>
     /// Recent organization history used for undo and quick review.
     /// </summary>
     public List<OrganizationHistoryEntry> RecentOrganizationHistory { get; set; } = [];

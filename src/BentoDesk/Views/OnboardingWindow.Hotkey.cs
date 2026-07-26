@@ -30,9 +30,6 @@ public sealed partial class OnboardingWindow
         Step4StartupToggle.IsOn = StartupService.IsEnabled();
         Step4StartupToggle.Toggled += Step4StartupToggle_Toggled;
 
-        // Storage path & pin
-        SetupStep4Storage();
-
         RefreshHotkeyChangeButton();
         Step4HotkeyChangeButton.IsEnabled = Step4HotkeyToggle.IsOn;
 

@@ -71,10 +71,6 @@ public sealed partial class SettingsWindow
         {
             UpdateBreadcrumb(route);
         }
-        if (string.Equals(_currentSettingsSection, "ManagedStorage", StringComparison.Ordinal))
-        {
-            RefreshManagedStorageFolderList();
-        }
         if (string.Equals(_currentSettingsSection, "BackupRestoreSettings", StringComparison.Ordinal))
         {
             _ = RefreshBackupSnapshotInventoryAsync();

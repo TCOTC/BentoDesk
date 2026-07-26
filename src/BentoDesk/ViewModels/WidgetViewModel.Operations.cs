@@ -302,14 +302,9 @@ public partial class WidgetViewModel
         MappedFolderPath = normalizedPath;
         OnPropertyChanged(nameof(FollowsDefaultStoragePath));
 
-        if (App.Current?.WidgetManager is { } widgetManager)
-        {
-            widgetManager.SyncMappedWidgetShortcut(Config.Id);
-        }
-
         _settingsService.UpdateWidget(Config);
-await LoadFolderContentsAsync(normalizedPath);
-await ConfigureFolderWatchersAsync(normalizedPath);
+        await LoadFolderContentsAsync(normalizedPath);
+        await ConfigureFolderWatchersAsync(normalizedPath);
         UpdateDependentProperties();
     }
 

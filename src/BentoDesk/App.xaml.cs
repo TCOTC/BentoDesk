@@ -61,7 +61,6 @@ public partial class App : Application
     private bool _traySecondWindowSyncLogged;
     private MenuFlyoutItem? _trayMapFolderItem;
     private readonly Dictionary<WidgetKind, MenuFlyoutItem> _trayCreateWidgetItems = [];
-    private MenuFlyoutItem? _trayOpenManagedStorageItem;
     private MenuFlyoutItem? _trayUpdateItem;
     private MenuFlyoutItem? _traySettingsItem;
     private MenuFlyoutItem? _trayExitItem;
@@ -842,7 +841,6 @@ public partial class App : Application
             }
 
             // Phase 3: Restore widgets (includes uncategorized default), then hide native desktop icons.
-            WidgetManager.SyncStorageFolderEntries();
             await WidgetManager.RestoreWidgetsAsync();
             try
             {

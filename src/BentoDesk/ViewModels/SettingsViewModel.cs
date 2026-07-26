@@ -83,9 +83,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private string _selectedMusicDisplayMode = SettingsService.MusicDisplayModeAuto;
     private bool _useSystemAccentColor;
     private string _accentColorHex = AccentColorHelper.DefaultAccentColorHex;
-    private string _managedStorageRootPath = SettingsService.GetDefaultManagedStorageRootPath();
-    private QuickAccessPinState _quickAccessPinState = QuickAccessPinState.Unknown;
-    private bool _isQuickAccessBusy;
     private bool _globalHotkeyEnabled;
     private string _globalHotkeyText = string.Empty;
     private string _globalHotkeyStatusText = string.Empty;
@@ -328,7 +325,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
             MusicUseArtworkBackdrop = settings.MusicUseArtworkBackdrop;
             MusicEnableCoverHoverMotion = settings.MusicEnableCoverHoverMotion;
             _selectedMusicDisplayMode = SettingsService.NormalizeMusicDisplayMode(settings.MusicDisplayMode);
-            _managedStorageRootPath = settings.DefaultManagedStorageRootPath;
         }
         finally
         {
@@ -338,7 +334,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         ApplyCachedUpdateResult();
         RefreshAccentPreview();
         RefreshDragDropPermissionDiagnostic();
-        _ = RefreshQuickAccessStateAsync();
         _settingsService.SettingsChanged += OnSettingsChanged;
         _themeService.AppearanceChanged += OnAppearanceChanged;
         _localizationService.LanguageChanged += OnLanguageChanged;

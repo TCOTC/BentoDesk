@@ -51,7 +51,6 @@ public sealed partial class SettingsWindow
             ["InteractionHotkeySettings"] = InteractionHotkeySettingsSection,
             ["InteractionHoverSettings"] = InteractionHoverSettingsSection,
             ["InteractionWindowSettings"] = InteractionWindowSettingsSection,
-            ["ManagedStorage"] = ManagedStorageSection,
             ["Maintenance"] = MaintenanceSection,
             ["BackupRestoreSettings"] = BackupRestoreSettingsSection,
             ["CompatibilityDiagnosticsSettings"] = CompatibilityDiagnosticsSettingsSection,
@@ -441,14 +440,6 @@ public sealed partial class SettingsWindow
         if (sectionTag == "FeatureWidgets")
         {
             RefreshFeatureWidgetList();
-        }
-        if (sectionTag == "ManagedStorage")
-        {
-            RefreshManagedStorageFolderList();
-        }
-        else if (sectionTag == "FileStorageSettings")
-        {
-            _ = ViewModel.RefreshQuickAccessStateAsync();
         }
         if (sectionTag == "CompatibilityDiagnosticsSettings")
         {

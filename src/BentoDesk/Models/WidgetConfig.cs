@@ -99,7 +99,8 @@ public class WidgetConfig
     public string? MappedFolderPath { get; set; }
 
     /// <summary>
-    /// Whether this widget follows the global default managed storage root path.
+    /// Whether this file widget uses desktop membership (files stay on the user desktop)
+    /// instead of mapping an arbitrary folder.
     /// </summary>
     public bool FollowsDefaultStoragePath { get; set; }
 
@@ -109,7 +110,9 @@ public class WidgetConfig
     /// </summary>
     public bool IsUncategorizedDefault { get; set; }
 
-    /// <summary>Stable subfolder name used when the widget follows the default managed storage path.</summary>
+    /// <summary>
+    /// Obsolete: private managed-folder name from the old storage model. Always <c>null</c> for desktop-membership widgets.
+    /// </summary>
     public string? ManagedFolderName { get; set; }
 
     /// <summary>How items are sorted in this widget.</summary>

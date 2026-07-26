@@ -582,7 +582,7 @@ public sealed partial class WidgetWindow
         ShowDeleteWidgetFlyout(_lastMoreFlyoutTarget ?? MoreButton, _lastMoreFlyoutPosition);
     }
 
-    private async Task ConfirmAndDeleteWidgetAsync(WidgetRemovalAction removalAction)
+    private async Task ConfirmAndDeleteWidgetAsync()
     {
         if (App.Current is not App app || app.WidgetManager is null)
         {
@@ -593,7 +593,7 @@ public sealed partial class WidgetWindow
         try
         {
             App.Log($"[WidgetDelete] Begin delete widget '{ViewModel.Name}' ({ViewModel.Config.Id})");
-            await app.WidgetManager.RemoveWidgetAsync(ViewModel.Config.Id, removalAction);
+            await app.WidgetManager.RemoveWidgetAsync(ViewModel.Config.Id);
         }
         catch (Exception ex)
         {
@@ -605,7 +605,7 @@ public sealed partial class WidgetWindow
         }
     }
 
-    private void QueueDeleteWidget(WidgetRemovalAction removalAction)
+    private void QueueDeleteWidget()
     {
         if (_deletePending)
         {
@@ -618,7 +618,7 @@ public sealed partial class WidgetWindow
         DispatcherQueue.TryEnqueue(async () =>
         {
             await Task.Delay(16);
-            await ConfirmAndDeleteWidgetAsync(removalAction);
+            await ConfirmAndDeleteWidgetAsync();
         });
     }
 }

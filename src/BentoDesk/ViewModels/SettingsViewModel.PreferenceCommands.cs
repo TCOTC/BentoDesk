@@ -44,15 +44,6 @@ public partial class SettingsViewModel
         RefreshAccentPreview();
     }
 
-    public void UpdateManagedStorageRootPath(string path)
-    {
-        string normalizedPath = SettingsService.NormalizeManagedStorageRootPath(path);
-        ManagedStorageRootPath = normalizedPath;
-        _settingsService.Settings.DefaultManagedStorageRootPath = normalizedPath;
-        _settingsService.SaveDebounced();
-        _ = RefreshQuickAccessStateAsync(showBusy: true);
-    }
-
     public async Task RestoreDefaultPreferencesAsync()
     {
         _isRestoringDefaults = true;

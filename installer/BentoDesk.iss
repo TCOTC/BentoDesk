@@ -50,13 +50,7 @@ ShowLanguageDialog=no
 Name: "chinesesimplified"; MessagesFile: "Languages\ChineseSimplified.isl"
 
 [CustomMessages]
-chinesesimplified.ConfirmStorageTitle=检测到 BentoDesk 收纳目录中仍有内容
-chinesesimplified.ConfirmStorageBody=当前包含 %1 个文件夹、%2 个文件。
-chinesesimplified.ConfirmStorageFooter=卸载 BentoDesk 不会删除这个目录，也不会删除里面的用户文件。%n请确认你已经知道这些文件的位置。是否继续卸载？
 chinesesimplified.ConfirmRemoveAppData=是否同时删除 BentoDesk 应用数据？%n%n这些数据包含设置、格子布局、随记图片缓存和日志：%1%n%n选择"否"会保留这些数据，之后重新安装 BentoDesk 时仍可继续使用。
-chinesesimplified.FolderItem=[文件夹]
-chinesesimplified.FileItem=[文件]
-chinesesimplified.MoreItems=...还有 %1 项未显示
 chinesesimplified.DependencyDownloadTitle=正在准备 BentoDesk 运行环境
 chinesesimplified.DependencyDownloadSubtitle=正在下载缺少的运行时依赖。
 chinesesimplified.DependencyInstallTitle=正在准备 BentoDesk 运行环境

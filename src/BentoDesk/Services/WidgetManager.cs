@@ -9,23 +9,6 @@ using Microsoft.UI.Xaml;
 
 namespace BentoDesk.Services;
 
-public sealed record ManagedStorageMigrationResult(
-    int AffectedWidgetCount,
-    string OldRootPath,
-    string NewRootPath);
-
-public enum WidgetRemovalAction
-{
-    RemoveWidgetOnly,
-    MoveManagedFolderContentsToDesktop,
-    DeleteManagedFolder
-}
-
-public sealed record ManagedStorageFolderCleanupCandidate(
-    string Name,
-    string Path,
-    int ItemCount);
-
 internal sealed record FeatureWidgetHandler(
     WidgetKind WidgetKind,
     Func<bool, Task<IDesktopWidgetWindow?>> CreateOrShowAsync,
@@ -78,15 +61,12 @@ internal interface IDesktopWidgetWindow
 /// </summary>
 public sealed partial class WidgetManager
 {
-    private const string ManagedShortcutDescriptionPrefix = "BentoDesk mapped widget shortcut:";
-
     private readonly SettingsService _settingsService;
     private readonly FileService _fileService;
     private readonly OrganizerService _organizerService;
     private readonly ThemeService _themeService;
     private readonly LocalizationService _localizationService;
     private readonly Func<string> _desktopPathProvider;
-    private readonly bool _recycleManagedFolderDeletes;
     private readonly WidgetRegistry _widgetRegistry;
     private readonly WidgetSessionManager _sessionManager;
     private readonly Dictionary<string, (WidgetWindow Window, WidgetViewModel ViewModel)> _widgets = new();
@@ -251,8 +231,7 @@ public sealed partial class WidgetManager
             organizerService,
             themeService,
             localizationService ?? new LocalizationService(settingsService),
-            () => Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-            recycleManagedFolderDeletes: true)
+            () => Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
     {
     }
 
@@ -261,16 +240,14 @@ public sealed partial class WidgetManager
         FileService fileService,
         OrganizerService organizerService,
         ThemeService themeService,
-        Func<string> desktopPathProvider,
-        bool recycleManagedFolderDeletes)
+        Func<string> desktopPathProvider)
         : this(
             settingsService,
             fileService,
             organizerService,
             themeService,
             null,
-            desktopPathProvider,
-            recycleManagedFolderDeletes)
+            desktopPathProvider)
     {
     }
 
@@ -280,8 +257,7 @@ public sealed partial class WidgetManager
         OrganizerService organizerService,
         ThemeService themeService,
         LocalizationService? localizationService,
-        Func<string> desktopPathProvider,
-        bool recycleManagedFolderDeletes)
+        Func<string> desktopPathProvider)
     {
         _settingsService = settingsService;
         _fileService = fileService;
@@ -289,7 +265,6 @@ public sealed partial class WidgetManager
         _themeService = themeService;
         _localizationService = localizationService ?? new LocalizationService(settingsService);
         _desktopPathProvider = desktopPathProvider;
-        _recycleManagedFolderDeletes = recycleManagedFolderDeletes;
         _widgetRegistry = WidgetRegistry.Default;
         _sessionManager = new WidgetSessionManager(App.LogVerbose);
         InitializeCapsuleArrangementState();
@@ -580,7 +555,7 @@ public sealed partial class WidgetManager
     }
 
     /// <summary>
-    /// Create a new widget backed by the default managed storage root.
+    /// Create a desktop-membership file widget (files stay on the user desktop).
     /// </summary>
     public async Task<WidgetWindow> CreateManagedWidgetAsync(string? name = null)
     {
@@ -660,7 +635,6 @@ public sealed partial class WidgetManager
         };
 
         _settingsService.Settings.Widgets.Add(config);
-        SyncMappedWidgetShortcut(config);
         await _settingsService.SaveAsync();
 
         return await CreateWidgetFromConfigAsync(config, revealAfterCreate: true);
@@ -914,7 +888,7 @@ public sealed partial class WidgetManager
     /// <summary>
     /// Remove a widget and close its window.
     /// </summary>
-    public async Task RemoveWidgetAsync(string widgetId, WidgetRemovalAction removalAction = WidgetRemovalAction.RemoveWidgetOnly)
+    public async Task RemoveWidgetAsync(string widgetId)
     {
         var config = FindConfig(widgetId);
         _deletedWidgetIds.Add(widgetId);
@@ -949,20 +923,6 @@ public sealed partial class WidgetManager
             catch (Exception ex) { App.Log($"[WidgetManager] Content dispose failed during delete: {ex.Message}"); }
             try { contentWindow.HideWindow(); } catch (Exception ex) { App.Log($"[WidgetManager] HideWindow failed during delete: {ex.Message}"); }
             try { contentWindow.Close(); } catch (Exception ex) { App.Log($"[WidgetManager] Close failed during delete: {ex.Message}"); }
-        }
-
-        if (config is not null)
-        {
-            try
-            {
-                await ApplyWidgetRemovalActionAsync(config, removalAction);
-            }
-            catch (Exception ex)
-            {
-                App.Log($"[WidgetManager] Managed folder cleanup failed while deleting widget '{widgetId}'. The widget will be removed and the folder will be kept. {ex}");
-            }
-
-            RemoveMappedWidgetShortcut(config);
         }
 
         bool wasUncategorizedDefault = config?.IsUncategorizedDefault == true;
@@ -1020,26 +980,13 @@ public sealed partial class WidgetManager
 
         if (config.FollowsDefaultStoragePath)
         {
-            await RenameManagedWidgetFolderAsync(config, newName);
-        }
-        else
-        {
-            SyncMappedWidgetShortcut(config, newName);
+            EnsureManagedWidgetDisplayNameAvailable(widgetId, newName);
+            config.ManagedFolderName = null;
         }
 
         config.Name = newName;
         config.IsDefaultTitle = false;
         _settingsService.UpdateWidget(config);
-    }
-
-    private void SyncStorageFolderEntries(string oldRootPath)
-    {
-        if (!string.IsNullOrWhiteSpace(oldRootPath))
-        {
-            RemoveAllMappedWidgetShortcuts(oldRootPath);
-        }
-
-        SyncStorageFolderEntries();
     }
 
     public void RemoveWidget(string widgetId)
@@ -1244,56 +1191,9 @@ public sealed partial class WidgetManager
         _sessionManager.MarkHidden("close-all");
     }
 
-    public int GetDefaultManagedStorageWidgetCount()
-    {
-        return _settingsService.Settings.Widgets.Count(widget =>
-            widget.WidgetKind == WidgetKind.File &&
-            widget.FollowsDefaultStoragePath &&
-            !IsDeleted(widget.Id));
-    }
-
     private WidgetConfig? FindConfig(string widgetId)
     {
         return _settingsService.Settings.Widgets.FirstOrDefault(widget => widget.Id == widgetId);
-    }
-
-    private void SyncMappedWidgetShortcut(WidgetConfig config, string? displayNameOverride = null)
-    {
-        if (config.FollowsDefaultStoragePath ||
-            string.IsNullOrWhiteSpace(config.MappedFolderPath))
-        {
-            RemoveMappedWidgetShortcut(config);
-            return;
-        }
-
-        try
-        {
-            string rootPath = GetManagedStorageRootPath();
-            Directory.CreateDirectory(rootPath);
-
-            string targetPath = Path.GetFullPath(config.MappedFolderPath);
-            string shortcutPath = GetExistingMappedWidgetShortcutPath(config, rootPath);
-            string desiredShortcutPath = BuildAvailableMappedShortcutPath(
-                displayNameOverride ?? config.Name,
-                config.Id,
-                rootPath,
-                shortcutPath);
-
-            if (!string.Equals(shortcutPath, desiredShortcutPath, StringComparison.OrdinalIgnoreCase))
-            {
-                DeleteMappedWidgetShortcut(shortcutPath, config.Id);
-                shortcutPath = desiredShortcutPath;
-            }
-
-            ShortcutHelper.CreateOrUpdateFolderShortcut(
-                shortcutPath,
-                targetPath,
-                BuildMappedWidgetShortcutDescription(config.Id));
-        }
-        catch (Exception ex)
-        {
-            App.Log($"[MappedShortcut] Failed to sync shortcut for widget '{config.Id}': {ex}");
-        }
     }
 
     private bool IsDeleted(string widgetId)

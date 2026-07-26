@@ -838,7 +838,7 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                     </StackPanel>
                 </StackPanel>
 
-                <sections:FileWidgetSettingsSection x:Name="AppearanceDetailSection" Visibility="Collapsed" NavigationRequested="SettingsSection_NavigationRequested" OpenManagedStorageRequested="OpenManagedStoragePathButton_Click" />
+                <sections:FileWidgetSettingsSection x:Name="AppearanceDetailSection" Visibility="Collapsed" NavigationRequested="SettingsSection_NavigationRequested" />
                 <StackPanel x:Name="FileDisplaySettingsSection" Visibility="Collapsed" Style="{StaticResource SectionPanelStyle}">
                     <StackPanel Margin="0,8,0,0" Spacing="4">
                         <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.DescriptionKey="Settings.ShowFileExtensions.Description" svc:Localized.HeaderKey="Settings.ShowFileExtensions.Title">
@@ -867,31 +867,13 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                     <StackPanel Margin="0,8,0,0" Spacing="4">
                         <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch" Padding="20,16" svc:Localized.HeaderKey="Settings.Group.FileStorage.Title">
                             <toolkit:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE8B7;" /></toolkit:SettingsCard.HeaderIcon>
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
-                                    <StackPanel Spacing="3" VerticalAlignment="Center">
-                                        <TextBlock Style="{StaticResource SettingTitleTextStyle}" svc:Localized.Key="Settings.DropAction.Title" />
-                                        <TextBlock Style="{StaticResource SettingDescriptionTextStyle}" TextWrapping="Wrap" svc:Localized.Key="Settings.DropAction.Description" />
-                                    </StackPanel>
-                                    <ComboBox Grid.Column="1" MinWidth="{StaticResource SettingsControlMinWidth}" ItemsSource="{Binding AvailableManagedDropActionOptions}" controls:SettingsComboBox.Value="{Binding SelectedManagedDropAction, Mode=TwoWay}" />
-                                </Grid>
-                                <TextBox IsReadOnly="True" Text="{Binding ManagedStorageRootPath, Mode=OneWay}" TextWrapping="NoWrap" />
-                                <TextBlock Style="{StaticResource SettingDescriptionTextStyle}" Text="{Binding QuickAccessStatusText}" />
-                                <StackPanel x:Name="PathActionsPanel" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8">
-                                    <Button x:Name="OpenPathButton" Click="OpenManagedStoragePathButton_Click" Style="{StaticResource ActionButtonStyle}" svc:Localized.ToolTipKey="Settings.ManagedPath.OpenTooltip">
-                                        <StackPanel Orientation="Horizontal" Spacing="8"><SymbolIcon Symbol="OpenFile" /><TextBlock svc:Localized.Key="Common.Open" /></StackPanel>
-                                    </Button>
-                                    <Button x:Name="PinQuickAccessButton" Click="PinManagedStorageToQuickAccessButton_Click" IsEnabled="{Binding CanInvokeQuickAccessAction}" Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="{Binding PinQuickAccessToolTipText}">
-                                        <StackPanel Orientation="Horizontal" Spacing="8"><SymbolIcon Symbol="Pin" /><TextBlock Text="{Binding PinQuickAccessButtonText}" /></StackPanel>
-                                    </Button>
-                                    <Button x:Name="ChangePathButton" Click="ChangeManagedStoragePathButton_Click" Style="{StaticResource ActionButtonStyle}" svc:Localized.ToolTipKey="Settings.ManagedPath.ChangeTooltip">
-                                        <StackPanel Orientation="Horizontal" Spacing="8"><SymbolIcon Symbol="Folder" /><TextBlock svc:Localized.Key="Common.Change" /></StackPanel>
-                                    </Button>
-                                    <Button x:Name="CleanupStorageButton" Click="CleanupManagedStorageButton_Click" Style="{StaticResource ActionButtonStyle}" svc:Localized.ToolTipKey="Settings.ManagedStorage.ManageTooltip">
-                                        <StackPanel Orientation="Horizontal" Spacing="8"><SymbolIcon Symbol="Setting" /><TextBlock svc:Localized.Key="Settings.ManagedStorage.Manage" /></StackPanel>
-                                    </Button>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                                <StackPanel Spacing="3" VerticalAlignment="Center">
+                                    <TextBlock Style="{StaticResource SettingTitleTextStyle}" svc:Localized.Key="Settings.DropAction.Title" />
+                                    <TextBlock Style="{StaticResource SettingDescriptionTextStyle}" TextWrapping="Wrap" svc:Localized.Key="Settings.DropAction.Description" />
                                 </StackPanel>
-                            </StackPanel>
+                                <ComboBox Grid.Column="1" MinWidth="{StaticResource SettingsControlMinWidth}" ItemsSource="{Binding AvailableManagedDropActionOptions}" controls:SettingsComboBox.Value="{Binding SelectedManagedDropAction, Mode=TwoWay}" />
+                            </Grid>
                         </toolkit:SettingsCard>
                     </StackPanel>
                 </StackPanel>
@@ -1189,54 +1171,6 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                         <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.DescriptionKey="Settings.WidgetLayerMode.Description" svc:Localized.HeaderKey="Settings.WidgetLayerMode.Title">
                             <toolkit:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE81E;" /></toolkit:SettingsCard.HeaderIcon>
                             <ComboBox MinWidth="{StaticResource SettingsControlMinWidth}" ItemsSource="{Binding AvailableWidgetLayerModeOptions}" controls:SettingsComboBox.Value="{Binding SelectedWidgetLayerMode, Mode=TwoWay}" />
-                        </toolkit:SettingsCard>
-                    </StackPanel>
-                </StackPanel>
-
-                <StackPanel
-                    x:Name="ManagedStorageSection"
-                    Visibility="Collapsed"
-                    Style="{StaticResource SectionPanelStyle}">
-                    <StackPanel Margin="0,8,0,0" Spacing="4">
-                        <toolkit:SettingsCard
-                            ContentAlignment="Vertical"
-                            HorizontalContentAlignment="Stretch"
-                            svc:Localized.HeaderKey="Settings.ManagedStorage.ListTitle">
-                            <toolkit:SettingsCard.HeaderIcon>
-                                <FontIcon Glyph="&#xE8B7;" />
-                            </toolkit:SettingsCard.HeaderIcon>
-                            <StackPanel Spacing="12">
-                                <Grid ColumnSpacing="12">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock
-                                        x:Name="ManagedStorageSummaryText"
-                                        Grid.Column="0"
-                                        VerticalAlignment="Center"
-                                        Style="{StaticResource SettingDescriptionTextStyle}" />
-                                    <Button
-                                        x:Name="ManagedStorageRefreshButton"
-                                        Grid.Column="1"
-                                        Click="RefreshManagedStorageButton_Click"
-                                        Style="{StaticResource ActionButtonStyle}"
-                                        svc:Localized.ToolTipKey="Settings.ManagedStorage.RefreshTooltip">
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <SymbolIcon Symbol="Refresh" />
-                                            <TextBlock svc:Localized.Key="Common.Refresh" />
-                                        </StackPanel>
-                                    </Button>
-                                </Grid>
-                                <Border
-                                    x:Name="ManagedStorageEmptyState"
-                                    Padding="0,4">
-                                    <TextBlock
-                                        Style="{StaticResource SettingDescriptionTextStyle}"
-                                        svc:Localized.Key="Settings.ManagedStorage.Empty" />
-                                </Border>
-                                <StackPanel x:Name="ManagedStorageFolderList" />
-                            </StackPanel>
                         </toolkit:SettingsCard>
                     </StackPanel>
                 </StackPanel>

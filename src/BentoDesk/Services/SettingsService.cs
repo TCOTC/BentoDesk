@@ -21,7 +21,6 @@ internal enum DefaultPreferencePreservationReason
     UserChoice,
     SystemIntegration,
     UserData,
-    Storage,
     RuntimeState
 }
 
@@ -214,7 +213,6 @@ public sealed class SettingsService
                 [nameof(AppSettings.WidgetCapsuleFreePlacements)] = DefaultPreferencePreservationReason.UserData,
                 [nameof(AppSettings.DeletedWidgetIds)] = DefaultPreferencePreservationReason.UserData,
                 [nameof(AppSettings.RecentOrganizationHistory)] = DefaultPreferencePreservationReason.UserData,
-                [nameof(AppSettings.DefaultManagedStorageRootPath)] = DefaultPreferencePreservationReason.Storage,
                 [nameof(AppSettings.HasCompletedOnboarding)] = DefaultPreferencePreservationReason.RuntimeState,
                 [nameof(AppSettings.LastUpdateCheckAt)] = DefaultPreferencePreservationReason.RuntimeState,
                 [nameof(AppSettings.SchemaVersion)] = DefaultPreferencePreservationReason.RuntimeState
@@ -1422,29 +1420,6 @@ settings.FocusClickedWidgetOnRaise = false;
         return FeatureWidgetSettings.Normalize(settings);
     }
 
-    public static string GetDefaultManagedStorageRootPath()
-    {
-        return Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            "BentoDesk");
-    }
-
-    public static string NormalizeManagedStorageRootPath(string? path)
-    {
-        string candidate = string.IsNullOrWhiteSpace(path)
-            ? GetDefaultManagedStorageRootPath()
-            : Environment.ExpandEnvironmentVariables(path.Trim());
-
-        try
-        {
-            return Path.GetFullPath(candidate);
-        }
-        catch
-        {
-            return GetDefaultManagedStorageRootPath();
-        }
-    }
-
     private static bool NormalizeOrganizerSettings(AppSettings settings)
     {
         bool changed = false;
@@ -1524,13 +1499,6 @@ settings.FocusClickedWidgetOnRaise = false;
             changed = true;
         }
 
-        string normalizedRootPath = NormalizeManagedStorageRootPath(settings.DefaultManagedStorageRootPath);
-        if (!string.Equals(settings.DefaultManagedStorageRootPath, normalizedRootPath, StringComparison.OrdinalIgnoreCase))
-        {
-            settings.DefaultManagedStorageRootPath = normalizedRootPath;
-            changed = true;
-        }
-
         settings.RecentOrganizationHistory ??= [];
         int originalHistoryCount = settings.RecentOrganizationHistory.Count;
         settings.RecentOrganizationHistory = settings.RecentOrganizationHistory
@@ -1562,31 +1530,26 @@ settings.FocusClickedWidgetOnRaise = false;
             entry.Items ??= [];
         }
 
+        string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
         foreach (var widget in settings.Widgets)
         {
-            if (!widget.FollowsDefaultStoragePath)
+            if (!widget.FollowsDefaultStoragePath || widget.WidgetKind != WidgetKind.File)
             {
                 continue;
             }
 
-            if (string.IsNullOrWhiteSpace(widget.ManagedFolderName) && !string.IsNullOrWhiteSpace(widget.MappedFolderPath))
+            // 桌面归属收纳格：不再拥有托管根下的私有文件夹。
+            if (!string.IsNullOrWhiteSpace(widget.ManagedFolderName))
             {
-                widget.ManagedFolderName = Path.GetFileName(widget.MappedFolderPath.TrimEnd(
-                    Path.DirectorySeparatorChar,
-                    Path.AltDirectorySeparatorChar));
+                widget.ManagedFolderName = null;
                 changed = true;
             }
 
-            if (!string.IsNullOrWhiteSpace(widget.ManagedFolderName))
+            if (!string.IsNullOrWhiteSpace(desktopPath) &&
+                !string.Equals(widget.MappedFolderPath, desktopPath, StringComparison.OrdinalIgnoreCase))
             {
-                string normalizedWidgetPath = string.IsNullOrWhiteSpace(widget.MappedFolderPath)
-                    ? Path.Combine(normalizedRootPath, widget.ManagedFolderName)
-                    : NormalizeManagedStorageRootPath(widget.MappedFolderPath);
-                if (!string.Equals(widget.MappedFolderPath, normalizedWidgetPath, StringComparison.OrdinalIgnoreCase))
-                {
-                    widget.MappedFolderPath = normalizedWidgetPath;
-                    changed = true;
-                }
+                widget.MappedFolderPath = desktopPath;
+                changed = true;
             }
         }
 

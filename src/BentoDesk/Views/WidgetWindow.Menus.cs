@@ -582,7 +582,7 @@ public sealed partial class WidgetWindow
         }
 
         _deleteWidgetFlyout?.Hide();
-        var flyout = CreateDeleteWidgetFlyout(app.WidgetManager);
+        var flyout = CreateDeleteWidgetFlyout();
         _deleteWidgetFlyout = flyout;
         flyout.Closed += (_, _) =>
         {
@@ -611,7 +611,7 @@ public sealed partial class WidgetWindow
         });
     }
 
-    private MenuFlyout CreateDeleteWidgetFlyout(WidgetManager widgetManager)
+    private MenuFlyout CreateDeleteWidgetFlyout()
     {
         var flyout = new MenuFlyout();
         flyout.ShouldConstrainToRootBounds = false;
@@ -625,71 +625,34 @@ public sealed partial class WidgetWindow
         flyout.Items.Add(titleItem);
         flyout.Items.Add(new MenuFlyoutSeparator());
 
-        bool canCleanupManagedFolder = widgetManager.CanCleanupManagedStorageForWidget(ViewModel.Config.Id);
-        if (!canCleanupManagedFolder)
+        var noteItem = new MenuFlyoutItem
         {
-            var noteItem = new MenuFlyoutItem
-            {
-                Text = _localizationService.T("Widget.DeleteWidgetNote"),
-                Icon = new FontIcon { Glyph = "\uE946" },
-                IsEnabled = false
-            };
-            flyout.Items.Add(noteItem);
-
-            var confirmItem = CreateDeleteActionItem(
-                _localizationService.T("Widget.DeleteWidgetConfirm"),
-                WidgetRemovalAction.RemoveWidgetOnly);
-            flyout.Items.Add(confirmItem);
-            flyout.Items.Add(CreateCancelDeleteItem());
-            return flyout;
-        }
-
-        var managedInfoItem = new MenuFlyoutItem
-        {
-            Text = _localizationService.T("Widget.DeleteManagedInfo"),
-            Icon = new FontIcon { Glyph = "\uE8B7" },
+            Text = _localizationService.T("Widget.DeleteWidgetNote"),
+            Icon = new FontIcon { Glyph = "\uE946" },
             IsEnabled = false
         };
-        flyout.Items.Add(managedInfoItem);
+        flyout.Items.Add(noteItem);
 
-        flyout.Items.Add(CreateDeleteActionItem(
-            _localizationService.T("Widget.KeepManagedFolder"),
-            WidgetRemovalAction.RemoveWidgetOnly,
-            "\uE8B7",
-            false));
-        flyout.Items.Add(CreateDeleteActionItem(
-            _localizationService.T("Widget.MoveBackThenDeleteFolder"),
-            WidgetRemovalAction.MoveManagedFolderContentsToDesktop,
-            "\uE8CA",
-            false));
-        flyout.Items.Add(CreateDeleteActionItem(
-            _localizationService.T("Widget.DeleteFolderToRecycleBin"),
-            WidgetRemovalAction.DeleteManagedFolder,
-            "\uE74D",
-            true));
-        flyout.Items.Add(new MenuFlyoutSeparator());
+        var confirmItem = CreateDeleteActionItem(_localizationService.T("Widget.DeleteWidgetConfirm"));
+        flyout.Items.Add(confirmItem);
         flyout.Items.Add(CreateCancelDeleteItem());
         return flyout;
     }
 
-    private MenuFlyoutItem CreateDeleteActionItem(
-        string text,
-        WidgetRemovalAction removalAction,
-        string glyph = "\uE74D",
-        bool isDanger = true)
+    private MenuFlyoutItem CreateDeleteActionItem(string text)
     {
-        var icon = new FontIcon { Glyph = glyph };
-        if (isDanger)
+        var icon = new FontIcon
         {
-            icon.Foreground = new SolidColorBrush(Colors.Red);
-        }
+            Glyph = "\uE74D",
+            Foreground = new SolidColorBrush(Colors.Red)
+        };
 
         var item = new MenuFlyoutItem
         {
             Text = text,
             Icon = icon
         };
-        item.Click += (_, _) => QueueDeleteWidget(removalAction);
+        item.Click += (_, _) => QueueDeleteWidget();
         return item;
     }
 

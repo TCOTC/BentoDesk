@@ -13,7 +13,6 @@ public static class JumpListService
     private const string ArgToggleWidgets = "--toggle-widgets";
     private const string ArgNewFolderWidget = "--new-folder-widget";
     private const string ArgOpenSettings = "--open-settings";
-    private const string ArgOpenStorage = "--open-storage";
 
     /// <summary>
     /// Register the App User Model ID so Windows associates the process
@@ -61,7 +60,6 @@ public static class JumpListService
             AddItem(jumpList, localization.T("JumpList.ToggleWidgets"), ArgToggleWidgets, "toggle");
             AddItem(jumpList, localization.T("JumpList.NewFolderWidget"), ArgNewFolderWidget, "newfolder");
             AddItem(jumpList, localization.T("JumpList.OpenSettings"), ArgOpenSettings, "settings");
-            AddItem(jumpList, localization.T("JumpList.OpenStorage"), ArgOpenStorage, "storage");
 
             await jumpList.SaveAsync();
             App.LogVerbose("[JumpList] Jump list configured successfully");
@@ -90,7 +88,7 @@ public static class JumpListService
         {
             string trimmed = part.Trim().Trim('"');
             if (trimmed is ArgToggleWidgets or ArgNewFolderWidget
-                or ArgOpenSettings or ArgOpenStorage)
+                or ArgOpenSettings)
             {
                 return trimmed;
             }
@@ -138,13 +136,6 @@ public static class JumpListService
 
                 case ArgOpenSettings:
                     app.ShowSettings();
-                    break;
-
-                case ArgOpenStorage:
-                    string path = SettingsService.NormalizeManagedStorageRootPath(
-                        app.SettingsService.Settings.DefaultManagedStorageRootPath);
-                    Directory.CreateDirectory(path);
-                    Win32Helper.OpenFile(path);
                     break;
             }
         }

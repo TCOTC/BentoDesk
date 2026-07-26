@@ -42,14 +42,6 @@ public partial class App
         };
         settingsItem.Click += async (_, _) => await RunTrayMenuActionAsync(contextMenu, OpenSettingsFromTray);
 
-        var openManagedStorageItem = new MenuFlyoutItem
-        {
-            Text = localization.T("Tray.OpenManagedStorage"),
-            Width = TrayMenuItemWidth,
-            Icon = new SymbolIcon(Symbol.Folder)
-        };
-        openManagedStorageItem.Click += async (_, _) => await RunTrayMenuActionAsync(contextMenu, OpenManagedStorageFromTray);
-
         var updateItem = new MenuFlyoutItem
         {
             Text = localization.T("Tray.UpdateAvailable"),
@@ -77,15 +69,12 @@ public partial class App
 
         contextMenu.Items.Add(mapFolderItem);
         contextMenu.Items.Add(new MenuFlyoutSeparator());
-        contextMenu.Items.Add(openManagedStorageItem);
-        contextMenu.Items.Add(new MenuFlyoutSeparator());
         contextMenu.Items.Add(updateItem);
         contextMenu.Items.Add(settingsItem);
         contextMenu.Items.Add(new MenuFlyoutSeparator());
         contextMenu.Items.Add(exitItem);
 
         _trayMapFolderItem = mapFolderItem;
-        _trayOpenManagedStorageItem = openManagedStorageItem;
         _trayUpdateItem = updateItem;
         _traySettingsItem = settingsItem;
         _trayExitItem = exitItem;
@@ -597,11 +586,6 @@ public partial class App
             _trayUpdateItem.Visibility = _hasUpdateAvailable ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        if (_trayOpenManagedStorageItem is not null)
-        {
-            _trayOpenManagedStorageItem.Text = LocalizationService.T("Tray.OpenManagedStorage");
-        }
-
         if (_trayExitItem is not null)
         {
             _trayExitItem.Text = LocalizationService.T("Tray.Exit");
@@ -672,13 +656,6 @@ public partial class App
         var settingsWindow = _settingsWindow ?? CreateSettingsWindow();
         settingsWindow.ShowWindow();
         settingsWindow.ShowSection("About");
-    }
-
-    private void OpenManagedStorageFromTray()
-    {
-        string path = SettingsService.NormalizeManagedStorageRootPath(SettingsService.Settings.DefaultManagedStorageRootPath);
-        Directory.CreateDirectory(path);
-        Win32Helper.OpenFile(path);
     }
 
     private bool IsDarkThemeActive()

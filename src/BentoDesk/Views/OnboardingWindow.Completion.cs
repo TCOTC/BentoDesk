@@ -53,15 +53,6 @@ public sealed partial class OnboardingWindow
             ? _localizationService.T("Onboarding.Step5.SummaryStartupOn")
             : _localizationService.T("Onboarding.Step5.SummaryStartupOff");
         Step5DailySummary.Text = $"{hotkeySummary} · {startupSummary}";
-
-        // Storage summary
-        string path = SettingsService.NormalizeManagedStorageRootPath(_settingsService.Settings.DefaultManagedStorageRootPath);
-        var pinState = ExplorerQuickAccessHelper.GetQuickAccessPinState(path, out _);
-        bool isPinned = pinState == QuickAccessPinState.Pinned;
-        string pinStatus = isPinned
-            ? _localizationService.T("Onboarding.Step5.SummaryPinned")
-            : _localizationService.T("Onboarding.Step5.SummaryNotPinned");
-        Step5StorageSummary.Text = $"{System.IO.Path.GetFileName(path)} · {pinStatus}";
     }
 
     // ════════════════════════════════════════════════════════════
