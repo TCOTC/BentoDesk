@@ -5,12 +5,7 @@ namespace BentoDesk.Tests;
 
 public sealed class WidgetKindCoverageTests
 {
-    private static readonly WidgetKind[] LegacyWidgetKinds = [WidgetKind.Productivity];
-
-    private static readonly WidgetKind[] ActiveWidgetKinds = Enum
-        .GetValues<WidgetKind>()
-        .Except(LegacyWidgetKinds)
-        .ToArray();
+    private static readonly WidgetKind[] ActiveWidgetKinds = Enum.GetValues<WidgetKind>();
 
     [Fact]
     public void RegistryAndContentFactory_CoverTheSameActiveWidgetKinds()
@@ -37,18 +32,6 @@ public sealed class WidgetKindCoverageTests
     }
 
     [Fact]
-    public void LegacyProductivityKind_IsNotRegisteredAsActiveContent()
-    {
-        var registry = WidgetRegistry.Default;
-        var factory = TestServices.CreateWidgetContentFactory();
-
-        Assert.False(registry.IsKnown(WidgetKind.Productivity));
-        Assert.Throws<NotSupportedException>(() => factory.GetDescriptor(WidgetKind.Productivity));
-        Assert.False(factory.HasImplementedContent(WidgetKind.Productivity));
-        Assert.False(factory.CanShowInCreateEntry(WidgetKind.Productivity));
-    }
-
-    [Fact]
     public void WindowCreatableKinds_AreImplementedAndAvailableContent()
     {
         var registry = WidgetRegistry.Default;
@@ -67,20 +50,6 @@ public sealed class WidgetKindCoverageTests
             }
 
             Assert.False(descriptor.CanShowInCreateEntry);
-        }
-    }
-
-    [Fact]
-    public void PlannedKinds_ArePlaceholderOnlyAndNotWindowCreatable()
-    {
-        var registry = WidgetRegistry.Default;
-        var factory = TestServices.CreateWidgetContentFactory();
-
-        foreach (var descriptor in factory.GetDescriptors().Where(descriptor => descriptor.IsPlanned))
-        {
-            Assert.True(descriptor.IsPlaceholderOnly);
-            Assert.True(factory.CanCreatePlaceholderContent(descriptor.WidgetKind));
-            Assert.False(registry.CanCreateWindow(descriptor.WidgetKind));
         }
     }
 }

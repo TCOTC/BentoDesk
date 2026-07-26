@@ -6,24 +6,12 @@ namespace BentoDesk.Tests;
 public sealed class WidgetRegistryTests
 {
     [Fact]
-    public void Default_KnowsFutureWidgetKindsAndCreatesImplementedWindows()
+    public void Default_KnowsImplementedWidgetKindsAndCreatesWindows()
     {
         var registry = WidgetRegistry.Default;
 
         Assert.True(registry.CanCreateWindow(WidgetKind.File));
         Assert.True(registry.CanCreateWindow(WidgetKind.Music));
-    }
-
-    [Fact]
-    public void IsAvailableForSession_RejectsFutureKindsUntilImplemented()
-    {
-        var registry = WidgetRegistry.Default;
-        var tagsWidget = new WidgetConfig
-        {
-            WidgetKind = WidgetKind.Tags
-        };
-
-        Assert.False(registry.IsAvailableForSession(tagsWidget, new AppSettings()));
     }
 
     [Fact]

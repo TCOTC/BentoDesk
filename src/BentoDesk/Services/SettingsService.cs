@@ -1483,20 +1483,8 @@ settings.FocusClickedWidgetOnRaise = false;
     {
         bool changed = false;
 
-        int removedProductivityWidgets = settings.Widgets.RemoveAll(widget => widget.WidgetKind == WidgetKind.Productivity);
-        if (removedProductivityWidgets > 0)
-        {
-            changed = true;
-        }
-
         foreach (var widget in settings.Widgets)
         {
-            if (widget.WidgetKind is WidgetKind.Productivity)
-            {
-                widget.WidgetKind = WidgetKind.File;
-                changed = true;
-            }
-
             if (!WidgetRegistry.Default.IsKnown(widget.WidgetKind))
             {
                 widget.WidgetKind = WidgetKind.File;

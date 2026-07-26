@@ -271,14 +271,10 @@ public sealed partial class WidgetTitleIcon : UserControl
         yield return LineManagedStoragePath;
         yield return LineMappedFolderPath;
         yield return LineMusicPath;
-        yield return LineTagsPath;
-        yield return LineSystemMonitorPath;
         yield return FilledDefaultPath;
         yield return FilledManagedStoragePath;
         yield return FilledMappedFolderPath;
         yield return FilledMusicPath;
-        yield return FilledTagsPath;
-        yield return FilledSystemMonitorPath;
     }
 
     private XamlPath GetMonoIconPath(WidgetTitleIconKind kind, bool filled)
@@ -289,8 +285,6 @@ public sealed partial class WidgetTitleIcon : UserControl
                 WidgetTitleIconKind.ManagedStorage => FilledManagedStoragePath,
                 WidgetTitleIconKind.MappedFolder => FilledMappedFolderPath,
                 WidgetTitleIconKind.Music => FilledMusicPath,
-                WidgetTitleIconKind.Tags => FilledTagsPath,
-                WidgetTitleIconKind.SystemMonitor => FilledSystemMonitorPath,
                 _ => FilledDefaultPath
             }
             : kind switch
@@ -298,8 +292,6 @@ public sealed partial class WidgetTitleIcon : UserControl
                 WidgetTitleIconKind.ManagedStorage => LineManagedStoragePath,
                 WidgetTitleIconKind.MappedFolder => LineMappedFolderPath,
                 WidgetTitleIconKind.Music => LineMusicPath,
-                WidgetTitleIconKind.Tags => LineTagsPath,
-                WidgetTitleIconKind.SystemMonitor => LineSystemMonitorPath,
                 _ => LineDefaultPath
             };
     }

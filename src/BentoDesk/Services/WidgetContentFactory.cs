@@ -7,7 +7,6 @@ namespace BentoDesk.Services;
 
 /// <summary>
 /// Creates widget content views without owning host windows or z-order behavior.
-/// Future widget kinds can be validated here before they become creatable windows.
 /// </summary>
 public sealed class WidgetContentFactory
 {
@@ -44,26 +43,6 @@ public sealed class WidgetContentFactory
             HasSettingsPage: true,
             SettingsSectionTag: "MusicSettings",
             ChromeCategory: WidgetChromeCategory.Display,
-            DefaultChromeMode: WidgetChromeMode.Overlay),
-        new(
-            WidgetKind.Tags,
-            "Tags",
-            "\uE8EC",
-            WidgetContentStage.Placeholder,
-            CanShowInCreateEntry: false,
-            WidgetContentAvailability.Planned,
-            "WidgetContent.Tags.StatusLabel",
-            "WidgetContent.Tags.StatusDescription"),
-        new(
-            WidgetKind.SystemMonitor,
-            "System Monitor",
-            "\uE9D9",
-            WidgetContentStage.Placeholder,
-            CanShowInCreateEntry: false,
-            WidgetContentAvailability.Planned,
-            "WidgetContent.SystemMonitor.StatusLabel",
-            "WidgetContent.SystemMonitor.StatusDescription",
-            ChromeCategory: WidgetChromeCategory.Display,
             DefaultChromeMode: WidgetChromeMode.Overlay)
     ];
 
@@ -75,21 +54,8 @@ public sealed class WidgetContentFactory
         return new ExistingWidgetContent(config, view);
     }
 
-    public IWidgetContent CreatePlaceholderContent(WidgetConfig config)
-    {
-        var descriptor = GetDescriptor(config.WidgetKind);
-        if (!descriptor.HasPlaceholderContent)
-        {
-            throw new NotSupportedException($"Widget kind '{config.WidgetKind}' does not have placeholder content.");
-        }
-
-        return new PlaceholderWidgetContent(config, descriptor);
-    }
-
     /// <summary>
     /// Creates content that is not yet attached to a production widget window.
-    /// This is a hidden pipeline path for validating future widget kinds before
-    /// they are exposed through user-facing creation flows.
     /// </summary>
     internal IWidgetContent CreateDetachedContent(
         WidgetConfig config,
@@ -177,19 +143,11 @@ public sealed class WidgetContentFactory
                descriptor.IsPlanned;
     }
 
-    public bool CanCreatePlaceholderContent(WidgetKind widgetKind)
-    {
-        return Descriptors.TryGetValue(widgetKind, out var descriptor) &&
-               descriptor.HasPlaceholderContent;
-    }
-
     private static IReadOnlyDictionary<WidgetKind, IWidgetContentProvider> CreateContentProviders()
     {
         IWidgetContentProvider[] providers =
         [
-            new MusicWidgetContentProvider(),
-            new PlaceholderWidgetContentProvider(WidgetKind.Tags),
-            new PlaceholderWidgetContentProvider(WidgetKind.SystemMonitor)
+            new MusicWidgetContentProvider()
         ];
 
         return providers.ToDictionary(provider => provider.WidgetKind);

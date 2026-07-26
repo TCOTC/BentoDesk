@@ -7,9 +7,7 @@ public sealed class WidgetContentFactoryTests
 {
     [Theory]
     [InlineData(WidgetKind.File, "BentoDesk", WidgetContentStage.Implemented, true, WidgetContentAvailability.Available)]
-    [InlineData(WidgetKind.Tags, "Tags", WidgetContentStage.Placeholder, false, WidgetContentAvailability.Planned)]
     [InlineData(WidgetKind.Music, "Music", WidgetContentStage.Implemented, false, WidgetContentAvailability.Available)]
-    [InlineData(WidgetKind.SystemMonitor, "System Monitor", WidgetContentStage.Placeholder, false, WidgetContentAvailability.Planned)]
     public void GetDescriptor_ReturnsContentMetadata(
         WidgetKind widgetKind,
         string title,
@@ -41,17 +39,13 @@ public sealed class WidgetContentFactoryTests
         Assert.Equal(
         [
             WidgetKind.File,
-            WidgetKind.Music,
-            WidgetKind.Tags,
-            WidgetKind.SystemMonitor
+            WidgetKind.Music
         ], descriptors.Select(descriptor => descriptor.WidgetKind));
     }
 
     [Theory]
     [InlineData(WidgetKind.File, WidgetChromeCategory.Interactive, WidgetChromeMode.Standard)]
-    [InlineData(WidgetKind.Tags, WidgetChromeCategory.Interactive, WidgetChromeMode.Standard)]
     [InlineData(WidgetKind.Music, WidgetChromeCategory.Display, WidgetChromeMode.Overlay)]
-    [InlineData(WidgetKind.SystemMonitor, WidgetChromeCategory.Display, WidgetChromeMode.Overlay)]
     public void GetDescriptor_ReturnsChromeDefaults(
         WidgetKind widgetKind,
         WidgetChromeCategory expectedCategory,
@@ -98,10 +92,7 @@ public sealed class WidgetContentFactoryTests
 
     [Theory]
     [InlineData(WidgetKind.File, true, false, true, true, false)]
-    [InlineData(WidgetKind.Tags, false, true, false, false, true)]
     [InlineData(WidgetKind.Music, true, false, false, true, false)]
-    [InlineData(WidgetKind.SystemMonitor, false, true, false, false, true)]
-    [InlineData(WidgetKind.Productivity, false, false, false, false, false)]
     public void ContentCapabilityQueries_ReturnExpectedReadOnlyState(
         WidgetKind widgetKind,
         bool hasImplementedContent,
@@ -134,66 +125,6 @@ public sealed class WidgetContentFactoryTests
     }
 
     [Fact]
-    public void GetDescriptor_RejectsLegacyProductivityKind()
-    {
-        var factory = TestServices.CreateWidgetContentFactory();
-
-        Assert.Throws<NotSupportedException>(() => factory.GetDescriptor(WidgetKind.Productivity));
-    }
-
-    [Theory]
-    [InlineData(WidgetKind.Tags)]
-    [InlineData(WidgetKind.SystemMonitor)]
-    public void CanCreatePlaceholderContent_ForFutureWidgetKinds(WidgetKind widgetKind)
-    {
-        var factory = TestServices.CreateWidgetContentFactory();
-
-        Assert.True(factory.CanCreatePlaceholderContent(widgetKind));
-        Assert.False(WidgetRegistry.Default.CanCreateWindow(widgetKind));
-    }
-
-    [Fact]
-    public void CreatePlaceholderContent_ReturnsContentWithoutMakingKindCreatable()
-    {
-        var factory = TestServices.CreateWidgetContentFactory();
-        var config = new WidgetConfig
-        {
-            Id = "tags-test",
-            Name = "Tags",
-            WidgetKind = WidgetKind.Tags
-        };
-
-        var content = factory.CreatePlaceholderContent(config);
-
-        Assert.IsType<PlaceholderWidgetContent>(content);
-        Assert.Equal("tags-test", content.WidgetId);
-        Assert.Equal(WidgetKind.Tags, content.WidgetKind);
-        Assert.False(WidgetRegistry.Default.CanCreateWindow(WidgetKind.Tags));
-    }
-
-    [Theory]
-    [InlineData(WidgetKind.Tags)]
-    [InlineData(WidgetKind.SystemMonitor)]
-    public void CreateDetachedContent_ReturnsPlaceholderForFutureKinds(WidgetKind widgetKind)
-    {
-        var factory = TestServices.CreateWidgetContentFactory();
-        var config = new WidgetConfig
-        {
-            Id = "future-detached",
-            Name = widgetKind.ToString(),
-            WidgetKind = widgetKind
-        };
-
-        var content = factory.CreateDetachedContent(config);
-
-        Assert.IsType<PlaceholderWidgetContent>(content);
-        Assert.Equal(widgetKind, content.WidgetKind);
-        Assert.True(factory.CanCreateDetachedContent(widgetKind));
-        Assert.False(factory.CanShowInCreateEntry(widgetKind));
-        Assert.False(WidgetRegistry.Default.CanCreateWindow(widgetKind));
-    }
-
-    [Fact]
     public void CreateDetachedContent_ReturnsMusicAdapterForImplementedMusicKind()
     {
         var factory = TestServices.CreateWidgetContentFactory();
@@ -213,32 +144,16 @@ public sealed class WidgetContentFactoryTests
         Assert.True(WidgetRegistry.Default.CanCreateWindow(WidgetKind.Music));
     }
 
-    [Theory]
-    [InlineData(WidgetKind.File)]
-    [InlineData(WidgetKind.Productivity)]
-    public void CreateDetachedContent_RejectsLegacyAndWindowOwnedKinds(WidgetKind widgetKind)
+    [Fact]
+    public void CreateDetachedContent_RejectsWindowOwnedKinds()
     {
         var factory = TestServices.CreateWidgetContentFactory();
         var config = new WidgetConfig
         {
-            WidgetKind = widgetKind
+            WidgetKind = WidgetKind.File
         };
 
-        Assert.False(factory.CanCreateDetachedContent(widgetKind));
+        Assert.False(factory.CanCreateDetachedContent(WidgetKind.File));
         Assert.Throws<NotSupportedException>(() => factory.CreateDetachedContent(config));
-    }
-
-    [Theory]
-    [InlineData(WidgetKind.File)]
-    public void CreatePlaceholderContent_RejectsImplementedKinds(WidgetKind widgetKind)
-    {
-        var factory = TestServices.CreateWidgetContentFactory();
-        var config = new WidgetConfig
-        {
-            WidgetKind = widgetKind
-        };
-
-        Assert.False(factory.CanCreatePlaceholderContent(widgetKind));
-        Assert.Throws<NotSupportedException>(() => factory.CreatePlaceholderContent(config));
     }
 }

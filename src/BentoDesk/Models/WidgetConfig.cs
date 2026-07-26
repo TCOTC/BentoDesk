@@ -198,17 +198,8 @@ public enum WidgetKind
     /// <summary>File-oriented widget used for references or folder-backed storage.</summary>
     File,
 
-    /// <summary>Reserved for a future tag widget.</summary>
-    Tags,
-
-    /// <summary>Reserved for a future music control widget.</summary>
-    Music,
-
-    /// <summary>Reserved for a future system monitor widget.</summary>
-    SystemMonitor,
-
-    /// <summary>Legacy value kept only for migrating old settings files.</summary>
-    Productivity
+    /// <summary>Music control widget backed by Windows media sessions.</summary>
+    Music
 }
 
 public sealed class WidgetKindJsonConverter : JsonConverter<WidgetKind>

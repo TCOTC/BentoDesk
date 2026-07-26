@@ -142,7 +142,7 @@ public class AppSettings
     public string DisplayWidgetChromeMode { get; set; } = "Overlay";
 
     /// <summary>
-    /// Default chrome/title mode for interactive widgets such as files and Tags.
+    /// Default chrome/title mode for interactive widgets such as file widgets.
     /// Valid values: <c>"Standard"</c>, <c>"Compact"</c>, <c>"Overlay"</c>, <c>"Hidden"</c>.
     /// </summary>
     public string InteractiveWidgetChromeMode { get; set; } = "Standard";

@@ -76,7 +76,7 @@ After each migration:
 | Sliders + number input | WinUI `Slider` + `NumberBox` | Keep WinUI native | none | Keep | Toolkit range controls only if selecting a range. |
 | Quick filter tabs | Custom button group | Evaluate `Segmented` | already indirect / or explicit package | Medium | Use after SettingsCard proves stable. |
 | Todo filter tabs | Custom button group | Evaluate `Segmented` | already indirect / or explicit package | Medium | Must preserve counts and selected state. |
-| Color/tag filters | Custom chips/buttons | `Segmented` or custom chips | `Segmented` if it fits | Later | Tags may need token input later. |
+| Color/tag filters | Custom chips/buttons | `Segmented` or custom chips | `Segmented` if it fits | Later | Prefer chips/`Segmented` for Todo color filters. |
 | Menus | WinUI `MenuFlyout` | Keep WinUI native | none | Keep | Native menus are correct; keep font/style tuning. |
 | Compact delete confirmations | Custom `MenuFlyout` pattern | Keep WinUI `MenuFlyout` | none | Keep | Better than large `ContentDialog` in small widgets. |
 | Large destructive confirmations | `ContentDialog` | WinUI `ContentDialog` | none | Keep | Use only for app-wide destructive actions. |

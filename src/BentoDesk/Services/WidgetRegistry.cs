@@ -9,7 +9,6 @@ public sealed record WidgetKindRegistration(
 
 /// <summary>
 /// Central registry for widget kinds known to BentoDesk.
-/// It keeps future kinds persistable without making them creatable before their windows exist.
 /// </summary>
 public sealed class WidgetRegistry
 {
@@ -59,9 +58,7 @@ public sealed class WidgetRegistry
         return new WidgetRegistry(
         [
             new(WidgetKind.File, CanCreateWindow: true, IsImplemented: true),
-            new(WidgetKind.Tags, CanCreateWindow: false, IsImplemented: false),
-            new(WidgetKind.Music, CanCreateWindow: true, IsImplemented: true),
-            new(WidgetKind.SystemMonitor, CanCreateWindow: false, IsImplemented: false)
+            new(WidgetKind.Music, CanCreateWindow: true, IsImplemented: true)
         ]);
     }
 }

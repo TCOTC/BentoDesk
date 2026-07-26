@@ -24,34 +24,7 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task LoadAsync_RemovesLegacyProductivityWidgets()
-    {
-        var settings = new AppSettings
-        {
-            Widgets =
-            [
-                new WidgetConfig
-                {
-                    Id = "legacy-productivity",
-                    Name = "Legacy",
-                    WidgetKind = WidgetKind.Productivity,
-                    IsVisible = true
-                }
-            ]
-        };
-
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            JsonSerializer.Serialize(settings, s_jsonOptions));
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
-        Assert.Empty(service.Settings.Widgets);
-    }
-
-    [Fact]
-    public async Task LoadAsync_PreservesFutureWidgetKindsAndMetadata()
+    public async Task LoadAsync_PreservesMusicWidgetKindsAndMetadata()
     {
         var settings = new AppSettings
         {
@@ -129,9 +102,9 @@ public sealed class SettingsServiceTests : IDisposable
                   }
                 },
                 {
-                  "id": "tags",
-                  "name": "Tags",
-                  "widgetKind": "Tags",
+                  "id": "file",
+                  "name": "Files",
+                  "widgetKind": "File",
                   "metadata": {
                     "ChromeMode": "System"
                   }

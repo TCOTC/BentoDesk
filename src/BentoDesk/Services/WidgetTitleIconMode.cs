@@ -50,9 +50,7 @@ public enum WidgetTitleIconKind
     Default,
     ManagedStorage,
     MappedFolder,
-    Music,
-    Tags,
-    SystemMonitor
+    Music
 }
 
 public static class WidgetTitleIconKindNames
@@ -61,8 +59,6 @@ public static class WidgetTitleIconKindNames
     public const string ManagedStorage = nameof(WidgetTitleIconKind.ManagedStorage);
     public const string MappedFolder = nameof(WidgetTitleIconKind.MappedFolder);
     public const string Music = nameof(WidgetTitleIconKind.Music);
-    public const string Tags = nameof(WidgetTitleIconKind.Tags);
-    public const string SystemMonitor = nameof(WidgetTitleIconKind.SystemMonitor);
 
     public static WidgetTitleIconKind NormalizeKind(string? value)
     {
@@ -78,8 +74,6 @@ public static class WidgetTitleIconKindNames
             WidgetTitleIconKind.ManagedStorage => ManagedStorage,
             WidgetTitleIconKind.MappedFolder => MappedFolder,
             WidgetTitleIconKind.Music => Music,
-            WidgetTitleIconKind.Tags => Tags,
-            WidgetTitleIconKind.SystemMonitor => SystemMonitor,
             _ => Default
         };
     }
@@ -95,8 +89,6 @@ public static class WidgetTitleIconKindNames
         {
             WidgetKind.File => ManagedStorage,
             WidgetKind.Music => Music,
-            WidgetKind.Tags => Tags,
-            WidgetKind.SystemMonitor => SystemMonitor,
             _ => Default
         };
     }
@@ -108,8 +100,6 @@ public static class WidgetTitleIconKindNames
             "\uE8B7" => ManagedStorage,
             "\uE71B" => MappedFolder,
             "\uEC4F" => Music,
-            "\uE8EC" => Tags,
-            "\uE9D9" => SystemMonitor,
             _ => Default
         };
     }
@@ -121,8 +111,6 @@ public static class WidgetTitleIconKindNames
             WidgetTitleIconKind.ManagedStorage => "WidgetTitleIcon.Label.ManagedStorage",
             WidgetTitleIconKind.MappedFolder => "WidgetTitleIcon.Label.MappedFolder",
             WidgetTitleIconKind.Music => "WidgetTitleIcon.Label.Music",
-            WidgetTitleIconKind.Tags => "WidgetTitleIcon.Label.Tags",
-            WidgetTitleIconKind.SystemMonitor => "WidgetTitleIcon.Label.SystemMonitor",
             _ => "WidgetTitleIcon.Label.Default"
         };
     }
@@ -134,8 +122,6 @@ public static class WidgetTitleIconKindNames
             WidgetTitleIconKind.ManagedStorage => "managed-storage",
             WidgetTitleIconKind.MappedFolder => "mapped-folder",
             WidgetTitleIconKind.Music => "music",
-            WidgetTitleIconKind.Tags => "tags",
-            WidgetTitleIconKind.SystemMonitor => "system-monitor",
             _ => "default"
         };
     }

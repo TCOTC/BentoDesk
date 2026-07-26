@@ -159,14 +159,12 @@ public string InteractiveWidgetChromeMode { get; set; } = "Standard";
 展示型格子建议包括：
 
 - `Music`
-- `SystemMonitor`
 
 交互型格子建议包括：
 
 - `File`
 - `QuickCapture`
 - `Todo`
-- `Tags`
 
 说明：
 
@@ -176,7 +174,7 @@ public string InteractiveWidgetChromeMode { get; set; } = "Standard";
 
 设置页文案建议：
 
-- `展示型格子标题样式`：用于音乐、系统监控等偏展示格子。
+- `展示型格子标题样式`：用于音乐等偏展示格子。
 - `内容型格子标题样式`：用于文件、随记、待办等可编辑格子。
 
 ### 单个格子覆盖
@@ -219,8 +217,6 @@ CanUseOverlayChrome = true
 | QuickCapture | Interactive | Standard | 有 tabs、输入、设置入口 |
 | Todo | Interactive | Standard | 有新增任务、筛选、设置入口 |
 | Music | Display | Overlay | 内容视觉优先，按钮悬浮更合适 |
-| SystemMonitor | Display | Overlay | 仪表盘展示优先 |
-| Tags | Interactive | Standard | 需要筛选、右键、文件列表操作 |
 
 ## 解析优先级
 

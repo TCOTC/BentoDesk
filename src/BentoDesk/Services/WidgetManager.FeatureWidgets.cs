@@ -60,8 +60,6 @@ public sealed partial class WidgetManager
         string key = kind switch
         {
             WidgetKind.Music => "Music.Title",
-            WidgetKind.Tags => "Tags.Title",
-            WidgetKind.SystemMonitor => "SystemMonitor.Title",
             _ => string.Empty
         };
 

@@ -27,7 +27,5 @@ public sealed class FeatureWidgetEntryFactoryTests
             Assert.True(entry.CanToggle);
             Assert.True(entry.IsAvailable);
         });
-        Assert.DoesNotContain(entries, entry =>
-            entry.Kind is WidgetKind.Tags or WidgetKind.SystemMonitor);
     }
 }

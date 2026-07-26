@@ -785,9 +785,7 @@ IsHideAnimationRunning = true;
                     var localization = App.Current.LocalizationService;
                     var key = Config.WidgetKind switch
                     {
-                        WidgetKind.Tags => "Tags.Title",
                         WidgetKind.Music => "Music.Title",
-                        WidgetKind.SystemMonitor => "SystemMonitor.Title",
                         _ => ""
                     };
                     if (!string.IsNullOrEmpty(key))

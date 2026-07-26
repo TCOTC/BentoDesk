@@ -767,8 +767,6 @@ public partial class SettingsViewModel
     private string GetWidgetKindDisplayName(WidgetKind kind) => kind switch
     {
         WidgetKind.Music => _localizationService.T("WidgetTitleIcon.Label.Music"),
-        WidgetKind.Tags => _localizationService.T("WidgetTitleIcon.Label.Tags"),
-        WidgetKind.SystemMonitor => _localizationService.T("WidgetTitleIcon.Label.SystemMonitor"),
         _ => _localizationService.T("WidgetTitleIcon.Label.Default")
     };
 

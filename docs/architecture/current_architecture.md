@@ -25,15 +25,6 @@ Current production widget categories:
 - `Todo`: content-type feature widget using `ContentWidgetWindow`.
 - `Music`: content-type feature widget using `ContentWidgetWindow` and Windows media sessions.
 
-Planned placeholder kinds:
-
-- `Tags`
-- `SystemMonitor`
-
-Legacy value:
-
-- `Productivity` is treated as legacy and should not be reintroduced into active creation paths.
-
 ## Main Architecture Flow
 
 The intended content-widget path is:
@@ -111,7 +102,6 @@ Current Music implementation:
 Current behavior:
 
 - `File`, `QuickCapture`, `Todo`, and `Music` are creatable/implemented.
-- `Tags` and `SystemMonitor` are known but not user-creatable.
 - Feature widget availability is checked through `FeatureWidgetSettings`.
 
 Do not use ad hoc `if` checks in new UI entry points when `WidgetRegistry` can answer the question.
@@ -134,7 +124,7 @@ Current descriptor entry points:
 
 - `GetDescriptors()`: all active non-legacy content descriptors.
 - `GetCreateEntryDescriptors()`: user-facing create menu entries, currently only file widgets.
-- `GetFeatureWidgetEntryDescriptors()`: Settings > Feature widgets / More widgets entries, including available and planned feature widgets.
+- `GetFeatureWidgetEntryDescriptors()`: Settings > Feature widgets / More widgets entries for available implemented feature widgets.
 
 ## Content Providers
 
@@ -144,7 +134,6 @@ Current providers:
 
 - `TodoWidgetContentProvider`: creates real Todo content.
 - `MusicWidgetContentProvider`: creates real Music content.
-- `PlaceholderWidgetContentProvider`: creates placeholder content for planned kinds.
 
 Current contract:
 
@@ -206,11 +195,6 @@ Current production users:
 
 - Todo
 - Music
-
-Future likely users:
-
-- SystemMonitor
-- Tags, if it is implemented as a content widget
 
 Content widgets should prefer this host instead of adding a new dedicated window.
 
@@ -306,7 +290,7 @@ Settings are stored in:
 - generic `FeatureWidgetEnabledStates`
 - legacy mirrored fields: `QuickCaptureEnabled`, `TodoEnabled`
 
-The legacy fields are kept for compatibility. Do not add new standalone fields such as `TagsEnabled` or `SystemMonitorEnabled`; use the feature state bag instead.
+The legacy fields are kept for compatibility. Do not add new standalone enabled fields; use the feature state bag instead.
 
 ## WidgetManager
 
@@ -340,7 +324,6 @@ Current state:
 - The feature widget list is generated from `SettingsViewModel.FeatureWidgetEntries`.
 - Feature entries are derived from `WidgetContentFactory.GetFeatureWidgetEntryDescriptors()`.
 - Available feature widgets, such as QuickCapture, Todo, and Music, show toggles.
-- Planned feature widgets, such as Tags and SystemMonitor, are shown as descriptor-driven read-only rows with status text instead of disabled hand-written UI.
 - Toggle state flows through `FeatureWidgetSettings` and `WidgetManager.SetFeatureWidgetEnabledAsync(...)`.
 
 Global appearance settings should contain settings shared by all widgets:
@@ -363,7 +346,7 @@ File-widget display settings should contain only file-widget display details:
 - extension display
 - list details
 
-Do not place Todo, QuickCapture, Music, Tags, or SystemMonitor business settings inside file-widget display settings.
+Do not place Todo, QuickCapture, or Music business settings inside file-widget display settings.
 
 ## Menus
 
@@ -422,24 +405,9 @@ Recommended sequence:
 
 ## Suggested Feature Order
 
-Lowest-risk next feature widget after 1.3.0:
+Next large feature work should be chosen based on product priority. Prefer content widgets that can reuse `ContentWidgetWindow` and the provider pipeline.
 
-- `SystemMonitor` with CPU, memory, and network only.
-
-Reasons:
-
-- no location permission
-- no account or external API
-- no file index complexity
-- good test for realtime refresh content widgets
-
-Then:
-
-- `Tags`: internal BentoDesk index only, no file metadata writes.
-
-Last:
-
-- widget merging, because it changes window/data/drag/tab behavior and should have a separate design document.
+Widget merging should remain last among large features, because it changes window/data/drag/tab behavior and should have a separate design document.
 
 ## High-Risk Areas
 

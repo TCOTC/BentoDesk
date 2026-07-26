@@ -120,23 +120,6 @@ public sealed class WidgetManagerStorageCleanupTests : IDisposable
     }
 
     [Fact]
-    public async Task RestoreWidgetsAsync_SkipsFutureContentWidgetsWhileRegistryIsClosed()
-    {
-        _settingsService.Settings.Widgets.Add(new WidgetConfig
-        {
-            Id = "tags-hidden",
-            Name = "Tags",
-            WidgetKind = WidgetKind.Tags,
-            IsVisible = true
-        });
-
-        await _widgetManager.RestoreWidgetsAsync();
-
-        Assert.Empty(_widgetManager.ContentWidgets);
-        Assert.False(WidgetRegistry.Default.CanCreateWindow(WidgetKind.Tags));
-    }
-
-    [Fact]
     public void RepairLegacyContentFeatureFileShells_RemovesOnlyEmptyMusicFileShells()
     {
         var musicConfig = new WidgetConfig

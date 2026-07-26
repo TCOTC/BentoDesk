@@ -7,12 +7,11 @@ namespace BentoDesk.Tests;
 public sealed class ContentWidgetWindowFactoryTests : IDisposable
 {
     private readonly string _tempRoot;
-    private readonly string _widgetsDataRoot;
 
     public ContentWidgetWindowFactoryTests()
     {
         _tempRoot = Path.Combine(Path.GetTempPath(), "BentoDesk.Tests", Guid.NewGuid().ToString("N"));
-        _widgetsDataRoot = Directory.CreateDirectory(Path.Combine(_tempRoot, "widgets")).FullName;
+        Directory.CreateDirectory(Path.Combine(_tempRoot, "widgets"));
     }
 
     [Fact]
@@ -30,31 +29,13 @@ public sealed class ContentWidgetWindowFactoryTests : IDisposable
         Assert.True(WidgetRegistry.Default.CanCreateWindow(WidgetKind.Music));
     }
 
-    [Theory]
-    [InlineData(WidgetKind.Tags)]
-    [InlineData(WidgetKind.SystemMonitor)]
-    public void CreateContentWindowPlan_ReturnsPlaceholderForFutureKinds(WidgetKind widgetKind)
+    [Fact]
+    public void CreateContentWindowPlan_RejectsWindowOwnedKinds()
     {
-        var config = CreateConfig("future-window", widgetKind);
+        var config = CreateConfig("unsupported-window", WidgetKind.File);
         var factory = CreateFactory();
 
-        var plan = factory.CreateContentWindowPlan(config);
-
-        Assert.Equal(widgetKind, plan.Descriptor.WidgetKind);
-        Assert.IsType<PlaceholderWidgetContent>(plan.Content);
-        Assert.True(factory.CanCreateContentWindow(widgetKind));
-        Assert.False(WidgetRegistry.Default.CanCreateWindow(widgetKind));
-    }
-
-    [Theory]
-    [InlineData(WidgetKind.File)]
-    [InlineData(WidgetKind.Productivity)]
-    public void CreateContentWindowPlan_RejectsWindowOwnedAndLegacyKinds(WidgetKind widgetKind)
-    {
-        var config = CreateConfig("unsupported-window", widgetKind);
-        var factory = CreateFactory();
-
-        Assert.False(factory.CanCreateContentWindow(widgetKind));
+        Assert.False(factory.CanCreateContentWindow(WidgetKind.File));
         Assert.Throws<NotSupportedException>(() => factory.CreateContentWindowPlan(config));
     }
 
