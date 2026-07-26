@@ -283,13 +283,13 @@ public sealed class DesktopDoubleClickService : IDisposable
 
     private static bool IsDesktopShellWindow(IntPtr hwnd)
     {
+        // 仅认 Progman / WorkerW：资源管理器窗口同样含子级 SHELLDLL_DefView / SysListView32，
+        // 不能靠这两类类名判断，否则文件夹内双击会误触发清桌面。
         IntPtr current = hwnd;
         for (int depth = 0; depth < 8 && current != IntPtr.Zero; depth++)
         {
             if (WindowHasClass(current, "Progman") ||
-                WindowHasClass(current, "WorkerW") ||
-                WindowHasClass(current, "SHELLDLL_DefView") ||
-                WindowHasClass(current, "SysListView32"))
+                WindowHasClass(current, "WorkerW"))
             {
                 return true;
             }
