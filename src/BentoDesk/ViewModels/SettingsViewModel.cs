@@ -64,7 +64,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private Color _currentAccentColor;
     private string _selectedTheme = ThemeSystem;
     private string _selectedTrayIconStyle = TrayIconStyleSystem;
-    private string _selectedLanguage = SettingsService.LanguageSystem;
     private string _selectedWidgetCornerPreference = CornerRound;
     private string _selectedWidgetMaterialType = MaterialMica;
     private string _selectedWidgetBorderColorMode = BorderColorNeutral;
@@ -119,7 +118,6 @@ private int _selectedWeatherRefreshInterval = 60;
 
     private string[]? _cachedTrayIconStyleDisplayNames;
     private string[]? _cachedThemeDisplayNames;
-    private string[]? _cachedLanguageDisplayNames;
     private string[]? _cachedWidgetCornerPreferenceDisplayNames;
     private string[]? _cachedWidgetMaterialTypeDisplayNames;
     private string[]? _cachedWidgetBorderColorModeDisplayNames;
@@ -242,7 +240,6 @@ private string[]? _cachedWeatherRefreshIntervalDisplayNames;
         _selectedTrayIconStyle = settings.TrayIconStyle is TrayIconStyleColorful or TrayIconStyleBlack or TrayIconStyleWhite
             ? settings.TrayIconStyle
             : TrayIconStyleSystem;
-        _selectedLanguage = LocalizationService.NormalizeLanguageSetting(settings.Language);
 
         _useSystemAccentColor = !string.Equals(settings.AccentColorMode, ThemeService.AccentModeCustom, StringComparison.OrdinalIgnoreCase);
         _autoStart = StartupService.IsEnabled();

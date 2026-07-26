@@ -1897,19 +1897,6 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                     <StackPanel Margin="0,8,0,0" Spacing="4">
                         <toolkit:SettingsCard
                             HorizontalContentAlignment="Right"
-                            svc:Localized.DescriptionKey="Settings.Language.Description"
-                            svc:Localized.HeaderKey="Settings.Language.Title">
-                            <toolkit:SettingsCard.HeaderIcon>
-                                <FontIcon Glyph="&#xE774;" />
-                            </toolkit:SettingsCard.HeaderIcon>
-                            <ComboBox
-                                MinWidth="{StaticResource SettingsControlMinWidth}"
-                                ItemsSource="{Binding AvailableLanguageOptions}"
-                                controls:SettingsComboBox.Value="{Binding SelectedLanguage, Mode=TwoWay}" />
-                        </toolkit:SettingsCard>
-
-                        <toolkit:SettingsCard
-                            HorizontalContentAlignment="Right"
                             svc:Localized.DescriptionKey="Settings.AutoStart.Description"
                             svc:Localized.HeaderKey="Settings.AutoStart.Title">
                             <toolkit:SettingsCard.HeaderIcon>

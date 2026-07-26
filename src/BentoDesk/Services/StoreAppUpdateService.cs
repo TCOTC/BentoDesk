@@ -61,8 +61,7 @@ public sealed class StoreAppUpdateService : IAppUpdateService
                 DownloadUrl = StoreUpdateUri,
                 Summary =
                 {
-                    ["zh-CN"] = "Microsoft Store 中有可用更新，可由商店完成下载和安装。",
-                    ["en-US"] = "An update is available in Microsoft Store. The Store will handle download and installation."
+                    ["zh-CN"] = "Microsoft Store 中有可用更新，可由商店完成下载和安装。"
                 }
             };
 

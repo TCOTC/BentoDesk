@@ -30,7 +30,7 @@ public sealed partial class WeatherWidgetViewModel
             {
                 _latitude = 39.9042;
                 _longitude = 116.4074;
-                _locationName = _localizationService.ApiLanguageCode switch { "zh" => "北京", "ja" => "北京", "de" => "Peking", "pt" => "Pequim", _ => "Beijing" };
+                _locationName = "北京";
                 IsUsingFallbackLocation = true;
             }
             return;
@@ -69,7 +69,7 @@ public sealed partial class WeatherWidgetViewModel
             // Last resort: use a neutral default so the widget renders something.
             _latitude = 39.9042;
             _longitude = 116.4074;
-            _locationName = _localizationService.ApiLanguageCode switch { "zh" => "北京", "ja" => "北京", "de" => "Peking", "pt" => "Pequim", _ => "Beijing" };
+            _locationName = "北京";
             IsUsingFallbackLocation = true;
         }
         else
@@ -102,7 +102,7 @@ public sealed partial class WeatherWidgetViewModel
                 {
                     _latitude = 39.9042;
                     _longitude = 116.4074;
-                    _locationName = _localizationService.ApiLanguageCode switch { "zh" => "北京", "ja" => "北京", "de" => "Peking", "pt" => "Pequim", _ => "Beijing" };
+                    _locationName = "北京";
                     IsUsingFallbackLocation = true;
                 }
             }
@@ -394,14 +394,7 @@ public sealed partial class WeatherWidgetViewModel
         try
         {
             var dt = DateTimeOffset.Parse(dateStr);
-            var culture = language switch
-            {
-                "zh-CN" => new System.Globalization.CultureInfo("zh-CN"),
-                "ja-JP" => new System.Globalization.CultureInfo("ja-JP"),
-                "de-DE" => new System.Globalization.CultureInfo("de-DE"),
-                "pt-BR" => new System.Globalization.CultureInfo("pt-BR"),
-                _ => new System.Globalization.CultureInfo("en-US")
-            };
+            var culture = new System.Globalization.CultureInfo("zh-CN");
             return dt.ToString("ddd", culture);
         }
         catch

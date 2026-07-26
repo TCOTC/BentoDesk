@@ -195,12 +195,6 @@ public sealed class SettingsService
     public const int MaxItemPreviewLineCount = 10;
     public const string EditorEnterBehaviorCtrlEnterSaves = "CtrlEnterSaves";
     public const string EditorEnterBehaviorEnterSaves = "EnterSaves";
-    public const string LanguageSystem = "System";
-    public const string LanguageChinese = "zh-CN";
-    public const string LanguageEnglish = "en-US";
-    public const string LanguageJapanese = "ja-JP";
-    public const string LanguageGerman = "de-DE";
-    public const string LanguagePortuguese = "pt-BR";
     public const double DefaultWidgetWidth = 280;
     public const double DefaultWidgetHeight = 400;
     public const bool DefaultGlobalHotkeyEnabled = true;
@@ -274,7 +268,6 @@ public const int WeatherRefreshMaxMinutes = 180;
         DefaultPreferencePreservationPolicy { get; } =
             new Dictionary<string, DefaultPreferencePreservationReason>(StringComparer.Ordinal)
             {
-                [nameof(AppSettings.Language)] = DefaultPreferencePreservationReason.UserChoice,
                 [nameof(AppSettings.AutoStart)] = DefaultPreferencePreservationReason.SystemIntegration,
                 [nameof(AppSettings.FeatureWidgetEnabledStates)] = DefaultPreferencePreservationReason.UserChoice,
                 [nameof(AppSettings.QuickCaptureEnabled)] = DefaultPreferencePreservationReason.UserChoice,
@@ -1583,12 +1576,6 @@ changed |= NormalizeDeletionSettings(_settings);
         if (settings.Theme is not ("System" or "Light" or "Dark"))
         {
             settings.Theme = "System";
-            changed = true;
-        }
-
-        if (settings.Language is not (LanguageSystem or LanguageChinese or LanguageEnglish or LanguageJapanese or LanguageGerman or LanguagePortuguese))
-        {
-            settings.Language = LanguageSystem;
             changed = true;
         }
 

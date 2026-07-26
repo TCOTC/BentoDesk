@@ -415,8 +415,7 @@ public sealed class AppUpdateService : IAppUpdateService
             ReleaseNotesUrl = release.HtmlUrl,
             Summary =
             {
-                ["zh-CN"] = $"BentoDesk {version} 已发布，可从 GitHub Releases 下载更新。",
-                ["en-US"] = $"BentoDesk {version} is available from GitHub Releases."
+                ["zh-CN"] = $"BentoDesk {version} 已发布，可从 GitHub Releases 下载更新。"
             }
         };
     }

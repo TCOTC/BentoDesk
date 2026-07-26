@@ -21,11 +21,6 @@ public class AppSettings
     /// </summary>
     public string TrayIconStyle { get; set; } = "Colorful";
 
-/// <summary>
-/// Display language. Valid values: <c>"System"</c>, <c>"zh-CN"</c>, <c>"en-US"</c>, <c>"ja-JP"</c>, <c>"de-DE"</c>, <c>"pt-BR"</c>.
-/// </summary>
-    public string Language { get; set; } = "System";
-
     /// <summary>
     /// Accent color source. Valid values: <c>"System"</c>, <c>"Custom"</c>.
     /// </summary>

@@ -10,9 +10,6 @@ public partial class SettingsViewModel
     public IReadOnlyList<SettingsOption> AvailableTrayIconStyleOptions =>
         CreateSelectionOptions(AvailableTrayIconStyles, AvailableTrayIconStyleDisplayNames);
 
-    public IReadOnlyList<SettingsOption> AvailableLanguageOptions =>
-        CreateSelectionOptions(AvailableLanguages, AvailableLanguageDisplayNames);
-
     public IReadOnlyList<SettingsOption> AvailableWidgetCornerPreferenceOptions =>
         CreateSelectionOptions(AvailableWidgetCornerPreferences, AvailableWidgetCornerPreferenceDisplayNames);
 
@@ -175,7 +172,6 @@ public partial class SettingsViewModel
     {
         OnPropertyChanged(nameof(AvailableThemeOptions));
         OnPropertyChanged(nameof(AvailableTrayIconStyleOptions));
-        OnPropertyChanged(nameof(AvailableLanguageOptions));
         OnPropertyChanged(nameof(AvailableWidgetCornerPreferenceOptions));
         OnPropertyChanged(nameof(AvailableWidgetMaterialTypeOptions));
         OnPropertyChanged(nameof(AvailableWidgetBorderColorModeOptions));

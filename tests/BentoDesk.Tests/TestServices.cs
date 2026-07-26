@@ -4,11 +4,9 @@ namespace BentoDesk.Tests;
 
 internal static class TestServices
 {
-    public static LocalizationService CreateLocalizationService(string language = SettingsService.LanguageEnglish)
+    public static LocalizationService CreateLocalizationService()
     {
-        var settingsService = new SettingsService();
-        settingsService.Settings.Language = language;
-        return new LocalizationService(settingsService);
+        return new LocalizationService();
     }
 
     public static WidgetContentFactory CreateWidgetContentFactory()

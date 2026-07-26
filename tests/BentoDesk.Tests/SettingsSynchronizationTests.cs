@@ -5,24 +5,13 @@ namespace BentoDesk.Tests;
 public sealed class SettingsSynchronizationTests
 {
     [Fact]
-    public void LanguageChangedRefreshesLocalizedValuesAndRaisesOnce()
+    public void LocalizationServiceLoadsChineseStrings()
     {
-        using var scope = new TempSettingsScope();
-        var settingsService = new SettingsService(scope.RootPath);
-        settingsService.Settings.Language = SettingsService.LanguageEnglish;
-        var localizationService = new LocalizationService(settingsService);
-        int languageChangedCount = 0;
-        localizationService.LanguageChanged += () => languageChangedCount++;
+        var localizationService = new LocalizationService();
 
-        string englishMaterial = localizationService.T("Settings.Material.Mica");
-        string englishWeatherSkin = localizationService.T("Weather.Skin.Rich");
-
-        localizationService.SetLanguage(SettingsService.LanguageChinese);
-
-        Assert.Equal(1, languageChangedCount);
-        Assert.Equal(SettingsService.LanguageChinese, settingsService.Settings.Language);
-        Assert.NotEqual(englishMaterial, localizationService.T("Settings.Material.Mica"));
-        Assert.NotEqual(englishWeatherSkin, localizationService.T("Weather.Skin.Rich"));
+        Assert.Equal("zh-CN", localizationService.CurrentCultureName);
+        Assert.False(string.IsNullOrWhiteSpace(localizationService.T("Settings.Material.Mica")));
+        Assert.False(string.IsNullOrWhiteSpace(localizationService.T("Weather.Skin.Rich")));
     }
 
     [Fact]

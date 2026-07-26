@@ -295,9 +295,4 @@ public partial class SettingsViewModel
             _ => _localizationService.T("Settings.Music.DisplayMode.Auto")
         };
     }
-
-    public string GetLanguageDisplayName(string language)
-    {
-        return _localizationService.GetLanguageDisplayName(language);
-    }
 }

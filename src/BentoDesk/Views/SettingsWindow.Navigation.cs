@@ -599,13 +599,6 @@ public sealed partial class SettingsWindow
                 displayValue = ViewModel.GetThemeDisplayName;
                 break;
 
-            case "Language":
-                selectedValue = ViewModel.SelectedLanguage;
-                values = ViewModel.AvailableLanguages;
-                applyValue = value => ViewModel.SelectedLanguage = value;
-                displayValue = ViewModel.GetLanguageDisplayName;
-                break;
-
             case "WidgetCorner":
                 selectedValue = ViewModel.SelectedWidgetCornerPreference;
                 values = ViewModel.AvailableWidgetCornerPreferences;

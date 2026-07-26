@@ -76,28 +76,6 @@ public partial class SettingsViewModel
 
     public string[] AvailableTrayIconStyleDisplayNames => _cachedTrayIconStyleDisplayNames ??= AvailableTrayIconStyles.Select(GetTrayIconStyleDisplayName).ToArray();
 
-    public string SelectedLanguage
-    {
-        get => _selectedLanguage;
-        set
-        {
-            string normalizedValue = LocalizationService.NormalizeLanguageSetting(value);
-            if (!SetProperty(ref _selectedLanguage, normalizedValue))
-            {
-                return;
-            }
-
-            if (_isRestoringDefaults)
-            {
-                return;
-            }
-
-            _localizationService.SetLanguage(normalizedValue);
-        }
-    }
-
-    public string SelectedLanguageText => _localizationService.GetLanguageDisplayName(SelectedLanguage);
-
     public bool UseSystemAccentColor
     {
         get => _useSystemAccentColor;
@@ -584,7 +562,7 @@ public partial class SettingsViewModel
     public bool CanToggleHoverActionMore => CanToggleHoverButtonAction(ShowHoverActionMore);
     public bool CanToggleHoverActionDelete => CanToggleHoverButtonAction(ShowHoverActionDelete);
     public string HoverButtonActionsSummaryText => string.Join(
-        _localizationService.ApiLanguageCode == "zh" ? "、" : ", ",
+        "、",
         AvailableWidgetHoverButtonActions
             .Where(IsHoverButtonActionSelected)
             .Select(GetHoverButtonActionDisplayName));

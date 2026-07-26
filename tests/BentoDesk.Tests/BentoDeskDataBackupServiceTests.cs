@@ -24,7 +24,7 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
         string dataDirectory = Directory.CreateDirectory(Path.Combine(_appDataRoot, "data")).FullName;
         string attachmentDirectory = Directory.CreateDirectory(
             Path.Combine(dataDirectory, "widgets", "todo", "attachments")).FullName;
-        await File.WriteAllTextAsync(Path.Combine(dataDirectory, "settings.json"), "{\"language\":\"en-US\"}");
+        await File.WriteAllTextAsync(Path.Combine(dataDirectory, "settings.json"), "{\"language\":\"zh-CN\"}");
         await File.WriteAllBytesAsync(Path.Combine(attachmentDirectory, "spec.pdf"), [1, 2, 3]);
         await File.WriteAllTextAsync(Path.Combine(dataDirectory, "ignored.tmp"), "partial");
         string thumbnailDirectory = Directory.CreateDirectory(
@@ -175,7 +175,6 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
         string sourceData = Directory.CreateDirectory(Path.Combine(sourceRoot, "data")).FullName;
         var sourceSettings = new AppSettings
         {
-            Language = "zh-CN",
             WidgetCapsuleModeEnabled = true,
             WidgetCompactWidthMode = SettingsService.WidgetCompactWidthModeIndependent,
             WidgetCompactContentMode = SettingsService.WidgetCompactContentModeSummary,
@@ -261,7 +260,7 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
             .ExportBackupAsync(_exportRoot);
 
         string targetData = Directory.CreateDirectory(Path.Combine(_appDataRoot, "data")).FullName;
-        await File.WriteAllTextAsync(Path.Combine(targetData, "settings.json"), "{\"language\":\"en-US\"}");
+        await File.WriteAllTextAsync(Path.Combine(targetData, "settings.json"), "{\"language\":\"zh-CN\"}");
         var targetService = new BentoDeskDataBackupService(_appDataRoot);
 
         BentoDeskRestorePreparation preparation = await targetService.PrepareRestoreAsync(backupPath);

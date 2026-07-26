@@ -665,7 +665,6 @@ public sealed class SettingsServiceTests : IDisposable
             WidgetBorderColorMode = SettingsService.WidgetBorderColorModeNone,
             WidgetMaterialIntensity = 0.1,
             LayoutDensity = "Compact",
-            Language = SettingsService.LanguageChinese,
             AutoStart = false,
             QuickCaptureEnabled = true,
             TodoEnabled = true,
@@ -744,7 +743,6 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal(SettingsService.DefaultTodoItemPreviewLineCount, newUserDefaults.TodoItemPreviewLineCount);
         Assert.False(newUserDefaults.TodoShowCompletedTasks);
         Assert.Equal(newUserDefaults.TodoEditorEnterBehavior, restoredDefaults.TodoEditorEnterBehavior);
-        Assert.Equal(SettingsService.LanguageChinese, restoredDefaults.Language);
         Assert.False(restoredDefaults.AutoStart);
         Assert.True(restoredDefaults.QuickCaptureEnabled);
         Assert.True(restoredDefaults.TodoEnabled);

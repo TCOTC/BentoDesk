@@ -81,7 +81,7 @@ public sealed class QuickCaptureClipboardFormatterTests
     [Fact]
     public void FormatSingle_UsesChineseLabelsWhenConfigured()
     {
-        var localization = TestServices.CreateLocalizationService(SettingsService.LanguageChinese);
+        var localization = TestServices.CreateLocalizationService();
         var item = CreateViewModel(new QuickCaptureItem
         {
             Body = "会议记录",

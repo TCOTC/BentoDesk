@@ -43,7 +43,6 @@ public partial class SettingsViewModel
             SelectedTrayIconStyle = settings.TrayIconStyle is TrayIconStyleColorful or TrayIconStyleBlack or TrayIconStyleWhite
                 ? settings.TrayIconStyle
                 : TrayIconStyleSystem;
-            SelectedLanguage = LocalizationService.NormalizeLanguageSetting(settings.Language);
             UseSystemAccentColor = !string.Equals(
                 settings.AccentColorMode,
                 ThemeService.AccentModeCustom,
@@ -275,7 +274,6 @@ RefreshWeatherCityPopularCities();
             RefreshFileStackSelectionProperties();
             _cachedThemeDisplayNames = null;
             _cachedTrayIconStyleDisplayNames = null;
-            _cachedLanguageDisplayNames = null;
             _cachedWidgetCornerPreferenceDisplayNames = null;
             _cachedWidgetMaterialTypeDisplayNames = null;
             _cachedWidgetBorderColorModeDisplayNames = null;
@@ -315,7 +313,6 @@ RefreshWeatherCityPopularCities();
             _cachedManagedDropActionDisplayNames = null;
             OnPropertyChanged(nameof(AvailableThemeDisplayNames));
             OnPropertyChanged(nameof(AvailableTrayIconStyleDisplayNames));
-            OnPropertyChanged(nameof(AvailableLanguageDisplayNames));
             OnPropertyChanged(nameof(AvailableWidgetCornerPreferenceDisplayNames));
             OnPropertyChanged(nameof(AvailableWidgetMaterialTypeDisplayNames));
             OnPropertyChanged(nameof(AvailableWidgetBorderColorModeDisplayNames));
@@ -364,7 +361,6 @@ RefreshWeatherCityPopularCities();
         OnPropertyChanged(nameof(IsWidgetBorderStyleEnabled));
         OnPropertyChanged(nameof(SelectedThemeText));
         OnPropertyChanged(nameof(SelectedTrayIconStyleText));
-        OnPropertyChanged(nameof(SelectedLanguageText));
         OnPropertyChanged(nameof(SelectedWidgetCornerPreferenceText));
         OnPropertyChanged(nameof(SelectedWidgetMaterialTypeText));
         OnPropertyChanged(nameof(SelectedWidgetBorderColorModeText));

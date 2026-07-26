@@ -1,148 +1,34 @@
-﻿﻿﻿﻿using System.Globalization;
+﻿using System.Globalization;
 using System.Reflection;
-using Microsoft.Win32;
 using System.Text.Json;
-using BentoDesk.Models;
 
 namespace BentoDesk.Services;
 
 public sealed class LocalizationService
 {
-    public const string LanguageSystem = SettingsService.LanguageSystem;
-    public const string LanguageChinese = SettingsService.LanguageChinese;
-    public const string LanguageEnglish = SettingsService.LanguageEnglish;
-    public const string LanguageJapanese = "ja-JP";
-    public const string LanguageGerman = "de-DE";
-    public const string LanguagePortuguese = "pt-BR";
+    public const string LanguageChinese = "zh-CN";
 
-    private readonly SettingsService _settingsService;
-
+    /// <summary>
+    /// Retained for existing subscribers. Language switching is not supported.
+    /// </summary>
     public event Action? LanguageChanged;
 
-    public LocalizationService(SettingsService settingsService)
+    public LocalizationService(SettingsService? _ = null)
     {
-        _settingsService = settingsService;
     }
 
-    public string LanguageSetting => NormalizeLanguageSetting(_settingsService.Settings.Language);
+    public string LanguageSetting => LanguageChinese;
 
-    public string CurrentCultureName
-    {
-        get
-        {
-            string language = LanguageSetting;
-            if (language == LanguageSystem)
-            {
-                language = ResolveDefaultLanguage();
-            }
-
-            return language;
-        }
-    }
-
-    public bool IsEnglish => string.Equals(CurrentCultureName, LanguageEnglish, StringComparison.OrdinalIgnoreCase);
+    public string CurrentCultureName => LanguageChinese;
 
     /// <summary>
-    /// Returns a 2-letter language code ("en", "zh", "ja", "de", "pt")
-    /// suitable for passing to weather and location APIs.
+    /// Returns a 2-letter language code suitable for weather and location APIs.
     /// </summary>
-    public string ApiLanguageCode => CurrentCultureName switch
-    {
-        LanguageChinese => "zh",
-        LanguageJapanese => "ja",
-        LanguageGerman => "de",
-        LanguagePortuguese => "pt",
-        _ => "en"
-    };
-
-    public IReadOnlyList<string> AvailableLanguageSettings { get; } =
-    [
-        LanguageSystem,
-        LanguageChinese,
-        LanguageEnglish,
-        LanguageJapanese,
-        LanguageGerman,
-        LanguagePortuguese
-    ];
-
-    public string GetLanguageDisplayName(string language)
-    {
-        return NormalizeLanguageSetting(language) switch
-        {
-            LanguageChinese => T("Language.Chinese"),
-            LanguageEnglish => T("Language.English"),
-            LanguageJapanese => T("Language.Japanese"),
-            LanguageGerman => T("Language.German"),
-            LanguagePortuguese => T("Language.Portuguese"),
-            _ => T("Language.System")
-        };
-    }
-
-    public void SetLanguage(string language)
-    {
-        string normalizedLanguage = NormalizeLanguageSetting(language);
-        if (string.Equals(_settingsService.Settings.Language, normalizedLanguage, StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        _settingsService.Settings.Language = normalizedLanguage;
-        try
-        {
-            _settingsService.SaveDebounced();
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[LocalizationService] SaveDebounced failed during language switch: {ex.Message}");
-        }
-        // RaiseLanguageChanged must always be called, even if SaveDebounced
-        // failed, so that the UI updates to the new language immediately.
-        RaiseLanguageChanged();
-    }
-
-    /// <summary>
-    /// Invokes all LanguageChanged handlers, catching exceptions per-handler
-    /// so that one failing subscriber does not prevent subsequent subscribers
-    /// from receiving the notification.
-    /// </summary>
-    private void RaiseLanguageChanged()
-    {
-        if (LanguageChanged is null)
-        {
-            return;
-        }
-
-        foreach (var handler in LanguageChanged.GetInvocationList())
-        {
-            try
-            {
-                ((Action)handler).Invoke();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[LocalizationService] LanguageChanged handler '{handler.Method.DeclaringType?.Name}.{handler.Method.Name}' threw: {ex.Message}");
-            }
-        }
-    }
+    public string ApiLanguageCode => "zh";
 
     public string T(string key)
     {
-        var table = CurrentCultureName switch
-        {
-            LanguageJapanese => JaJp,
-            LanguageGerman => DeDe,
-            LanguagePortuguese => PtBr,
-            _ => IsEnglish ? EnUs : ZhCn
-        };
-        
-        if (table.TryGetValue(key, out string? value))
-        {
-            return value;
-        }
-
-        // Fallback to Chinese for all languages
-        return ZhCn.TryGetValue(key, out value) ? value : key;
+        return ZhCn.TryGetValue(key, out string? value) ? value : key;
     }
 
     public string Format(string key, params object[] args)
@@ -160,66 +46,7 @@ public sealed class LocalizationService
         return string.Format(CultureInfo.CurrentCulture, DefaultText(key), args);
     }
 
-    public static string NormalizeLanguageSetting(string? language)
-    {
-        return language is LanguageChinese or LanguageEnglish or LanguageJapanese or LanguageGerman or LanguagePortuguese
-            ? language
-            : LanguageSystem;
-    }
-
-    private static string ResolveSystemLanguage()
-    {
-        string name = CultureInfo.CurrentUICulture.Name;
-        if (name.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
-            return LanguageChinese;
-        if (name.StartsWith("ja", StringComparison.OrdinalIgnoreCase))
-            return LanguageJapanese;
-        if (name.StartsWith("de", StringComparison.OrdinalIgnoreCase))
-            return LanguageGerman;
-        if (name.StartsWith("pt", StringComparison.OrdinalIgnoreCase))
-            return LanguagePortuguese;
-        return LanguageEnglish;
-    }
-
-    /// <summary>
-    /// Resolves the default language used when the user has not explicitly
-    /// picked one in the app. Honors the language chosen at install time
-    /// (the Inno Setup installer writes it to
-    /// HKCU\Software\BentoDesk\InstallLanguage), falling back to the OS UI
-    /// culture when that value is absent or unrecognized.
-    /// </summary>
-    private static string ResolveDefaultLanguage()
-    {
-        try
-        {
-            var value = Registry.GetValue(
-                @"HKEY_CURRENT_USER\Software\BentoDesk",
-                "InstallLanguage",
-                null) as string;
-            if (!string.IsNullOrWhiteSpace(value)
-                && (value == LanguageChinese
-                    || value == LanguageEnglish
-                    || value == LanguageJapanese
-                    || value == LanguageGerman
-                    || value == LanguagePortuguese))
-            {
-                return value;
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine(
-                $"[LocalizationService] Failed reading InstallLanguage registry key: {ex.Message}");
-        }
-
-        return ResolveSystemLanguage();
-    }
-
     private static Dictionary<string, string>? _zhCn;
-    private static Dictionary<string, string>? _enUs;
-    private static Dictionary<string, string>? _jaJp;
-    private static Dictionary<string, string>? _deDe;
-    private static Dictionary<string, string>? _ptBr;
     private static readonly object s_loadLock = new();
 
     private static Dictionary<string, string> ZhCn
@@ -232,58 +59,6 @@ public sealed class LocalizationService
                 _zhCn ??= LoadStringResource("BentoDesk.Strings.zh-CN.json");
             }
             return _zhCn;
-        }
-    }
-
-    private static Dictionary<string, string> EnUs
-    {
-        get
-        {
-            if (_enUs is not null) return _enUs;
-            lock (s_loadLock)
-            {
-                _enUs ??= LoadStringResource("BentoDesk.Strings.en-US.json");
-            }
-            return _enUs;
-        }
-    }
-
-    private static Dictionary<string, string> JaJp
-    {
-        get
-        {
-            if (_jaJp is not null) return _jaJp;
-            lock (s_loadLock)
-            {
-                _jaJp ??= LoadStringResource("BentoDesk.Strings.ja-JP.json");
-            }
-            return _jaJp;
-        }
-    }
-
-    private static Dictionary<string, string> DeDe
-    {
-        get
-        {
-            if (_deDe is not null) return _deDe;
-            lock (s_loadLock)
-            {
-                _deDe ??= LoadStringResource("BentoDesk.Strings.de-DE.json");
-            }
-            return _deDe;
-        }
-    }
-
-    private static Dictionary<string, string> PtBr
-    {
-        get
-        {
-            if (_ptBr is not null) return _ptBr;
-            lock (s_loadLock)
-            {
-                _ptBr ??= LoadStringResource("BentoDesk.Strings.pt-BR.json");
-            }
-            return _ptBr;
         }
     }
 

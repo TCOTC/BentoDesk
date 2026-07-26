@@ -86,11 +86,7 @@
     </Content>
     <Content Include="Assets\Store\*.png" />
     <EmbeddedResource Include="Assets\Cities\cities.json" />
-<EmbeddedResource Include="Strings\zh-CN.json" />
-<EmbeddedResource Include="Strings\en-US.json" />
-<EmbeddedResource Include="Strings\ja-JP.json" />
-<EmbeddedResource Include="Strings\de-DE.json" />
-<EmbeddedResource Include="Strings\pt-BR.json" />
+    <EmbeddedResource Include="Strings\zh-CN.json" />
   </ItemGroup>
 
   <ItemGroup>

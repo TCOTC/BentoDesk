@@ -105,7 +105,6 @@ public sealed class CitySearchService
     public static string? GetNearestCityName(
         double lat, double lon, string language = "zh", double maxDistanceKm = 80)
     {
-        bool isEn = language is "en" or "en-US";
         PredefinedCity? best = null;
         double bestDist = double.MaxValue;
 
@@ -124,7 +123,7 @@ public sealed class CitySearchService
             return null;
         }
 
-        return isEn ? best.En : best.Zh;
+        return best.Zh;
     }
 
     /// <summary>
@@ -156,10 +155,8 @@ public sealed class CitySearchService
             return [];
         }
 
-        bool isEn = language is "en" or "en-US";
-
         // 1. Search local predefined cities (instant, no network)
-        var localResults = SearchLocal(query, isEn);
+        var localResults = SearchLocal(query, isEn: false);
 
         // 2. Search via Open-Meteo API (parallel, with cancellation)
         List<WeatherGeocodingItem>? apiResults = null;
@@ -233,8 +230,6 @@ public sealed class CitySearchService
         string language = "zh",
         int maxCount = 8)
     {
-        bool isEn = language is "en" or "en-US";
-
         IEnumerable<PredefinedCity> cities = Predefined;
 
         if (lat.HasValue && lon.HasValue)
@@ -245,7 +240,7 @@ public sealed class CitySearchService
 
         return cities
             .Take(maxCount)
-            .Select(c => ToSearchResult(c, isEn))
+            .Select(c => ToSearchResult(c, isEn: false))
             .ToList();
     }
 
@@ -257,15 +252,13 @@ public sealed class CitySearchService
         string language = "zh",
         int maxCount = 8)
     {
-        bool isEn = language is "en" or "en-US";
-
         // Pick a spread of globally representative cities
         var indices = new[] { 0, 1, 2, 3, 4, 39, 53, 59, 78, 99, 113, 122, 139, 145, 153 };
 
         return indices
             .Where(i => i < Predefined.Count)
             .Take(maxCount)
-            .Select(i => ToSearchResult(Predefined[i], isEn))
+            .Select(i => ToSearchResult(Predefined[i], isEn: false))
             .ToList();
     }
 

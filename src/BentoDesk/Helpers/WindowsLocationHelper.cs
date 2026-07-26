@@ -43,8 +43,7 @@ public static class WindowsLocationHelper
                 double lat = position.Coordinate.Point.Position.Latitude;
                 double lon = position.Coordinate.Point.Position.Longitude;
 
-                bool isEnglish = localizationService?.IsEnglish ?? false;
-                string name = isEnglish ? "Current Location" : localizationService?.T("Weather.CurrentLocation");
+                string name = localizationService?.T("Weather.CurrentLocation") ?? "当前位置";
 
                 App.Log($"[WindowsLocation] Got GPS location lat={lat:F4} lon={lon:F4}");
                 return (lat, lon, name);
@@ -93,7 +92,7 @@ public static class WindowsLocationHelper
     {
         try
         {
-            string lang = localizationService?.ApiLanguageCode ?? "en";
+            string lang = localizationService?.ApiLanguageCode ?? "zh";
             string json = await s_httpClient.GetStringAsync(
                 $"http://ip-api.com/json/?fields=status,lat,lon,city,regionName,country&lang={lang}");
 
@@ -142,21 +141,20 @@ public static class WindowsLocationHelper
                 latElem.TryGetDouble(out double lat) &&
                 lonElem.TryGetDouble(out double lon))
             {
-                bool isEnglish = localizationService?.IsEnglish ?? false;
                 string cityName = string.Empty;
 
-                if (isEnglish && root.TryGetProperty("city", out var cityElem))
-                {
-                    cityName = cityElem.GetString() ?? string.Empty;
-                }
-                else if (root.TryGetProperty("region", out var regionElem))
+                if (root.TryGetProperty("region", out var regionElem))
                 {
                     cityName = regionElem.GetString() ?? string.Empty;
+                }
+                else if (root.TryGetProperty("city", out var cityElem))
+                {
+                    cityName = cityElem.GetString() ?? string.Empty;
                 }
 
                 if (string.IsNullOrWhiteSpace(cityName))
                 {
-                    cityName = isEnglish ? "Current Location" : localizationService?.T("Weather.CurrentLocation") ?? "Current Location";
+                    cityName = localizationService?.T("Weather.CurrentLocation") ?? "当前位置";
                 }
 
                 App.Log($"[WindowsLocation] ipapi.co: lat={lat:F4} lon={lon:F4} city={cityName}");
@@ -188,7 +186,6 @@ public static class WindowsLocationHelper
                 latElem.TryGetDouble(out double lat) &&
                 lonElem.TryGetDouble(out double lon))
             {
-                bool isEnglish = localizationService?.IsEnglish ?? false;
                 string cityName = string.Empty;
 
                 if (root.TryGetProperty("city", out var cityElem))
@@ -202,7 +199,7 @@ public static class WindowsLocationHelper
 
                 if (string.IsNullOrWhiteSpace(cityName))
                 {
-                    cityName = isEnglish ? "Current Location" : localizationService?.T("Weather.CurrentLocation") ?? "Current Location";
+                    cityName = localizationService?.T("Weather.CurrentLocation") ?? "当前位置";
                 }
 
                 App.Log($"[WindowsLocation] ip.sb: lat={lat:F4} lon={lon:F4} city={cityName}");
@@ -235,6 +232,6 @@ public static class WindowsLocationHelper
             return regionElem.GetString()!;
         }
 
-        return localizationService?.T("Weather.CurrentLocation") ?? "Current Location";
+        return localizationService?.T("Weather.CurrentLocation") ?? "当前位置";
     }
 }
