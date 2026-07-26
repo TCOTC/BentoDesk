@@ -7,6 +7,7 @@ using BentoDesk.Services;
 using BentoDesk.Views;
 using H.NotifyIcon;
 using H.NotifyIcon.Core;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -82,9 +83,7 @@ public partial class App
         PrepareTrayContextMenu(contextMenu);
 
         _trayWindow = new Window();
-        _trayWindow.AppWindow.IsShownInSwitchers = false;
-        AppBranding.ApplyWindowIcon(_trayWindow.AppWindow);
-        _trayWindow.AppWindow.Resize(new Windows.Graphics.SizeInt32(1, 1));
+        PrepareHiddenTrayHostWindow(_trayWindow);
 
         _trayIcon = new TaskbarIcon
         {
@@ -129,12 +128,16 @@ public partial class App
         }
 
         ThemeService.TrackWindow(_trayWindow);
+
+        // Activate 才会完成 XAML / 托盘控件初始化；窗口已移到屏外且无标题栏，再同步 Hide，避免小窗闪现。
         _trayWindow.Activate();
 
         if (!_trayIcon.IsCreated)
         {
             _trayIcon.ForceCreate();
         }
+
+        HideTrayHostWindow(_trayWindow);
 
         try
         {
@@ -148,17 +151,46 @@ public partial class App
             Log($"[Init] GlobalHotkeyService attach failed: {ex}");
         }
 
-        _trayWindow.DispatcherQueue.TryEnqueue(() =>
-        {
-            if (_trayWindow is null)
-            {
-                return;
-            }
-
-            WindowExtensions.Hide(_trayWindow);
-        });
-
         ThemeService.AppearanceChanged += UpdateTrayIconAppearance;
+    }
+
+    private static void PrepareHiddenTrayHostWindow(Window trayWindow)
+    {
+        var appWindow = trayWindow.AppWindow;
+        appWindow.IsShownInSwitchers = false;
+        AppBranding.ApplyWindowIcon(appWindow);
+
+        if (appWindow.Presenter is OverlappedPresenter presenter)
+        {
+            presenter.SetBorderAndTitleBar(false, false);
+            presenter.IsResizable = false;
+            presenter.IsMaximizable = false;
+            presenter.IsMinimizable = false;
+        }
+
+        // 移到屏外，即便 Activate 抢到一帧也不会被看到。
+        appWindow.MoveAndResize(new Windows.Graphics.RectInt32(-32000, -32000, 1, 1));
+
+        var hwnd = WindowNative.GetWindowHandle(trayWindow);
+        int exStyle = Win32Helper.GetWindowLong(hwnd, Win32Helper.GWL_EXSTYLE);
+        exStyle |= Win32Helper.WS_EX_TOOLWINDOW;
+        Win32Helper.SetWindowLong(hwnd, Win32Helper.GWL_EXSTYLE, exStyle);
+
+        int style = Win32Helper.GetWindowLong(hwnd, Win32Helper.GWL_STYLE);
+        style &= ~(Win32Helper.WS_CAPTION | Win32Helper.WS_BORDER | Win32Helper.WS_DLGFRAME | Win32Helper.WS_THICKFRAME);
+        Win32Helper.SetWindowLong(hwnd, Win32Helper.GWL_STYLE, style);
+        Win32Helper.SetWindowPos(
+            hwnd,
+            IntPtr.Zero,
+            0, 0, 0, 0,
+            Win32Helper.SWP_NOMOVE | Win32Helper.SWP_NOSIZE | Win32Helper.SWP_NOACTIVATE | Win32Helper.SWP_FRAMECHANGED);
+    }
+
+    private static void HideTrayHostWindow(Window trayWindow)
+    {
+        trayWindow.AppWindow.Hide();
+        WindowExtensions.Hide(trayWindow);
+        Win32Helper.ShowWindow(WindowNative.GetWindowHandle(trayWindow), Win32Helper.SW_HIDE);
     }
 
     private MenuFlyoutItem CreateTrayCreateWidgetItem(
