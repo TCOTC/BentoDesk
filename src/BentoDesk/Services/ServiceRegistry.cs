@@ -26,7 +26,6 @@ public static class ServiceRegistry
             new OrganizerService(
                 sp.GetRequiredService<SettingsService>(),
                 sp.GetRequiredService<FileService>()));
-        services.AddSingleton<QuickCaptureService>(_ => new QuickCaptureService());
         services.AddSingleton<LocalizationService>();
         services.AddSingleton<ThemeService>();
 

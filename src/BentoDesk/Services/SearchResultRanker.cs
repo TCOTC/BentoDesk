@@ -74,11 +74,6 @@ internal static class SearchResultRanker
             return $"todo:{item.TodoWidgetId}:{item.TodoItemId}";
         }
 
-        if (item.Kind == SearchResultKind.QuickCapture && !string.IsNullOrWhiteSpace(item.QuickCaptureItemId))
-        {
-            return $"note:{item.QuickCaptureItemId}";
-        }
-
         if (item.Kind == SearchResultKind.Action && !string.IsNullOrWhiteSpace(item.ActionId))
         {
             return $"action:{item.ActionId}";
@@ -114,7 +109,6 @@ internal static class SearchResultRanker
         {
             SearchResultKind.Action => 6,
             SearchResultKind.Todo => 5,
-            SearchResultKind.QuickCapture => 4,
             SearchResultKind.Folder => 1,
             _ => 0
         };

@@ -744,11 +744,6 @@ public sealed partial class WidgetManager
             return fileEntry.Window;
         }
 
-        if (_quickCaptureWidgets.TryGetValue(widgetId, out var quickCaptureEntry))
-        {
-            return quickCaptureEntry.Window;
-        }
-
         return _contentWidgets.TryGetValue(widgetId, out ContentWidgetWindow? contentWindow)
             ? contentWindow
             : null;

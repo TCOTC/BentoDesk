@@ -1141,7 +1141,6 @@ public sealed partial class SearchPopupWindow : Window
         OpenSelectedLabel.Text = _localizationService.T("Search.Menu.Open");
         OpenLocationLabel.Text = _localizationService.T("Search.Menu.OpenLocation");
         AttachSelectedLabel.Text = _localizationService.T("Search.Menu.AttachToTodo");
-        SaveSelectedLabel.Text = _localizationService.T("Search.Menu.SaveToNote");
 
         // Recommendation panel localization
         FavoritesHeaderText.Text = _localizationService.T("Search.Recommend.Favorite");
@@ -2729,8 +2728,6 @@ public sealed partial class SearchPopupWindow : Window
         !string.IsNullOrWhiteSpace(item.DetailPath) &&
         File.Exists(item.DetailPath);
 
-    private static bool CanSaveItem(SearchResultItem item) => CanAttachItem(item);
-
     private void TryPreviewSelectedItem()
     {
         var item = _viewModel.SelectedItem;
@@ -2765,19 +2762,6 @@ public sealed partial class SearchPopupWindow : Window
         bool ok = await actionService.AttachFileToTodoAsync(item.DetailPath);
         ShowTransientStatus(_localizationService.T(
             ok ? "Search.Action.AttachedToTodo" : "Search.Action.AttachFailed"));
-    }
-
-    private async Task SaveItemToNoteAsync(SearchResultItem item)
-    {
-        var actionService = (App.Current as App)?.SearchActionService;
-        if (actionService is null)
-        {
-            return;
-        }
-
-        bool ok = await actionService.SaveFileToNoteAsync(item.DetailPath);
-        ShowTransientStatus(_localizationService.T(
-            ok ? "Search.Action.SavedToNote" : "Search.Action.SaveFailed"));
     }
 
     private void CopyPathToClipboard(SearchResultItem item)
@@ -2944,7 +2928,6 @@ public sealed partial class SearchPopupWindow : Window
                                 !string.IsNullOrWhiteSpace(item.DetailPath);
         OpenLocationButton.Visibility = isFileSystemItem ? Visibility.Visible : Visibility.Collapsed;
         AttachSelectedButton.Visibility = CanAttachItem(item) ? Visibility.Visible : Visibility.Collapsed;
-        SaveSelectedButton.Visibility = CanSaveItem(item) ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void OpenSelectedButton_Click(object sender, RoutedEventArgs e)
@@ -2968,14 +2951,6 @@ public sealed partial class SearchPopupWindow : Window
         if (_viewModel.SelectedItem is { } item)
         {
             await AttachItemToTodoAsync(item);
-        }
-    }
-
-    private async void SaveSelectedButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_viewModel.SelectedItem is { } item)
-        {
-            await SaveItemToNoteAsync(item);
         }
     }
 

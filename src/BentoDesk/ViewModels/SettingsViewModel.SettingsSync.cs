@@ -127,21 +127,10 @@ public partial class SettingsViewModel
             ApplyContentEditorSettingsSnapshot(settings);
             ApplyFileStackSettingsSnapshot(settings);
 
-            QuickCaptureEnabled = FeatureWidgetSettings.IsEnabled(settings, WidgetKind.QuickCapture);
-            QuickCaptureClipboardEnabled = settings.QuickCaptureClipboardEnabled;
-            QuickCaptureImageClipboardEnabled = settings.QuickCaptureImageClipboardEnabled;
-            QuickCaptureRecentLimit = QuickCaptureService.NormalizeRecentLimit(settings.QuickCaptureRecentLimit);
-            QuickCaptureShowCreatedTime = settings.QuickCaptureShowCreatedTime;
             SelectedAttachmentStorageMode = SettingsService.NormalizeAttachmentStorageMode(settings.AttachmentStorageMode);
             SelectedManagedDropAction = settings.ManagedDropAction == SettingsService.ManagedDropActionMove
                 ? SettingsService.ManagedDropActionMove
                 : SettingsService.ManagedDropActionCopy;
-            SelectedQuickCaptureDefaultView = NormalizeQuickCaptureDefaultView(settings.QuickCaptureDefaultView);
-            SelectedQuickCaptureTabStyle = SettingsService.NormalizeWidgetTabStyle(settings.QuickCaptureTabStyle);
-            QuickCaptureShowTabBar = settings.QuickCaptureShowTabBar;
-            QuickCaptureShowRecordsTab = settings.QuickCaptureShowRecordsTab;
-            QuickCaptureShowPinnedTab = settings.QuickCaptureShowPinnedTab;
-            QuickCaptureShowRecentTab = settings.QuickCaptureShowRecentTab;
 
             TodoEnabled = FeatureWidgetSettings.IsEnabled(settings, WidgetKind.Todo);
             TodoShowTabBar = settings.TodoShowTabBar;
@@ -212,11 +201,8 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(CanEditCustomAccent));
         OnPropertyChanged(nameof(AccentColorDescription));
         OnPropertyChanged(nameof(WeatherCityNameVisibility));
-        OnPropertyChanged(nameof(QuickCaptureStatusText));
-        OnPropertyChanged(nameof(QuickCaptureDependencyStatusText));
         OnPropertyChanged(nameof(FeatureWidgetEntries));
         NotifyCapsuleOverridePropertiesChanged();
-        RefreshQuickCaptureClipboardDiagnostics();
         _ = RefreshQuickAccessStateAsync();
     }
 
@@ -254,15 +240,11 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(GlobalHotkeyStatusKind));
         OnPropertyChanged(nameof(CanShowGlobalHotkeyWarning));
         NotifyDragDropPermissionPropertiesChanged();
-        OnPropertyChanged(nameof(QuickCaptureStatusText));
-        OnPropertyChanged(nameof(QuickCaptureDependencyStatusText));
-        OnPropertyChanged(nameof(QuickCaptureRecentLimitText));
         OnPropertyChanged(nameof(FeatureWidgetEntries));
         NotifyCapsuleOverridePropertiesChanged();
-OnPropertyChanged(nameof(WeatherCitySearchPlaceholder));
-OnPropertyChanged(nameof(WeatherCityNoResultsText));
-RefreshWeatherCityPopularCities();
-        RefreshQuickCaptureClipboardDiagnostics();
+        OnPropertyChanged(nameof(WeatherCitySearchPlaceholder));
+        OnPropertyChanged(nameof(WeatherCityNoResultsText));
+        RefreshWeatherCityPopularCities();
     }
 
     private void RefreshSelectionProperties(bool refreshLocalizedOptions)
@@ -297,8 +279,6 @@ RefreshWeatherCityPopularCities();
             _cachedInteractiveWidgetChromeModeDisplayNames = null;
             _cachedWidgetTitleIconModeDisplayNames = null;
             _cachedWidgetLayerModeDisplayNames = null;
-            _cachedQuickCaptureDefaultViewDisplayNames = null;
-            _cachedQuickCaptureTabStyleDisplayNames = null;
             _cachedTodoNewTaskPositionDisplayNames = null;
             _cachedAttachmentStorageModeDisplayNames = null;
             _cachedTodoDefaultFilterDisplayNames = null;
@@ -336,8 +316,6 @@ RefreshWeatherCityPopularCities();
             OnPropertyChanged(nameof(AvailableInteractiveWidgetChromeModeDisplayNames));
             OnPropertyChanged(nameof(AvailableWidgetTitleIconModeDisplayNames));
             OnPropertyChanged(nameof(AvailableWidgetLayerModeDisplayNames));
-            OnPropertyChanged(nameof(AvailableQuickCaptureDefaultViewDisplayNames));
-            OnPropertyChanged(nameof(AvailableQuickCaptureTabStyleDisplayNames));
             OnPropertyChanged(nameof(AvailableTodoNewTaskPositionDisplayNames));
             OnPropertyChanged(nameof(AvailableAttachmentStorageModeDisplayNames));
             OnPropertyChanged(nameof(AvailableManagedDropActionDisplayNames));
@@ -404,8 +382,6 @@ RefreshWeatherCityPopularCities();
         OnPropertyChanged(nameof(SelectedWidgetLayerModeText));
         NotifyHoverButtonActionPropertiesChanged();
         OnPropertyChanged(nameof(HoverButtonActionsSummaryText));
-        OnPropertyChanged(nameof(SelectedQuickCaptureDefaultViewText));
-        OnPropertyChanged(nameof(SelectedQuickCaptureTabStyleText));
         OnPropertyChanged(nameof(SelectedTodoNewTaskPositionText));
         OnPropertyChanged(nameof(SelectedTodoDefaultFilterText));
         OnPropertyChanged(nameof(SelectedTodoTabStyleText));

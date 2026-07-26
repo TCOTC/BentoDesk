@@ -300,7 +300,6 @@ public sealed partial class SearchPopupViewModel : ObservableObject, IDisposable
         ActionId = rec.ActionId,
         TodoWidgetId = rec.TodoWidgetId,
         TodoItemId = rec.TodoItemId,
-        QuickCaptureItemId = rec.QuickCaptureItemId,
         HistoryQuery = rec.HistoryQuery
     };
 
@@ -467,7 +466,7 @@ public sealed partial class SearchPopupViewModel : ObservableObject, IDisposable
                 item => item.Kind is SearchResultKind.File or SearchResultKind.Folder,
                 supportsFileSort: true);
             AddTab("bentodesk", "Search.Tab.BentoDesk", "\uE80F",
-                item => item.Kind is SearchResultKind.Todo or SearchResultKind.QuickCapture or SearchResultKind.Action,
+                item => item.Kind is SearchResultKind.Todo or SearchResultKind.Action,
                 supportsFileSort: false);
         }
         else
@@ -511,7 +510,6 @@ public sealed partial class SearchPopupViewModel : ObservableObject, IDisposable
     {
         SearchResultKind.Folder => _localizationService.T("Search.Type.Folder"),
         SearchResultKind.Todo => _localizationService.T("Search.Type.Todo"),
-        SearchResultKind.QuickCapture => _localizationService.T("Search.Type.Note"),
         SearchResultKind.Action => _localizationService.T("Search.Type.Action"),
         SearchResultKind.File => FileCategoryHelper.Categorize(item.Title) switch
         {
@@ -630,7 +628,6 @@ public sealed partial class SearchPopupViewModel : ObservableObject, IDisposable
         SearchResultFilter.Documents => item.Kind == SearchResultKind.File &&
                                         FileCategoryHelper.Categorize(item.Title) == FileCategory.Document,
         SearchResultFilter.BentoDesk => item.Kind is SearchResultKind.Todo or
-                                      SearchResultKind.QuickCapture or
                                       SearchResultKind.Action,
         _ => true
     };
@@ -744,11 +741,6 @@ public sealed partial class SearchPopupViewModel : ObservableObject, IDisposable
                 return true;
 
             case SearchResultKind.Todo:
-                CommitExecution(item);
-                ContentRequested?.Invoke(this, item);
-                return true;
-
-            case SearchResultKind.QuickCapture:
                 CommitExecution(item);
                 ContentRequested?.Invoke(this, item);
                 return true;
@@ -929,9 +921,6 @@ public sealed partial class SearchPopupViewModel : ObservableObject, IDisposable
             case "new-todo":
                 ActionRequested?.Invoke(this, "new-todo");
                 break;
-            case "new-note":
-                ActionRequested?.Invoke(this, "new-note");
-                break;
             case "open-settings":
                 ActionRequested?.Invoke(this, "open-settings");
                 break;
@@ -943,9 +932,6 @@ public sealed partial class SearchPopupViewModel : ObservableObject, IDisposable
                 break;
             case "open-todo":
                 ActionRequested?.Invoke(this, "open-todo");
-                break;
-            case "open-quickcapture":
-                ActionRequested?.Invoke(this, "open-quickcapture");
                 break;
         }
     }

@@ -38,29 +38,6 @@ public sealed class BentoDeskAttachmentHealthService
         var missingManagedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         int unreadableStoreCount = 0;
 
-        string quickCapturePath = Path.Combine(
-            _dataDirectory,
-            "quick-capture",
-            "quick-capture.json");
-        if (File.Exists(quickCapturePath))
-        {
-            try
-            {
-                QuickCaptureStoreData data = ReadJson<QuickCaptureStoreData>(quickCapturePath);
-                AddAttachments(
-                    (data.Items ?? []).Concat(data.RecentItems ?? [])
-                    .SelectMany(item => item.Attachments ?? []),
-                    referencedPaths,
-                    missingLinkedPaths,
-                    missingManagedPaths);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                unreadableStoreCount++;
-                App.Log($"[AttachmentHealth] Failed to read '{quickCapturePath}': {ex.Message}");
-            }
-        }
-
         string widgetsDirectory = Path.Combine(_dataDirectory, "widgets");
         if (Directory.Exists(widgetsDirectory))
         {
@@ -114,12 +91,6 @@ public sealed class BentoDeskAttachmentHealthService
 
     private IEnumerable<string> EnumerateManagedAttachmentDirectories(string widgetsDirectory)
     {
-        string quickCaptureAttachments = Path.Combine(_dataDirectory, "quick-capture", "attachments");
-        if (Directory.Exists(quickCaptureAttachments))
-        {
-            yield return quickCaptureAttachments;
-        }
-
         if (!Directory.Exists(widgetsDirectory))
         {
             yield break;

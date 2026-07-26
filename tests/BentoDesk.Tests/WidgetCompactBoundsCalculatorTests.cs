@@ -44,9 +44,8 @@ public sealed class WidgetCompactBoundsCalculatorTests
     [InlineData(SettingsService.WidgetCompactContentModeSmart, WidgetKind.Todo, 42)]
     [InlineData(SettingsService.WidgetCompactContentModeSmart, WidgetKind.Music, 52)]
     [InlineData(SettingsService.WidgetCompactContentModeSmart, WidgetKind.Weather, 52)]
-    [InlineData(SettingsService.WidgetCompactContentModeSmart, WidgetKind.QuickCapture, 52)]
+    [InlineData(SettingsService.WidgetCompactContentModeSmart, WidgetKind.Search, 52)]
     [InlineData(SettingsService.WidgetCompactContentModeSummary, WidgetKind.Music, 42)]
-    [InlineData(SettingsService.WidgetCompactContentModeMinimal, WidgetKind.QuickCapture, 42)]
     public void Calculate_UsesContentAppropriateHeight(string contentMode, WidgetKind kind, int expectedHeight)
     {
         RectInt32 result = WidgetCompactBoundsCalculator.Calculate(

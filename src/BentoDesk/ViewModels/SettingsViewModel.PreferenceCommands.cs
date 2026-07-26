@@ -76,7 +76,6 @@ public partial class SettingsViewModel
             _themeService.RefreshAppearance();
             RefreshAccentPreview();
             await _settingsService.SaveAsync();
-            App.Current?.QuickCaptureClipboardService?.Refresh();
             _settingsService.NotifyAppearancePreviewNow();
         }
         finally

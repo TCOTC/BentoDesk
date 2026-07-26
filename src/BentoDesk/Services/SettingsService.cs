@@ -187,10 +187,9 @@ public sealed class SettingsService
     public const string FileStackOrderByDateModified = "DateModified";
     public const string FileStackUnmatchedKeepLoose = "KeepLoose";
     public const string FileStackUnmatchedOther = "Other";
-    public const int DefaultQuickCaptureItemPreviewLineCount = 3;
     public const int DefaultTodoItemPreviewLineCount = 2;
     [Obsolete("Use the feature-specific preview line defaults.")]
-    public const int DefaultItemPreviewLineCount = DefaultQuickCaptureItemPreviewLineCount;
+    public const int DefaultItemPreviewLineCount = DefaultTodoItemPreviewLineCount;
     public const int MinItemPreviewLineCount = 1;
     public const int MaxItemPreviewLineCount = 10;
     public const string EditorEnterBehaviorCtrlEnterSaves = "CtrlEnterSaves";
@@ -238,9 +237,6 @@ public sealed class SettingsService
     public const int DefaultTodoReminderOffsetMinutes = 5;
     public const int MinTodoReminderOffsetMinutes = 0;
     public const int MaxTodoReminderOffsetMinutes = 1440;
-    public const string QuickCaptureDefaultViewRecords = "Records";
-    public const string QuickCaptureDefaultViewPinned = "Pinned";
-    public const string QuickCaptureDefaultViewRecent = "Recent";
     public const string WidgetTabStylePivot = "Pivot";
     public const string WidgetTabStyleButton = "Button";
 public const string WeatherTemperatureUnitCelsius = "Celsius";
@@ -270,7 +266,6 @@ public const int WeatherRefreshMaxMinutes = 180;
             {
                 [nameof(AppSettings.AutoStart)] = DefaultPreferencePreservationReason.SystemIntegration,
                 [nameof(AppSettings.FeatureWidgetEnabledStates)] = DefaultPreferencePreservationReason.UserChoice,
-                [nameof(AppSettings.QuickCaptureEnabled)] = DefaultPreferencePreservationReason.UserChoice,
                 [nameof(AppSettings.TodoEnabled)] = DefaultPreferencePreservationReason.UserChoice,
                 [nameof(AppSettings.Widgets)] = DefaultPreferencePreservationReason.UserData,
                 [nameof(AppSettings.WidgetCapsuleBarOrder)] = DefaultPreferencePreservationReason.UserData,
@@ -279,7 +274,6 @@ public const int WeatherRefreshMaxMinutes = 180;
                 [nameof(AppSettings.RecentOrganizationHistory)] = DefaultPreferencePreservationReason.UserData,
                 [nameof(AppSettings.DefaultManagedStorageRootPath)] = DefaultPreferencePreservationReason.Storage,
                 [nameof(AppSettings.HasCompletedOnboarding)] = DefaultPreferencePreservationReason.RuntimeState,
-                [nameof(AppSettings.LastQuickCaptureFileWidgetId)] = DefaultPreferencePreservationReason.RuntimeState,
                 [nameof(AppSettings.LastUpdateCheckAt)] = DefaultPreferencePreservationReason.RuntimeState,
                 [nameof(AppSettings.SchemaVersion)] = DefaultPreferencePreservationReason.RuntimeState
             };
@@ -358,19 +352,7 @@ public const int WeatherRefreshMaxMinutes = 180;
         settings.ShowHoverButtons = true;
         settings.WidgetHoverButtonActions = DefaultWidgetHoverButtonActions;
         settings.AutoCheckForUpdates = true;
-        settings.QuickCaptureClipboardEnabled = false;
-        settings.QuickCaptureImageClipboardEnabled = false;
-        settings.QuickCaptureRecentLimit = QuickCaptureService.DefaultRecentLimit;
-        settings.QuickCaptureShowCreatedTime = true;
-        settings.QuickCaptureItemPreviewLineCount = DefaultQuickCaptureItemPreviewLineCount;
-        settings.QuickCaptureEditorEnterBehavior = EditorEnterBehaviorCtrlEnterSaves;
         settings.AttachmentStorageMode = AttachmentStorageModeLink;
-        settings.QuickCaptureDefaultView = QuickCaptureDefaultViewRecords;
-        settings.QuickCaptureTabStyle = WidgetTabStyleButton;
-        settings.QuickCaptureShowTabBar = true;
-        settings.QuickCaptureShowRecordsTab = true;
-        settings.QuickCaptureShowPinnedTab = true;
-        settings.QuickCaptureShowRecentTab = true;
         settings.TodoShowCompletedTasks = false;
         settings.TodoItemPreviewLineCount = DefaultTodoItemPreviewLineCount;
         settings.TodoEditorEnterBehavior = EditorEnterBehaviorCtrlEnterSaves;
@@ -501,7 +483,6 @@ settings.FocusClickedWidgetOnRaise = false;
                 changed |= NormalizeOrganizerSettings(_settings);
                 changed |= NormalizeHotkeySettings(_settings);
                 changed |= NormalizeSearchSettings(_settings);
-                changed |= NormalizeQuickCaptureSettings(_settings);
                 changed |= NormalizeTodoSettings(_settings);
 changed |= NormalizeWeatherSettings(_settings);
 changed |= NormalizeDeletionSettings(_settings);
@@ -570,7 +551,6 @@ changed |= NormalizeDeletionSettings(_settings);
                 NormalizeOrganizerSettings(_settings);
                 NormalizeHotkeySettings(_settings);
                 NormalizeSearchSettings(_settings);
-                NormalizeQuickCaptureSettings(_settings);
                 NormalizeTodoSettings(_settings);
                 NormalizeWeatherSettings(_settings);
                 json = JsonSerializer.Serialize(_settings, s_jsonOptions);
@@ -2072,98 +2052,6 @@ changed |= NormalizeDeletionSettings(_settings);
         return changed;
     }
 
-    private static bool NormalizeQuickCaptureSettings(AppSettings settings)
-    {
-        bool changed = false;
-
-        int normalizedPreviewLineCount = NormalizeItemPreviewLineCount(
-            settings.QuickCaptureItemPreviewLineCount);
-        if (settings.QuickCaptureItemPreviewLineCount != normalizedPreviewLineCount)
-        {
-            settings.QuickCaptureItemPreviewLineCount = normalizedPreviewLineCount;
-            changed = true;
-        }
-
-        string normalizedEnterBehavior = NormalizeEditorEnterBehavior(
-            settings.QuickCaptureEditorEnterBehavior);
-        if (!string.Equals(
-                settings.QuickCaptureEditorEnterBehavior,
-                normalizedEnterBehavior,
-                StringComparison.Ordinal))
-        {
-            settings.QuickCaptureEditorEnterBehavior = normalizedEnterBehavior;
-            changed = true;
-        }
-
-        int normalizedLimit = QuickCaptureService.NormalizeRecentLimit(settings.QuickCaptureRecentLimit);
-        if (settings.QuickCaptureRecentLimit != normalizedLimit)
-        {
-            settings.QuickCaptureRecentLimit = normalizedLimit;
-            changed = true;
-        }
-
-        string normalizedLastFileWidgetId = string.IsNullOrWhiteSpace(settings.LastQuickCaptureFileWidgetId)
-            ? string.Empty
-            : settings.LastQuickCaptureFileWidgetId.Trim();
-        if (!string.Equals(settings.LastQuickCaptureFileWidgetId, normalizedLastFileWidgetId, StringComparison.Ordinal))
-        {
-            settings.LastQuickCaptureFileWidgetId = normalizedLastFileWidgetId;
-            changed = true;
-        }
-
-        if (settings.QuickCaptureDefaultView is not (
-            QuickCaptureDefaultViewRecords or
-            QuickCaptureDefaultViewPinned or
-            QuickCaptureDefaultViewRecent))
-        {
-            settings.QuickCaptureDefaultView = QuickCaptureDefaultViewRecords;
-            changed = true;
-        }
-
-        if (!settings.QuickCaptureShowRecordsTab &&
-            !settings.QuickCaptureShowPinnedTab &&
-            !settings.QuickCaptureShowRecentTab)
-        {
-            settings.QuickCaptureShowRecordsTab = true;
-            changed = true;
-        }
-
-        if (!IsQuickCaptureTabVisible(settings, settings.QuickCaptureDefaultView))
-        {
-            settings.QuickCaptureDefaultView = GetFirstVisibleQuickCaptureTab(settings);
-            changed = true;
-        }
-
-        string normalizedTabStyle = NormalizeWidgetTabStyle(settings.QuickCaptureTabStyle);
-        if (!string.Equals(settings.QuickCaptureTabStyle, normalizedTabStyle, StringComparison.Ordinal))
-        {
-            settings.QuickCaptureTabStyle = normalizedTabStyle;
-            changed = true;
-        }
-
-        if (!FeatureWidgetSettings.IsEnabled(settings, WidgetKind.QuickCapture))
-        {
-            if (settings.QuickCaptureClipboardEnabled)
-            {
-                settings.QuickCaptureClipboardEnabled = false;
-                changed = true;
-            }
-
-            if (settings.QuickCaptureImageClipboardEnabled)
-            {
-                settings.QuickCaptureImageClipboardEnabled = false;
-                changed = true;
-            }
-        }
-        else if (!settings.QuickCaptureClipboardEnabled && settings.QuickCaptureImageClipboardEnabled)
-        {
-            settings.QuickCaptureImageClipboardEnabled = false;
-            changed = true;
-        }
-
-        return changed;
-    }
-
     internal static bool NormalizeTodoSettings(AppSettings settings)
     {
         bool changed = false;
@@ -2262,21 +2150,6 @@ changed |= NormalizeDeletionSettings(_settings);
         return style == WidgetTabStylePivot
             ? WidgetTabStylePivot
             : WidgetTabStyleButton;
-    }
-
-    public static bool IsQuickCaptureTabVisible(AppSettings settings, string? view) => view switch
-    {
-        QuickCaptureDefaultViewPinned => settings.QuickCaptureShowPinnedTab,
-        QuickCaptureDefaultViewRecent => settings.QuickCaptureShowRecentTab,
-        _ => settings.QuickCaptureShowRecordsTab
-    };
-
-    public static string GetFirstVisibleQuickCaptureTab(AppSettings settings)
-    {
-        if (settings.QuickCaptureShowRecordsTab) return QuickCaptureDefaultViewRecords;
-        if (settings.QuickCaptureShowPinnedTab) return QuickCaptureDefaultViewPinned;
-        if (settings.QuickCaptureShowRecentTab) return QuickCaptureDefaultViewRecent;
-        return QuickCaptureDefaultViewRecords;
     }
 
     public static bool IsTodoTabVisible(AppSettings settings, string? filter) => filter switch

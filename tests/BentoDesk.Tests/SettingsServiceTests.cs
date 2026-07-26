@@ -24,20 +24,12 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task LoadAsync_PreservesQuickCaptureWidgetsAndRemovesLegacyProductivityWidgets()
+    public async Task LoadAsync_RemovesLegacyProductivityWidgets()
     {
         var settings = new AppSettings
         {
-            QuickCaptureEnabled = true,
             Widgets =
             [
-                new WidgetConfig
-                {
-                    Id = "quick-capture",
-                    Name = "Quick Capture",
-                    WidgetKind = WidgetKind.QuickCapture,
-                    IsVisible = true
-                },
                 new WidgetConfig
                 {
                     Id = "legacy-productivity",
@@ -55,10 +47,7 @@ public sealed class SettingsServiceTests : IDisposable
         var service = new SettingsService(_settingsRoot);
         await service.LoadAsync();
 
-        Assert.True(service.Settings.QuickCaptureEnabled);
-        var widget = Assert.Single(service.Settings.Widgets);
-        Assert.Equal("quick-capture", widget.Id);
-        Assert.Equal(WidgetKind.QuickCapture, widget.WidgetKind);
+        Assert.Empty(service.Settings.Widgets);
     }
 
     [Fact]
@@ -121,38 +110,6 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal(WidgetKind.File, widget.WidgetKind);
     }
 
-    [Fact]
-    public async Task LoadAsync_NormalizesQuickCaptureRecentLimit()
-    {
-        var settings = new AppSettings
-        {
-            QuickCaptureRecentLimit = 2
-        };
-
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            JsonSerializer.Serialize(settings, s_jsonOptions));
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
-        Assert.Equal(QuickCaptureService.DefaultRecentLimit, service.Settings.QuickCaptureRecentLimit);
-    }
-
-    [Fact]
-    public async Task LoadAsync_DefaultsQuickCaptureClipboardRecordingToDisabled()
-    {
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            "{}");
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
-        Assert.False(service.Settings.QuickCaptureClipboardEnabled);
-        Assert.False(service.Settings.QuickCaptureImageClipboardEnabled);
-    }
-
     [Theory]
     [InlineData("file", "file")]
     [InlineData(" APP ", "app")]
@@ -171,55 +128,12 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task LoadAsync_DisabledQuickCaptureDisablesClipboardRecording()
-    {
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            """
-            {
-              "quickCaptureEnabled": false,
-              "quickCaptureClipboardEnabled": true,
-              "quickCaptureImageClipboardEnabled": true
-            }
-            """);
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
-        Assert.False(FeatureWidgetSettings.IsEnabled(service.Settings, WidgetKind.QuickCapture));
-        Assert.False(service.Settings.QuickCaptureClipboardEnabled);
-        Assert.False(service.Settings.QuickCaptureImageClipboardEnabled);
-    }
-
-    [Fact]
-    public async Task LoadAsync_DisabledClipboardRecordingDisablesImageRecording()
-    {
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            """
-            {
-              "quickCaptureEnabled": true,
-              "quickCaptureClipboardEnabled": false,
-              "quickCaptureImageClipboardEnabled": true
-            }
-            """);
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
-        Assert.True(FeatureWidgetSettings.IsEnabled(service.Settings, WidgetKind.QuickCapture));
-        Assert.False(service.Settings.QuickCaptureClipboardEnabled);
-        Assert.False(service.Settings.QuickCaptureImageClipboardEnabled);
-    }
-
-    [Fact]
     public async Task LoadAsync_MigratesLegacyFeatureWidgetEnabledStates()
     {
         await File.WriteAllTextAsync(
             Path.Combine(_settingsRoot, "settings.json"),
             """
             {
-              "quickCaptureEnabled": false,
               "todoEnabled": true
             }
             """);
@@ -227,9 +141,7 @@ public sealed class SettingsServiceTests : IDisposable
         var service = new SettingsService(_settingsRoot);
         await service.LoadAsync();
 
-        Assert.False(FeatureWidgetSettings.IsEnabled(service.Settings, WidgetKind.QuickCapture));
         Assert.True(FeatureWidgetSettings.IsEnabled(service.Settings, WidgetKind.Todo));
-        Assert.False(service.Settings.QuickCaptureEnabled);
         Assert.True(service.Settings.TodoEnabled);
     }
 
@@ -240,10 +152,8 @@ public sealed class SettingsServiceTests : IDisposable
             Path.Combine(_settingsRoot, "settings.json"),
             """
             {
-              "quickCaptureEnabled": true,
               "todoEnabled": true,
               "featureWidgetEnabledStates": {
-                "QuickCapture": false,
                 "Todo": false
               }
             }
@@ -252,51 +162,8 @@ public sealed class SettingsServiceTests : IDisposable
         var service = new SettingsService(_settingsRoot);
         await service.LoadAsync();
 
-        Assert.False(FeatureWidgetSettings.IsEnabled(service.Settings, WidgetKind.QuickCapture));
         Assert.False(FeatureWidgetSettings.IsEnabled(service.Settings, WidgetKind.Todo));
-        Assert.False(service.Settings.QuickCaptureEnabled);
         Assert.False(service.Settings.TodoEnabled);
-    }
-
-    [Fact]
-    public async Task LoadAsync_ClampsQuickCaptureRecentLimitToMaximum()
-    {
-        var settings = new AppSettings
-        {
-            QuickCaptureRecentLimit = 500
-        };
-
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            JsonSerializer.Serialize(settings, s_jsonOptions));
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
-        Assert.Equal(QuickCaptureService.MaxRecentLimit, service.Settings.QuickCaptureRecentLimit);
-    }
-
-    [Fact]
-    public async Task LoadAsync_NormalizesQuickCaptureEditorSettings()
-    {
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            """
-            {
-              "quickCaptureItemPreviewLineCount": 40,
-              "quickCaptureEditorEnterBehavior": "unexpected"
-            }
-            """);
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
-        Assert.Equal(
-            SettingsService.MaxItemPreviewLineCount,
-            service.Settings.QuickCaptureItemPreviewLineCount);
-        Assert.Equal(
-            SettingsService.EditorEnterBehaviorCtrlEnterSaves,
-            service.Settings.QuickCaptureEditorEnterBehavior);
     }
 
     [Fact]
@@ -597,10 +464,6 @@ public sealed class SettingsServiceTests : IDisposable
     {
         var settings = new AppSettings
         {
-            QuickCaptureDefaultView = SettingsService.QuickCaptureDefaultViewPinned,
-            QuickCaptureShowRecordsTab = false,
-            QuickCaptureShowPinnedTab = false,
-            QuickCaptureShowRecentTab = false,
             TodoDefaultFilter = SettingsService.TodoDefaultFilterCompleted,
             TodoShowAllTab = false,
             TodoShowActiveTab = false,
@@ -617,8 +480,6 @@ public sealed class SettingsServiceTests : IDisposable
         var service = new SettingsService(_settingsRoot);
         await service.LoadAsync();
 
-        Assert.True(service.Settings.QuickCaptureShowRecordsTab);
-        Assert.Equal(SettingsService.QuickCaptureDefaultViewRecords, service.Settings.QuickCaptureDefaultView);
         Assert.True(service.Settings.TodoShowAllTab);
         Assert.Equal(SettingsService.TodoDefaultFilterAll, service.Settings.TodoDefaultFilter);
     }
@@ -666,17 +527,12 @@ public sealed class SettingsServiceTests : IDisposable
             WidgetMaterialIntensity = 0.1,
             LayoutDensity = "Compact",
             AutoStart = false,
-            QuickCaptureEnabled = true,
             TodoEnabled = true,
             FeatureWidgetEnabledStates = new Dictionary<string, bool>
             {
                 [WidgetKind.Music.ToString()] = true
             },
-            QuickCaptureShowCreatedTime = false,
-            QuickCaptureItemPreviewLineCount = 1,
-            QuickCaptureEditorEnterBehavior = SettingsService.EditorEnterBehaviorEnterSaves,
             ResizeSnapEnabled = false,
-            QuickCaptureTabStyle = SettingsService.WidgetTabStylePivot,
             TodoTabStyle = SettingsService.WidgetTabStylePivot,
             TodoShowFooterStats = true,
             TodoItemPreviewLineCount = 1,
@@ -720,23 +576,13 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal(newUserDefaults.WidgetMaterialIntensity, restoredDefaults.WidgetMaterialIntensity);
         Assert.True(newUserDefaults.AutoCheckForUpdates);
         Assert.Equal(newUserDefaults.AutoCheckForUpdates, restoredDefaults.AutoCheckForUpdates);
-        Assert.False(newUserDefaults.QuickCaptureClipboardEnabled);
-        Assert.False(newUserDefaults.QuickCaptureImageClipboardEnabled);
-        Assert.Equal(newUserDefaults.QuickCaptureClipboardEnabled, restoredDefaults.QuickCaptureClipboardEnabled);
-        Assert.Equal(newUserDefaults.QuickCaptureImageClipboardEnabled, restoredDefaults.QuickCaptureImageClipboardEnabled);
         Assert.True(newUserDefaults.TodoReminderEnabled);
         Assert.Equal(SettingsService.DefaultTodoReminderOffsetMinutes, newUserDefaults.TodoDefaultReminderOffsetMinutes);
         Assert.Equal(newUserDefaults.TodoReminderEnabled, restoredDefaults.TodoReminderEnabled);
         Assert.Equal(newUserDefaults.TodoDefaultReminderOffsetMinutes, restoredDefaults.TodoDefaultReminderOffsetMinutes);
-        Assert.Equal(newUserDefaults.QuickCaptureTabStyle, restoredDefaults.QuickCaptureTabStyle);
         Assert.Equal(newUserDefaults.TodoTabStyle, restoredDefaults.TodoTabStyle);
-        Assert.Equal(SettingsService.WidgetTabStyleButton, restoredDefaults.QuickCaptureTabStyle);
         Assert.Equal(SettingsService.WidgetTabStyleButton, restoredDefaults.TodoTabStyle);
         Assert.Equal(SettingsService.LayoutDensityStandard, restoredDefaults.LayoutDensity);
-        Assert.True(restoredDefaults.QuickCaptureShowCreatedTime);
-        Assert.Equal(newUserDefaults.QuickCaptureItemPreviewLineCount, restoredDefaults.QuickCaptureItemPreviewLineCount);
-        Assert.Equal(SettingsService.DefaultQuickCaptureItemPreviewLineCount, newUserDefaults.QuickCaptureItemPreviewLineCount);
-        Assert.Equal(newUserDefaults.QuickCaptureEditorEnterBehavior, restoredDefaults.QuickCaptureEditorEnterBehavior);
         Assert.True(restoredDefaults.ResizeSnapEnabled);
         Assert.False(restoredDefaults.TodoShowFooterStats);
         Assert.Equal(newUserDefaults.TodoItemPreviewLineCount, restoredDefaults.TodoItemPreviewLineCount);
@@ -744,7 +590,6 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.False(newUserDefaults.TodoShowCompletedTasks);
         Assert.Equal(newUserDefaults.TodoEditorEnterBehavior, restoredDefaults.TodoEditorEnterBehavior);
         Assert.False(restoredDefaults.AutoStart);
-        Assert.True(restoredDefaults.QuickCaptureEnabled);
         Assert.True(restoredDefaults.TodoEnabled);
         Assert.True(restoredDefaults.FeatureWidgetEnabledStates[WidgetKind.Music.ToString()]);
         Assert.Equal(newUserDefaults.ManagedDropAction, restoredDefaults.ManagedDropAction);
@@ -873,23 +718,6 @@ public sealed class SettingsServiceTests : IDisposable
     public void NormalizeWidgetHoverButtonActions_ConstrainsSelection(string? value, string expected)
     {
         Assert.Equal(expected, SettingsService.NormalizeWidgetHoverButtonActions(value));
-    }
-
-    [Fact]
-    public async Task LoadAsync_NormalizesQuickCaptureDefaultView()
-    {
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            """
-            {
-              "quickCaptureDefaultView": "Timeline"
-            }
-            """);
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
-        Assert.Equal(SettingsService.QuickCaptureDefaultViewRecords, service.Settings.QuickCaptureDefaultView);
     }
 
     [Theory]

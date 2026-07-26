@@ -33,17 +33,6 @@ public sealed class WidgetContentFactory
             "WidgetContent.File.StatusDescription",
             "Common.NewWidget"),
         new(
-            WidgetKind.QuickCapture,
-            "Quick Capture",
-            "\uE70F",
-            WidgetContentStage.Implemented,
-            CanShowInCreateEntry: false,
-            WidgetContentAvailability.Available,
-            "WidgetContent.QuickCapture.StatusLabel",
-            "WidgetContent.QuickCapture.StatusDescription",
-            HasSettingsPage: true,
-            SettingsSectionTag: "QuickCaptureSettings"),
-        new(
             WidgetKind.Todo,
             "Todo",
             "\uE9D5",

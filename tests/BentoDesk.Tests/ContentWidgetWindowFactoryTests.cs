@@ -63,7 +63,6 @@ public sealed class ContentWidgetWindowFactoryTests : IDisposable
 
     [Theory]
     [InlineData(WidgetKind.File)]
-    [InlineData(WidgetKind.QuickCapture)]
     [InlineData(WidgetKind.Productivity)]
     public void CreateContentWindowPlan_RejectsWindowOwnedAndLegacyKinds(WidgetKind widgetKind)
     {

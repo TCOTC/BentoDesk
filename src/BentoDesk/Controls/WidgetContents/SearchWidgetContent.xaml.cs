@@ -131,7 +131,7 @@ public sealed partial class SearchWidgetContent : UserControl
                 ?? Array.Empty<SearchRecommendationItem>();
             var preview = recent
                 .Where(r => r.Kind != SearchResultKind.Action)
-                .GroupBy(r => $"{r.Kind}:{r.DetailPath}:{r.TodoItemId}:{r.QuickCaptureItemId}:{r.Title}",
+                .GroupBy(r => $"{r.Kind}:{r.DetailPath}:{r.TodoItemId}:{r.Title}",
                     StringComparer.OrdinalIgnoreCase)
                 .Select(group => group.First())
                 .Take(3)

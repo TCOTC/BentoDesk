@@ -135,7 +135,7 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
         LocalizationService localization)
     {
         // Smart mode gets a dynamic subtitle so the search capsule matches the
-        // height/style of the weather/quick-capture capsules instead of looking
+        // height/style of the weather capsules instead of looking
         // bare. The subtitle shows the most recent query ("最近：xxx"); when there
         // is no history (or history is disabled / sensitive content is hidden) it
         // falls back to a static hint so the line never appears empty.

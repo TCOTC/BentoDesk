@@ -3,9 +3,9 @@ using BentoDesk.Models;
 namespace BentoDesk.Services;
 
 /// <summary>
-/// Performs secondary actions on search results: attaching a file to a todo,
-/// saving a file as a quick-capture note, and copying paths to the clipboard.
-/// These actions are surfaced through the result context menu in the search popup.
+/// Performs secondary actions on search results: attaching a file to a todo
+/// and copying paths to the clipboard. These actions are surfaced through the
+/// result context menu in the search popup.
 /// </summary>
 public sealed class SearchResultActionService
 {
@@ -73,54 +73,6 @@ public sealed class SearchResultActionService
     }
 
     /// <summary>
-    /// Saves a file as a quick-capture note with the file attached.
-    /// </summary>
-    public async Task<bool> SaveFileToNoteAsync(string? path)
-    {
-        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-        {
-            return false;
-        }
-
-        try
-        {
-            var store = new QuickCaptureStore();
-            var data = await store.LoadAsync();
-
-            string fileName = Path.GetFileName(path);
-            var item = new QuickCaptureItem
-            {
-                Type = QuickCaptureItemType.Text,
-                Title = fileName,
-                Body = path,
-                SourceKind = QuickCaptureSourceKind.DragDrop,
-                SortOrder = data.Items.Count,
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow
-            };
-            item.Attachments.Add(new TodoAttachment
-            {
-                FilePath = path,
-                DisplayName = fileName,
-                Type = "file",
-                StorageMode = TodoAttachment.LinkedStorageMode,
-                AddedAt = DateTimeOffset.UtcNow
-            });
-
-            data.Items.Insert(0, item);
-            await store.SaveAsync(data);
-
-            App.Log($"[SearchAction] Saved '{fileName}' to quick capture.");
-            return true;
-        }
-        catch (Exception ex)
-        {
-            App.Log($"[SearchAction] Failed to save file to note: {ex.Message}");
-            return false;
-        }
-    }
-
-    /// <summary>
     /// Whether the given result can be attached to a todo (requires an existing file
     /// and at least one enabled Todo widget).
     /// </summary>
@@ -132,16 +84,5 @@ public sealed class SearchResultActionService
                File.Exists(item.DetailPath) &&
                _settingsService.Settings.Widgets
                    .Any(w => w.WidgetKind == WidgetKind.Todo && !w.IsDisabled);
-    }
-
-    /// <summary>
-    /// Whether the given result can be saved as a note (requires an existing file).
-    /// </summary>
-    public bool CanSaveToNote(SearchResultItem? item)
-    {
-        return item is not null &&
-               item.Kind == SearchResultKind.File &&
-               !string.IsNullOrWhiteSpace(item.DetailPath) &&
-               File.Exists(item.DetailPath);
     }
 }

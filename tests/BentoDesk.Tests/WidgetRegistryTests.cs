@@ -13,40 +13,8 @@ public sealed class WidgetRegistryTests
         Assert.True(registry.IsKnown(WidgetKind.Weather));
         Assert.True(registry.CanCreateWindow(WidgetKind.Weather));
         Assert.True(registry.CanCreateWindow(WidgetKind.File));
-        Assert.True(registry.CanCreateWindow(WidgetKind.QuickCapture));
         Assert.True(registry.CanCreateWindow(WidgetKind.Todo));
         Assert.True(registry.CanCreateWindow(WidgetKind.Music));
-    }
-
-    [Fact]
-    public void IsAvailableForSession_RespectsQuickCaptureEnabledSetting()
-    {
-        var registry = WidgetRegistry.Default;
-        var quickCaptureWidget = new WidgetConfig
-        {
-            WidgetKind = WidgetKind.QuickCapture
-        };
-
-        Assert.False(registry.IsAvailableForSession(
-            quickCaptureWidget,
-            new AppSettings { QuickCaptureEnabled = false }));
-        Assert.True(registry.IsAvailableForSession(
-            quickCaptureWidget,
-            new AppSettings { QuickCaptureEnabled = true }));
-    }
-
-    [Fact]
-    public void IsAvailableForSession_UsesFeatureWidgetStateOverLegacyQuickCaptureSetting()
-    {
-        var registry = WidgetRegistry.Default;
-        var quickCaptureWidget = new WidgetConfig
-        {
-            WidgetKind = WidgetKind.QuickCapture
-        };
-        var settings = new AppSettings { QuickCaptureEnabled = true };
-        FeatureWidgetSettings.SetEnabled(settings, WidgetKind.QuickCapture, false);
-
-        Assert.False(registry.IsAvailableForSession(quickCaptureWidget, settings));
     }
 
     [Fact]

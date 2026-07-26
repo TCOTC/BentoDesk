@@ -317,60 +317,10 @@ public sealed class SearchEngineService : IDisposable
         }
     }
 
-    private async Task<IReadOnlyList<SearchRecommendationItem>> GetRecentNotesAsync(
-        CancellationToken cancellationToken)
-    {
-        var recommendations = new List<SearchRecommendationItem>();
-
-        try
-        {
-            var store = new QuickCaptureStore();
-            var data = await store.LoadAsync();
-
-            var recent = data.Items
-                .Where(i => !i.IsDeleted)
-                .OrderByDescending(i => i.UpdatedAt)
-                .Take(3);
-
-            foreach (var item in recent)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-
-                recommendations.Add(new SearchRecommendationItem
-                {
-                    Kind = SearchResultKind.QuickCapture,
-                    Title = !string.IsNullOrWhiteSpace(item.Title)
-                        ? item.Title
-                        : TruncateText(item.Body, 60),
-                    Subtitle = item.Type.ToString(),
-                    Glyph = "\uE70F",
-                    QuickCaptureItemId = item.Id
-                });
-            }
-        }
-        catch
-        {
-            // Skip if QuickCapture data fails to load
-        }
-
-        return recommendations;
-    }
-
     private async Task<IReadOnlyList<SearchResultItem>> SearchBentoDeskContentAsync(
         string query, int maxResults, CancellationToken cancellationToken)
     {
-        var results = new List<SearchResultItem>();
-
-        var todoTask = SearchTodosAsync(query, maxResults / 2, cancellationToken);
-        var noteTask = SearchQuickCaptureAsync(query, maxResults / 2, cancellationToken);
-        await Task.WhenAll(todoTask, noteTask);
-        results.AddRange(await todoTask);
-        results.AddRange(await noteTask);
-
-        return results;
+        return await SearchTodosAsync(query, maxResults, cancellationToken);
     }
 
     private async Task<IReadOnlyList<SearchResultItem>> SearchTodosAsync(
@@ -435,68 +385,11 @@ public sealed class SearchEngineService : IDisposable
         return results.OrderByDescending(r => r.RelevanceScore).Take(maxResults).ToList();
     }
 
-    private async Task<IReadOnlyList<SearchResultItem>> SearchQuickCaptureAsync(
-        string query, int maxResults, CancellationToken cancellationToken)
-    {
-        var results = new List<SearchResultItem>();
-
-        try
-        {
-            var store = new QuickCaptureStore();
-            var data = await store.LoadAsync();
-
-            foreach (var item in data.Items)
-            {
-                if (results.Count >= maxResults)
-                {
-                    break;
-                }
-
-                if (item.IsDeleted)
-                {
-                    continue;
-                }
-
-                bool matches = item.Body.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                               (item.Title?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                               (item.Url?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false);
-
-                if (!matches)
-                {
-                    continue;
-                }
-
-                string displayTitle = !string.IsNullOrWhiteSpace(item.Title)
-                    ? item.Title
-                    : TruncateText(item.Body, 60);
-
-                double score = ComputeTextRelevance(displayTitle, query);
-                results.Add(new SearchResultItem
-                {
-                    Kind = SearchResultKind.QuickCapture,
-                    Title = displayTitle,
-                    Subtitle = item.Type.ToString(),
-                    QuickCaptureItemId = item.Id,
-                    Glyph = "\uE70F",
-                    ModifiedAt = item.UpdatedAt,
-                    RelevanceScore = score + (item.IsPinned ? 5 : 0)
-                });
-            }
-        }
-        catch
-        {
-            // Skip if QuickCapture data fails to load
-        }
-
-        return results.OrderByDescending(r => r.RelevanceScore).Take(maxResults).ToList();
-    }
-
     private IReadOnlyList<SearchResultItem> SearchActions(string query)
     {
         var actions = new (string Id, string NameKey, string Glyph)[]
         {
             ("new-todo", "Search.Action.NewTodo", "\uE9D5"),
-            ("new-note", "Search.Action.NewNote", "\uE70F"),
             ("open-settings", "Search.Action.OpenSettings", "\uE713"),
             ("toggle-widgets", "Search.Action.ToggleWidgets", "\uE8A5"),
             ("toggle-theme", "Search.Action.ToggleTheme", "\uE793")
@@ -522,57 +415,6 @@ public sealed class SearchEngineService : IDisposable
         return results;
     }
 
-    private async Task<IReadOnlyList<SearchRecommendationItem>> GetUpcomingTodosAsync(
-        CancellationToken cancellationToken)
-    {
-        var recommendations = new List<SearchRecommendationItem>();
-        var settings = _settingsService.Settings;
-
-        var todoWidgets = settings.Widgets
-            .Where(w => w.WidgetKind == WidgetKind.Todo && !w.IsDisabled)
-            .ToList();
-
-        foreach (var widget in todoWidgets)
-        {
-            if (cancellationToken.IsCancellationRequested || recommendations.Count >= 3)
-            {
-                break;
-            }
-
-            try
-            {
-                var store = new TodoWidgetStore(widget.Id);
-                var data = await store.LoadAsync();
-
-                var upcoming = data.Items
-                    .Where(i => !i.IsCompleted && i.DueDate.HasValue &&
-                                i.DueDate.Value >= DateTimeOffset.Now &&
-                                i.DueDate.Value <= DateTimeOffset.Now.AddDays(7))
-                    .OrderBy(i => i.DueDate)
-                    .Take(3 - recommendations.Count);
-
-                foreach (var item in upcoming)
-                {
-                    recommendations.Add(new SearchRecommendationItem
-                    {
-                        Kind = SearchResultKind.Todo,
-                        Title = item.Text,
-                        Subtitle = $"{_localizationService.T("Search.Todo.Due")}: {item.DueDate!.Value:MM-dd}",
-                        Glyph = "\uE9D5",
-                        TodoWidgetId = widget.Id,
-                        TodoItemId = item.Id
-                    });
-                }
-            }
-            catch
-            {
-                // Skip
-            }
-        }
-
-        return recommendations;
-    }
-
     private IReadOnlyList<SearchResultGroup> BuildGroups(
         IReadOnlyList<SearchResultItem> rankedResults)
     {
@@ -582,7 +424,6 @@ public sealed class SearchEngineService : IDisposable
         {
             (SearchResultKind.Action, _localizationService.T("Search.Group.Actions")),
             (SearchResultKind.Todo, _localizationService.T("Search.Group.Todos")),
-            (SearchResultKind.QuickCapture, _localizationService.T("Search.Group.Notes")),
             (SearchResultKind.File, _localizationService.T("Search.Group.Files")),
             (SearchResultKind.Folder, _localizationService.T("Search.Group.Folders"))
         };
@@ -626,19 +467,6 @@ public sealed class SearchEngineService : IDisposable
         }
 
         return 30;
-    }
-
-    private static string TruncateText(string text, int maxLength)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return string.Empty;
-        }
-
-        string singleLine = text.ReplaceLineEndings(" ").Trim();
-        return singleLine.Length <= maxLength
-            ? singleLine
-            : singleLine[..maxLength] + "...";
     }
 
     public void Dispose()

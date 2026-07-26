@@ -198,9 +198,6 @@ public enum WidgetKind
     /// <summary>File-oriented widget used for references or folder-backed storage.</summary>
     File,
 
-    /// <summary>Built-in lightweight text/link capture widget.</summary>
-    QuickCapture,
-
     /// <summary>Reserved for a future weather widget.</summary>
     Weather,
 

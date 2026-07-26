@@ -766,7 +766,6 @@ public partial class SettingsViewModel
 
     private string GetWidgetKindDisplayName(WidgetKind kind) => kind switch
     {
-        WidgetKind.QuickCapture => _localizationService.T("WidgetTitleIcon.Label.QuickCapture"),
         WidgetKind.Todo => _localizationService.T("WidgetTitleIcon.Label.Todo"),
         WidgetKind.Music => _localizationService.T("WidgetTitleIcon.Label.Music"),
         WidgetKind.Weather => _localizationService.T("WidgetTitleIcon.Label.Weather"),
@@ -777,7 +776,6 @@ public partial class SettingsViewModel
 
     private static string GetWidgetKindGlyph(WidgetKind kind) => kind switch
     {
-        WidgetKind.QuickCapture => "\uE70F",
         WidgetKind.Todo => "\uE73E",
         WidgetKind.Music => "\uE8D6",
         WidgetKind.Weather => "\uE706",

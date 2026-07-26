@@ -40,8 +40,6 @@ public class AppSettings
     /// <summary>Last time BentoDesk successfully attempted an update check.</summary>
     public DateTimeOffset? LastUpdateCheckAt { get; set; }
 
-    /// <summary>Whether the built-in Quick Capture widget is enabled.</summary>
-    public bool QuickCaptureEnabled { get; set; }
     public bool TodoEnabled { get; set; }
 
     /// <summary>
@@ -50,37 +48,8 @@ public class AppSettings
     /// </summary>
     public Dictionary<string, bool> FeatureWidgetEnabledStates { get; set; } = [];
 
-    /// <summary>Whether Quick Capture should record recent clipboard text and links.</summary>
-    public bool QuickCaptureClipboardEnabled { get; set; }
-
-    /// <summary>Whether Quick Capture should record clipboard images.</summary>
-    public bool QuickCaptureImageClipboardEnabled { get; set; }
-
-    /// <summary>Maximum number of recent clipboard text/link entries kept by Quick Capture.</summary>
-    public int QuickCaptureRecentLimit { get; set; } = 30;
-
-    /// <summary>Whether Quick Capture cards show their creation time.</summary>
-    public bool QuickCaptureShowCreatedTime { get; set; } = true;
-
-    /// <summary>Maximum number of text lines shown for each Quick Capture item in the list.</summary>
-    public int QuickCaptureItemPreviewLineCount { get; set; } = 3;
-
-    /// <summary>Enter-key behavior used by Quick Capture multiline editors.</summary>
-    public string QuickCaptureEditorEnterBehavior { get; set; } = "CtrlEnterSaves";
-
-    /// <summary>Default storage behavior for Todo and Quick Capture attachments. Valid values: <c>Link</c>, <c>Copy</c>.</summary>
+    /// <summary>Default storage behavior for Todo attachments. Valid values: <c>Link</c>, <c>Copy</c>.</summary>
     public string AttachmentStorageMode { get; set; } = "Link";
-
-    /// <summary>Default Quick Capture view used when the widget opens. Valid values: <c>"Records"</c>, <c>"Pinned"</c>, <c>"Recent"</c>.</summary>
-    public string QuickCaptureDefaultView { get; set; } = "Records";
-
-    /// <summary>Quick Capture tab style. Valid values: <c>"Pivot"</c>, <c>"Button"</c>.</summary>
-    public string QuickCaptureTabStyle { get; set; } = "Button";
-
-    public bool QuickCaptureShowTabBar { get; set; } = true;
-    public bool QuickCaptureShowRecordsTab { get; set; } = true;
-    public bool QuickCaptureShowPinnedTab { get; set; } = true;
-    public bool QuickCaptureShowRecentTab { get; set; } = true;
 
     /// <summary>Where newly added Todo tasks are inserted. Valid values: <c>"Top"</c>, <c>"Bottom"</c>.</summary>
     public string TodoNewTaskPosition { get; set; } = "Top";
@@ -134,9 +103,6 @@ public class AppSettings
     /// Music widget layout mode. Valid values: <c>"Auto"</c>, <c>"Cover"</c>, <c>"Controls"</c>.
     /// </summary>
     public string MusicDisplayMode { get; set; } = "Auto";
-
-    /// <summary>Last file widget used as the target for saving Quick Capture content.</summary>
-    public string LastQuickCaptureFileWidgetId { get; set; } = string.Empty;
 
     /// <summary>Whether the global hotkey is enabled.</summary>
     public bool GlobalHotkeyEnabled { get; set; } = true;
@@ -224,7 +190,7 @@ public class AppSettings
     public string DisplayWidgetChromeMode { get; set; } = "Overlay";
 
     /// <summary>
-    /// Default chrome/title mode for interactive widgets such as files, Quick Capture, Todo, and Tags.
+    /// Default chrome/title mode for interactive widgets such as files, Todo, and Tags.
     /// Valid values: <c>"Standard"</c>, <c>"Compact"</c>, <c>"Overlay"</c>, <c>"Hidden"</c>.
     /// </summary>
     public string InteractiveWidgetChromeMode { get; set; } = "Standard";
@@ -283,7 +249,7 @@ public class AppSettings
     /// </summary>
     public string WidgetCompactContentMode { get; set; } = "Smart";
 
-    /// <summary>Whether compact Todo and Quick Capture widgets hide their content previews.</summary>
+    /// <summary>Whether compact Todo widgets hide their content previews.</summary>
     public bool WidgetCompactHideSensitiveContent { get; set; }
 
     /// <summary>Schema version for compact content settings migrated from the legacy combined style.</summary>

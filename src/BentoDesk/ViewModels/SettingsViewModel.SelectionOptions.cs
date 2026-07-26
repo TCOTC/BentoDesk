@@ -87,12 +87,6 @@ public partial class SettingsViewModel
     public IReadOnlyList<SettingsOption> AvailableWidgetLayerModeOptions =>
         CreateSelectionOptions(AvailableWidgetLayerModes, AvailableWidgetLayerModeDisplayNames);
 
-    public IReadOnlyList<SettingsOption> AvailableQuickCaptureDefaultViewOptions =>
-        CreateSelectionOptions(AvailableQuickCaptureDefaultViews, AvailableQuickCaptureDefaultViewDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableQuickCaptureTabStyleOptions =>
-        CreateSelectionOptions(AvailableWidgetTabStyles, AvailableQuickCaptureTabStyleDisplayNames);
-
     public IReadOnlyList<SettingsOption> AvailableItemPreviewLineCountOptions =>
         CreateSelectionOptions(AvailableItemPreviewLineCounts, AvailableItemPreviewLineCountDisplayNames);
 
@@ -195,8 +189,6 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(AvailableInteractiveWidgetChromeModeOptions));
         OnPropertyChanged(nameof(AvailableWidgetTitleIconModeOptions));
         OnPropertyChanged(nameof(AvailableWidgetLayerModeOptions));
-        OnPropertyChanged(nameof(AvailableQuickCaptureDefaultViewOptions));
-        OnPropertyChanged(nameof(AvailableQuickCaptureTabStyleOptions));
         OnPropertyChanged(nameof(AvailableItemPreviewLineCountOptions));
         OnPropertyChanged(nameof(AvailableEditorEnterBehaviorOptions));
         OnPropertyChanged(nameof(AvailableTodoNewTaskPositionOptions));

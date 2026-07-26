@@ -382,10 +382,7 @@ public sealed partial class SettingsWindow
             return false;
         }
 
-        string titleKey = kind == WidgetKind.QuickCapture
-            ? "QuickCapture.Name"
-            : $"{kind}.Title";
-        string widgetName = _localizationService.T(titleKey);
+        string widgetName = _localizationService.T($"{kind}.Title");
         var dialog = new ContentDialog
         {
             XamlRoot = SettingsRoot.XamlRoot,

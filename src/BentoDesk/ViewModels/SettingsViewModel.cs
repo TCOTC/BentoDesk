@@ -80,8 +80,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private string _selectedInteractiveWidgetChromeMode = SettingsService.WidgetChromeModeStandard;
     private string _selectedWidgetTitleIconMode = SettingsService.WidgetTitleIconModeColor;
     private string _selectedWidgetLayerMode = SettingsService.WidgetLayerModeDynamic;
-    private string _selectedQuickCaptureDefaultView = SettingsService.QuickCaptureDefaultViewRecords;
-    private string _selectedQuickCaptureTabStyle = SettingsService.WidgetTabStyleButton;
     private string _selectedTodoNewTaskPosition = SettingsService.TodoNewTaskPositionTop;
     private string _selectedAttachmentStorageMode = SettingsService.AttachmentStorageModeLink;
     private string _selectedManagedDropAction = SettingsService.ManagedDropActionMove;
@@ -104,12 +102,9 @@ private int _selectedWeatherRefreshInterval = 60;
     private string _globalHotkeyText = string.Empty;
     private string _globalHotkeyStatusText = string.Empty;
     private string _globalHotkeyStatusKind = "Normal";
-    private string _quickCaptureImageCacheText = string.Empty;
-    private string _quickCaptureClipboardDiagnosticsText = string.Empty;
     private DragDropPermissionDiagnostic? _dragDropPermissionDiagnostic;
     private string _dragDropPermissionRepairStatusText = string.Empty;
     private bool _isDragDropPermissionRepairing;
-    private bool _canClearQuickCaptureImageCache;
     private bool _isRestoringDefaults;
     private bool _isApplyingSettingsSnapshot;
     private bool _isApplyingLayoutDensityPreset;
@@ -134,8 +129,6 @@ private int _selectedWeatherRefreshInterval = 60;
     private string[]? _cachedInteractiveWidgetChromeModeDisplayNames;
     private string[]? _cachedWidgetTitleIconModeDisplayNames;
     private string[]? _cachedWidgetLayerModeDisplayNames;
-    private string[]? _cachedQuickCaptureDefaultViewDisplayNames;
-    private string[]? _cachedQuickCaptureTabStyleDisplayNames;
     private string[]? _cachedTodoNewTaskPositionDisplayNames;
     private string[]? _cachedAttachmentStorageModeDisplayNames;
     private string[]? _cachedManagedDropActionDisplayNames;
@@ -176,11 +169,6 @@ private string[]? _cachedWeatherRefreshIntervalDisplayNames;
     [ObservableProperty] private double _fileNameWidthScale = SettingsService.DefaultFileNameWidthScale;
     [ObservableProperty] private bool _showFileExtensions;
     [ObservableProperty] private bool _hideShortcutExtensionWhenShowingFileExtensions = true;
-    [ObservableProperty] private bool _quickCaptureEnabled;
-    [ObservableProperty] private bool _quickCaptureShowTabBar = true;
-    [ObservableProperty] private bool _quickCaptureShowRecordsTab = true;
-    [ObservableProperty] private bool _quickCaptureShowPinnedTab = true;
-    [ObservableProperty] private bool _quickCaptureShowRecentTab = true;
     [ObservableProperty] private bool _todoEnabled;
     [ObservableProperty] private bool _todoShowTabBar = true;
     [ObservableProperty] private bool _todoShowAllTab = true;
@@ -208,10 +196,6 @@ private string[]? _cachedWeatherRefreshIntervalDisplayNames;
 [ObservableProperty] private bool _weatherShowWind = true;
 [ObservableProperty] private bool _weatherShowPressure;
 
-    [ObservableProperty] private bool _quickCaptureClipboardEnabled;
-    [ObservableProperty] private bool _quickCaptureImageClipboardEnabled;
-    [ObservableProperty] private int _quickCaptureRecentLimit = QuickCaptureService.DefaultRecentLimit;
-    [ObservableProperty] private bool _quickCaptureShowCreatedTime = true;
     [ObservableProperty] private bool _isCheckingForUpdates;
     [ObservableProperty] private bool _isDownloadingUpdate;
     [ObservableProperty] private string _updateStatusText = string.Empty;
@@ -229,8 +213,6 @@ private string[]? _cachedWeatherRefreshIntervalDisplayNames;
         _localizationService = localizationService ?? new LocalizationService(settingsService);
         _widgetContentFactory = new WidgetContentFactory(_localizationService);
         _appUpdateService = appUpdateService ?? new AppUpdateService();
-        _quickCaptureImageCacheText = _localizationService.T("Settings.QuickCapture.ImageCacheLoading");
-        _quickCaptureClipboardDiagnosticsText = _localizationService.T("Settings.QuickCapture.ClipboardDiagnosticsUnavailable");
         _dragDropPermissionRepairStatusText = string.Empty;
         _updateStatusText = _localizationService.T("Settings.Update.Status.Ready");
         _updateDetailText = GetReadyUpdateDetailText();
@@ -315,21 +297,10 @@ private string[]? _cachedWeatherRefreshIntervalDisplayNames;
         _selectedLayoutDensity = SettingsService.ResolveLayoutDensityPreset(settings);
         _showFileExtensions = settings.ShowFileExtensions;
         _hideShortcutExtensionWhenShowingFileExtensions = settings.HideShortcutExtensionWhenShowingFileExtensions;
-        _quickCaptureEnabled = FeatureWidgetSettings.IsEnabled(settings, WidgetKind.QuickCapture);
-        _quickCaptureClipboardEnabled = settings.QuickCaptureClipboardEnabled;
-        _quickCaptureImageClipboardEnabled = settings.QuickCaptureImageClipboardEnabled;
-        _quickCaptureRecentLimit = QuickCaptureService.NormalizeRecentLimit(settings.QuickCaptureRecentLimit);
-        _quickCaptureShowCreatedTime = settings.QuickCaptureShowCreatedTime;
         _selectedAttachmentStorageMode = SettingsService.NormalizeAttachmentStorageMode(settings.AttachmentStorageMode);
         _selectedManagedDropAction = settings.ManagedDropAction == SettingsService.ManagedDropActionMove
             ? SettingsService.ManagedDropActionMove
             : SettingsService.ManagedDropActionCopy;
-        _selectedQuickCaptureDefaultView = NormalizeQuickCaptureDefaultView(settings.QuickCaptureDefaultView);
-        _selectedQuickCaptureTabStyle = SettingsService.NormalizeWidgetTabStyle(settings.QuickCaptureTabStyle);
-        _quickCaptureShowTabBar = settings.QuickCaptureShowTabBar;
-        _quickCaptureShowRecordsTab = settings.QuickCaptureShowRecordsTab;
-        _quickCaptureShowPinnedTab = settings.QuickCaptureShowPinnedTab;
-        _quickCaptureShowRecentTab = settings.QuickCaptureShowRecentTab;
         _todoEnabled = FeatureWidgetSettings.IsEnabled(settings, WidgetKind.Todo);
         _todoShowTabBar = settings.TodoShowTabBar;
         _todoShowAllTab = settings.TodoShowAllTab;
@@ -387,11 +358,6 @@ _ = RefreshQuickAccessStateAsync();
         _settingsService.SettingsChanged += OnSettingsChanged;
         _themeService.AppearanceChanged += OnAppearanceChanged;
         _localizationService.LanguageChanged += OnLanguageChanged;
-        if (App.Current?.QuickCaptureClipboardService is { } clipboardService)
-        {
-            clipboardService.DiagnosticsChanged += OnQuickCaptureClipboardDiagnosticsChanged;
-            RefreshQuickCaptureClipboardDiagnostics();
-        }
     }
 
     [RelayCommand]
@@ -411,11 +377,6 @@ _ = RefreshQuickAccessStateAsync();
         _lifetimeCts.Cancel();
         _updateOperationCts?.Cancel();
         _updateOperationCts?.Dispose();
-        if (App.Current?.QuickCaptureClipboardService is { } clipboardService)
-        {
-            clipboardService.DiagnosticsChanged -= OnQuickCaptureClipboardDiagnosticsChanged;
-        }
-
         _settingsService.SettingsChanged -= OnSettingsChanged;
         _themeService.AppearanceChanged -= OnAppearanceChanged;
         _localizationService.LanguageChanged -= OnLanguageChanged;
@@ -498,21 +459,18 @@ _ = RefreshQuickAccessStateAsync();
         RefreshNumberInputs();
     }
 
-    private void ApplyQuickCaptureRecentLimitInput(string? value)
+    private void RefreshNumberInputs()
     {
-        if (!TryParseNumberInput(value, out double parsedValue))
-        {
-            OnPropertyChanged(nameof(QuickCaptureRecentLimitInput));
-            return;
-        }
-
-        int normalizedValue = QuickCaptureService.NormalizeRecentLimit((int)Math.Round(parsedValue, MidpointRounding.AwayFromZero));
-        if (normalizedValue != QuickCaptureRecentLimit)
-        {
-            QuickCaptureRecentLimit = normalizedValue;
-        }
-
-        OnPropertyChanged(nameof(QuickCaptureRecentLimitInput));
+        OnPropertyChanged(nameof(DefaultWidthInput));
+        OnPropertyChanged(nameof(DefaultHeightInput));
+        OnPropertyChanged(nameof(WidgetOpacityPercentInput));
+        OnPropertyChanged(nameof(WidgetTransparency));
+        OnPropertyChanged(nameof(IconSizeInput));
+        OnPropertyChanged(nameof(TextSizeInput));
+        OnPropertyChanged(nameof(LayoutDensityPercentInput));
+        OnPropertyChanged(nameof(HorizontalSpacingPercentInput));
+        OnPropertyChanged(nameof(VerticalSpacingPercentInput));
+        OnPropertyChanged(nameof(FileNameWidthPercentInput));
     }
 
     private static bool TryParseNumberInput(string? value, out double result)
@@ -526,21 +484,6 @@ _ = RefreshQuickAccessStateAsync();
         string trimmed = value.Trim();
         return double.TryParse(trimmed, NumberStyles.Float, CultureInfo.CurrentCulture, out result) ||
                double.TryParse(trimmed, NumberStyles.Float, CultureInfo.InvariantCulture, out result);
-    }
-
-    private void RefreshNumberInputs()
-    {
-        OnPropertyChanged(nameof(DefaultWidthInput));
-        OnPropertyChanged(nameof(DefaultHeightInput));
-        OnPropertyChanged(nameof(WidgetOpacityPercentInput));
-        OnPropertyChanged(nameof(WidgetTransparency));
-        OnPropertyChanged(nameof(IconSizeInput));
-        OnPropertyChanged(nameof(TextSizeInput));
-        OnPropertyChanged(nameof(LayoutDensityPercentInput));
-        OnPropertyChanged(nameof(HorizontalSpacingPercentInput));
-        OnPropertyChanged(nameof(VerticalSpacingPercentInput));
-        OnPropertyChanged(nameof(FileNameWidthPercentInput));
-        OnPropertyChanged(nameof(QuickCaptureRecentLimitInput));
     }
 
     private void ApplyLayoutDensityPreset(string preset)

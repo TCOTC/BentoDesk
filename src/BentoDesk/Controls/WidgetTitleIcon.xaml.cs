@@ -270,7 +270,6 @@ public sealed partial class WidgetTitleIcon : UserControl
         yield return LineDefaultPath;
         yield return LineManagedStoragePath;
         yield return LineMappedFolderPath;
-        yield return LineQuickCapturePath;
         yield return LineTodoPath;
         yield return LineMusicPath;
         yield return LineWeatherPath;
@@ -280,7 +279,6 @@ public sealed partial class WidgetTitleIcon : UserControl
         yield return FilledDefaultPath;
         yield return FilledManagedStoragePath;
         yield return FilledMappedFolderPath;
-        yield return FilledQuickCapturePath;
         yield return FilledTodoPath;
         yield return FilledMusicPath;
         yield return FilledWeatherPath;
@@ -296,7 +294,6 @@ public sealed partial class WidgetTitleIcon : UserControl
             {
                 WidgetTitleIconKind.ManagedStorage => FilledManagedStoragePath,
                 WidgetTitleIconKind.MappedFolder => FilledMappedFolderPath,
-                WidgetTitleIconKind.QuickCapture => FilledQuickCapturePath,
                 WidgetTitleIconKind.Todo => FilledTodoPath,
                 WidgetTitleIconKind.Music => FilledMusicPath,
                 WidgetTitleIconKind.Weather => FilledWeatherPath,
@@ -309,7 +306,6 @@ public sealed partial class WidgetTitleIcon : UserControl
             {
                 WidgetTitleIconKind.ManagedStorage => LineManagedStoragePath,
                 WidgetTitleIconKind.MappedFolder => LineMappedFolderPath,
-                WidgetTitleIconKind.QuickCapture => LineQuickCapturePath,
                 WidgetTitleIconKind.Todo => LineTodoPath,
                 WidgetTitleIconKind.Music => LineMusicPath,
                 WidgetTitleIconKind.Weather => LineWeatherPath,
@@ -324,7 +320,6 @@ public sealed partial class WidgetTitleIcon : UserControl
     {
         return kind is WidgetTitleIconKind.ManagedStorage
             or WidgetTitleIconKind.MappedFolder
-            or WidgetTitleIconKind.QuickCapture
             or WidgetTitleIconKind.Todo
             or WidgetTitleIconKind.Music
             or WidgetTitleIconKind.Search;

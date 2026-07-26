@@ -53,7 +53,7 @@ public sealed class WidgetShellContentHostTests
     public async Task RefreshAndActivationCallbacks_ForwardToCurrentContent()
     {
         var calls = new List<string>();
-        var content = new TestWidgetContent("first", WidgetKind.QuickCapture, calls);
+        var content = new TestWidgetContent("first", WidgetKind.Todo, calls);
         var host = new WidgetShellContentHost(setContent: _ => { });
         await host.SetContentAsync(content);
         calls.Clear();

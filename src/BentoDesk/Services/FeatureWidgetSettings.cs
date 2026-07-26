@@ -10,7 +10,6 @@ public static class FeatureWidgetSettings
 {
     private static readonly WidgetKind[] s_featureKinds =
     [
-        WidgetKind.QuickCapture,
         WidgetKind.Todo,
         WidgetKind.Music,
         WidgetKind.Weather,
@@ -137,7 +136,6 @@ public static class FeatureWidgetSettings
     {
         return kind switch
         {
-            WidgetKind.QuickCapture => settings.QuickCaptureEnabled,
             WidgetKind.Todo => settings.TodoEnabled,
             WidgetKind.Music => false,
             WidgetKind.Weather => false,
@@ -148,14 +146,9 @@ public static class FeatureWidgetSettings
 
     private static void SetLegacyEnabled(AppSettings settings, WidgetKind kind, bool enabled)
     {
-        switch (kind)
+        if (kind == WidgetKind.Todo)
         {
-            case WidgetKind.QuickCapture:
-                settings.QuickCaptureEnabled = enabled;
-                break;
-            case WidgetKind.Todo:
-                settings.TodoEnabled = enabled;
-                break;
+            settings.TodoEnabled = enabled;
         }
     }
 }

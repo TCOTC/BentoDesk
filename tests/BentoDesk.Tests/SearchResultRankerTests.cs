@@ -24,21 +24,13 @@ public sealed class SearchResultRankerTests
                 Title = "report.pdf",
                 DetailPath = path,
                 RelevanceScore = 95
-            },
-            new SearchResultItem
-            {
-                Kind = SearchResultKind.QuickCapture,
-                Title = "report notes",
-                QuickCaptureItemId = "note-1",
-                RelevanceScore = 70
             }
         };
 
         var ranked = SearchResultRanker.MergeAndRank(results, "report", 20);
 
-        Assert.Equal(2, ranked.Count);
-        Assert.Equal("report.pdf", ranked[0].Title);
-        Assert.Equal("note-1", ranked[1].QuickCaptureItemId);
+        var single = Assert.Single(ranked);
+        Assert.Equal("report.pdf", single.Title);
     }
 
     [Fact]

@@ -17,18 +17,17 @@ public sealed class BentoDeskAttachmentHealthServiceTests : IDisposable
     [Fact]
     public async Task ScanAsync_ReportsMissingAndOrphanedAttachments()
     {
-        string quickCaptureRoot = Directory.CreateDirectory(
-            Path.Combine(_dataRoot, "quick-capture")).FullName;
+        string widgetsRoot = Directory.CreateDirectory(Path.Combine(_dataRoot, "widgets")).FullName;
         string managedRoot = Directory.CreateDirectory(
-            Path.Combine(quickCaptureRoot, "attachments", "note")).FullName;
+            Path.Combine(widgetsRoot, "todo-widget", "attachments", "task")).FullName;
         string managedExisting = Path.Combine(managedRoot, "existing.txt");
         string orphan = Path.Combine(managedRoot, "orphan.txt");
         string missingManaged = Path.Combine(managedRoot, "missing.txt");
         string missingLinked = Path.Combine(_tempRoot, "external-missing.txt");
         await File.WriteAllTextAsync(managedExisting, "referenced");
         await File.WriteAllTextAsync(orphan, "orphaned");
-        var store = new QuickCaptureStore(quickCaptureRoot);
-        await store.SaveAsync(new QuickCaptureStoreData
+        var store = new TodoWidgetStore(widgetsRoot, "todo-widget");
+        await store.SaveAsync(new TodoWidgetData
         {
             Items =
             [
@@ -76,12 +75,12 @@ public sealed class BentoDeskAttachmentHealthServiceTests : IDisposable
         Assert.False(report.IsHealthy);
     }
 
-    private static QuickCaptureItem CreateItem(params TodoAttachment[] attachments)
+    private static TodoItem CreateItem(params TodoAttachment[] attachments)
     {
-        return new QuickCaptureItem
+        return new TodoItem
         {
-            Id = "note",
-            Body = "Note with attachments",
+            Id = "task",
+            Text = "Task with attachments",
             Attachments = attachments.ToList()
         };
     }

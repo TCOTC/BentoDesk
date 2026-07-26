@@ -109,8 +109,6 @@ public partial class App : Application
     public FileService FileService { get; private set; } = null!;
     public OrganizerService OrganizerService { get; private set; } = null!;
     public IAppUpdateService AppUpdateService { get; private set; } = null!;
-    public QuickCaptureService QuickCaptureService { get; private set; } = null!;
-    public QuickCaptureClipboardService? QuickCaptureClipboardService { get; private set; }
     public LocalizationService LocalizationService { get; private set; } = null!;
     public ThemeService ThemeService { get; private set; } = null!;
     public GlobalHotkeyService? GlobalHotkeyService { get; private set; }
@@ -185,7 +183,6 @@ public partial class App : Application
         FileService = Services.GetRequiredService<FileService>();
         OrganizerService = Services.GetRequiredService<OrganizerService>();
         AppUpdateService = Services.GetRequiredService<IAppUpdateService>();
-        QuickCaptureService = Services.GetRequiredService<QuickCaptureService>();
         ResizeGuideOverlay = Services.GetRequiredService<ResizeGuideOverlayService>();
 
         DirectStartupService.TryRemoveLegacyStartupShortcutSafe();
@@ -590,7 +587,6 @@ public partial class App : Application
         }
 
         return WidgetManager?.Widgets.Values.Any(entry => entry.Window.WindowHandle == rootHwnd) == true ||
-               WidgetManager?.QuickCaptureWidgets.Values.Any(entry => entry.Window.WindowHandle == rootHwnd) == true ||
                WidgetManager?.ContentWidgets.Values.Any(window => window.WindowHandle == rootHwnd) == true;
     }
 
@@ -787,14 +783,11 @@ public partial class App : Application
             LocalizationService = Services.GetRequiredService<LocalizationService>();
             LocalizationService.LanguageChanged += OnLanguageChanged;
 
-            var quickCaptureService = QuickCaptureService;
             var themeService = ThemeService;
             var localizationService = LocalizationService;
 
-            // Parallel: theme refresh only. Clipboard event subscription must stay on the UI thread.
+            // Parallel: theme refresh only.
             var themeTask = Task.Run(() => themeService.RefreshAppearance());
-            QuickCaptureClipboardService = new QuickCaptureClipboardService(SettingsService, quickCaptureService);
-            QuickCaptureClipboardService.Refresh();
 
             // Parallel: independent UI setup
             CreateTrayIcon();
@@ -830,7 +823,7 @@ public partial class App : Application
                     Log($"[Init] GlobalHotkeyService late-attach failed: {ex}");
                 }
             }
-            WidgetManager = new WidgetManager(SettingsService, FileService, OrganizerService, themeService, quickCaptureService, localizationService);
+            WidgetManager = new WidgetManager(SettingsService, FileService, OrganizerService, themeService, localizationService);
             WidgetManager.TrayLayerStateChanged += UpdateTrayLayerStateText;
 
             // Phase 3: Restore widgets
@@ -1915,11 +1908,6 @@ public partial class App : Application
                     item.TodoItemId,
                     preferTodayFilter: false);
                 break;
-
-            case Models.SearchResultKind.QuickCapture:
-                var window = await WidgetManager.CreateOrShowQuickCaptureWidgetAsync();
-                await window.RevealItemAsync(item.QuickCaptureItemId);
-                break;
         }
     }
 
@@ -1931,13 +1919,6 @@ public partial class App : Application
                 if (WidgetManager is not null)
                 {
                     await WidgetManager.CreateTodoWidgetAsync(focusNewInput: true);
-                }
-                break;
-
-            case "new-note":
-                if (WidgetManager is not null)
-                {
-                    await WidgetManager.CreateOrShowQuickCaptureWidgetAsync(focusNewInput: true);
                 }
                 break;
 
@@ -1957,13 +1938,6 @@ public partial class App : Application
                 if (WidgetManager is not null)
                 {
                     await WidgetManager.CreateTodoWidgetAsync();
-                }
-                break;
-
-            case "open-quickcapture":
-                if (WidgetManager is not null)
-                {
-                    await WidgetManager.CreateOrShowQuickCaptureWidgetAsync();
                 }
                 break;
         }

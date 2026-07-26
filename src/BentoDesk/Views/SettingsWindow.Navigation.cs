@@ -46,7 +46,6 @@ public sealed partial class SettingsWindow
             ["FileStorageSettings"] = FileStorageSettingsSection,
             ["FileStackSettings"] = FileStackSettingsSection,
             ["FeatureWidgets"] = FeatureWidgetsSection,
-            ["QuickCaptureSettings"] = QuickCaptureSettingsSection,
             ["TodoSettings"] = TodoSettingsSection,
             ["MusicSettings"] = MusicSettingsSection,
             ["WeatherSettings"] = WeatherSettingsSection,
@@ -446,11 +445,6 @@ public sealed partial class SettingsWindow
         if (sectionTag == "FeatureWidgets")
         {
             RefreshFeatureWidgetList();
-        }
-        if (sectionTag == "QuickCaptureSettings")
-        {
-            ViewModel.RefreshQuickCaptureClipboardDiagnostics();
-            _ = ViewModel.RefreshQuickCaptureImageCacheInfoAsync();
         }
         if (sectionTag == "SearchSettings")
         {

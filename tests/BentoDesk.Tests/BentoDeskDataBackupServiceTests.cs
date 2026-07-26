@@ -27,12 +27,6 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(dataDirectory, "settings.json"), "{\"language\":\"zh-CN\"}");
         await File.WriteAllBytesAsync(Path.Combine(attachmentDirectory, "spec.pdf"), [1, 2, 3]);
         await File.WriteAllTextAsync(Path.Combine(dataDirectory, "ignored.tmp"), "partial");
-        string thumbnailDirectory = Directory.CreateDirectory(
-            Path.Combine(dataDirectory, "quick-capture", "thumbnails")).FullName;
-        string exportDirectory = Directory.CreateDirectory(
-            Path.Combine(dataDirectory, "quick-capture", "exports")).FullName;
-        await File.WriteAllBytesAsync(Path.Combine(thumbnailDirectory, "cached.png"), [4, 5, 6]);
-        await File.WriteAllTextAsync(Path.Combine(exportDirectory, "temporary.txt"), "temporary");
         var service = new BentoDeskDataBackupService(_appDataRoot);
 
         string backupPath = await service.ExportBackupAsync(_exportRoot);
@@ -42,8 +36,6 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
         Assert.NotNull(archive.GetEntry("data/settings.json"));
         Assert.NotNull(archive.GetEntry("data/widgets/todo/attachments/spec.pdf"));
         Assert.Null(archive.GetEntry("data/ignored.tmp"));
-        Assert.Null(archive.GetEntry("data/quick-capture/thumbnails/cached.png"));
-        Assert.Null(archive.GetEntry("data/quick-capture/exports/temporary.txt"));
         ZipArchiveEntry manifestEntry = Assert.IsType<ZipArchiveEntry>(archive.GetEntry("manifest.json"));
         using Stream manifestStream = manifestEntry.Open();
         using JsonDocument manifest = await JsonDocument.ParseAsync(manifestStream);
@@ -190,8 +182,6 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
                     Extensions = [".psd", ".fig"]
                 }
             ],
-            QuickCaptureItemPreviewLineCount = 3,
-            QuickCaptureEditorEnterBehavior = SettingsService.EditorEnterBehaviorEnterSaves,
             TodoItemPreviewLineCount = 2,
             TodoEditorEnterBehavior = SettingsService.EditorEnterBehaviorEnterSaves,
             Widgets =
@@ -223,25 +213,24 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             }));
-        string sourceQuickCapture = Directory.CreateDirectory(
-            Path.Combine(sourceData, "quick-capture")).FullName;
+        string widgetsRoot = Path.Combine(sourceData, "widgets");
         string sourceAttachment = Path.Combine(
-            sourceQuickCapture,
+            widgetsRoot,
+            "todo-widget",
             "attachments",
-            "note",
+            "task",
             "image.png");
         Directory.CreateDirectory(Path.GetDirectoryName(sourceAttachment)!);
         await File.WriteAllBytesAsync(sourceAttachment, [1, 2, 3, 4]);
-        var sourceStore = new QuickCaptureStore(sourceQuickCapture);
-        await sourceStore.SaveAsync(new QuickCaptureStoreData
+        var sourceStore = new TodoWidgetStore(widgetsRoot, "todo-widget");
+        await sourceStore.SaveAsync(new TodoWidgetData
         {
             Items =
             [
-                new QuickCaptureItem
+                new TodoItem
                 {
-                    Id = "note",
-                    Body = "Restored note",
-                    ImagePath = sourceAttachment,
+                    Id = "task",
+                    Text = "Restored task",
                     Attachments =
                     [
                         new TodoAttachment
@@ -274,15 +263,16 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
         Assert.False(File.Exists(targetService.PendingRestoreMarkerPath));
         string restoredAttachment = Path.Combine(
             targetData,
-            "quick-capture",
+            "widgets",
+            "todo-widget",
             "attachments",
-            "note",
+            "task",
             "image.png");
         Assert.True(File.Exists(restoredAttachment));
-        QuickCaptureStoreData restored = await new QuickCaptureStore(
-            Path.Combine(targetData, "quick-capture")).LoadAsync();
-        QuickCaptureItem restoredItem = Assert.Single(restored.Items);
-        Assert.Equal(restoredAttachment, restoredItem.ImagePath, ignoreCase: true);
+        TodoWidgetData restored = await new TodoWidgetStore(
+            Path.Combine(targetData, "widgets"),
+            "todo-widget").LoadAsync();
+        TodoItem restoredItem = Assert.Single(restored.Items);
         Assert.Equal(
             restoredAttachment,
             Assert.Single(restoredItem.Attachments).FilePath,
@@ -298,7 +288,6 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
         Assert.True(restoredSettings.FileStacksEnabled);
         Assert.Equal(SettingsService.FileStackUnmatchedOther, restoredSettings.FileStackUnmatchedBehavior);
         Assert.Equal("Design", Assert.Single(restoredSettings.FileStackCustomRules).Name);
-        Assert.Equal(3, restoredSettings.QuickCaptureItemPreviewLineCount);
         Assert.Equal(2, restoredSettings.TodoItemPreviewLineCount);
         WidgetConfig restoredWidget = Assert.Single(restoredSettings.Widgets);
         Assert.Equal(196, restoredWidget.CompactWidth);

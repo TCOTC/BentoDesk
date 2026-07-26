@@ -7,7 +7,7 @@ English | [简体中文](README.zh-CN.md)
 [![Windows 11](https://img.shields.io/badge/Windows-11-0078D4.svg)](#requirements)
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4.svg)](#build)
 
-BentoDesk is a lightweight WinUI 3 desktop organizer for Windows 11. It creates native-feeling desktop widgets for collecting files, mapping folders, keeping todos, capturing quick notes, and controlling music from the desktop. It does not replace the Windows desktop shell; it adds one focused layer for keeping everyday things easier to reach, easier to sort, and easier to bring forward when you need them.
+BentoDesk is a lightweight WinUI 3 desktop organizer for Windows 11. It creates native-feeling desktop widgets for collecting files, mapping folders, keeping todos, and controlling music from the desktop. It does not replace the Windows desktop shell; it adds one focused layer for keeping everyday things easier to reach, easier to sort, and easier to bring forward when you need them.
 
 > This repository is a fork of [DeskBox](https://github.com/Tianyu199509/DeskBox) by Tianyu Zhu, renamed to BentoDesk, and remains licensed under GPL-3.0.
 
@@ -47,7 +47,6 @@ The project is intentionally built around native Windows behavior. I like the te
 - **Managed desktop widgets**: create file collection widgets backed by a real folder.
 - **Folder mapping**: display an existing folder as a desktop widget without moving its contents.
 - **Todo widget**: keep desktop tasks with due dates, reminders, recurrence, color markers, multiple attachments, configurable views and batch actions.
-- **Quick Capture**: keep reusable text, links, images and files with pinning, paper styles, multiple attachments and focused detail editing.
 - **Music widget**: control playback, switch playback mode, adjust system volume, and use responsive album-art layouts with optional album-color ambience.
 - **Capsule mode**: collapse widgets into compact smart summaries, place them independently or combine them into an ordered desktop bar.
 - **Automatic file stacks**: group related file-widget items by type, date or prioritized custom extension rules without moving the actual files.
@@ -73,8 +72,8 @@ BentoDesk includes both English and Chinese localization. The screenshots below 
 | File widget | Todo widget |
 | --- | --- |
 | ![BentoDesk file widget](docs/images/screenshots/en-us/file-widget.png) | ![BentoDesk todo widget](docs/images/screenshots/en-us/todo-widget.png) |
-| Quick Capture widget | Music widget |
-| ![BentoDesk Quick Capture widget](docs/images/screenshots/en-us/quick-capture-widget.png) | ![BentoDesk music widget](docs/images/screenshots/en-us/music-widget.png) |
+| Music widget | |
+| ![BentoDesk music widget](docs/images/screenshots/en-us/music-widget.png) | |
 
 ### Settings
 

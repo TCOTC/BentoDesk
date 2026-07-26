@@ -10,7 +10,6 @@ public static class BentoDeskDragData
     public const string SourceFormat = "BentoDesk.Internal.Source.v1";
     public const string TodoColorMarkerFormat = "BentoDesk.Todo.ColorMarker.v1";
     public const string SourceTodo = "todo";
-    public const string SourceQuickCapture = "quick-capture";
 
     public static void SetText(DataPackage dataPackage, string? text, string source)
     {

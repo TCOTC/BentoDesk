@@ -321,7 +321,7 @@ public sealed partial class TodoWidgetViewModel : ObservableObject, IDisposable
 
     public string AddPlaceholderText => _localizationService.T("Todo.AddPlaceholder");
 
-    public string ExpandInputTooltipText => _localizationService.T("QuickCapture.ExpandInput");
+    public string ExpandInputTooltipText => _localizationService.T("Todo.ExpandInput");
 
     public string AllFilterText => FormatFilterText("Todo.Filter.All", AllFilterCount);
 

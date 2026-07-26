@@ -459,8 +459,6 @@ public sealed class BentoDeskDataBackupService
         }
 
         ValidateJsonFileIfPresent<AppSettings>(settingsPath);
-        ValidateJsonFileIfPresent<QuickCaptureStoreData>(
-            Path.Combine(dataDirectory, "quick-capture", "quick-capture.json"));
 
         string widgetsDirectory = Path.Combine(dataDirectory, "widgets");
         if (Directory.Exists(widgetsDirectory))
@@ -503,35 +501,6 @@ public sealed class BentoDeskDataBackupService
         string? sourceDataPath,
         CancellationToken cancellationToken)
     {
-        string quickCapturePath = Path.Combine(
-            stagedDataDirectory,
-            "quick-capture",
-            "quick-capture.json");
-        if (File.Exists(quickCapturePath))
-        {
-            await RebaseQuickCaptureFileAsync(
-                quickCapturePath,
-                stagedDataDirectory,
-                sourceDataPath,
-                cancellationToken);
-            string backupPath = ResilientJsonStore.GetBackupPath(quickCapturePath);
-            if (File.Exists(backupPath))
-            {
-                try
-                {
-                    await RebaseQuickCaptureFileAsync(
-                        backupPath,
-                        stagedDataDirectory,
-                        sourceDataPath,
-                        cancellationToken);
-                }
-                catch (Exception ex) when (ex is JsonException or InvalidDataException)
-                {
-                    App.Log($"[DataBackup] Skipped invalid Quick Capture backup store: {ex.Message}");
-                }
-            }
-        }
-
         string widgetsDirectory = Path.Combine(stagedDataDirectory, "widgets");
         if (!Directory.Exists(widgetsDirectory))
         {
@@ -566,57 +535,6 @@ public sealed class BentoDeskDataBackupService
                 }
             }
         }
-    }
-
-    private async Task RebaseQuickCaptureFileAsync(
-        string path,
-        string stagedDataDirectory,
-        string? sourceDataPath,
-        CancellationToken cancellationToken)
-    {
-        QuickCaptureStoreData data = JsonSerializer.Deserialize<QuickCaptureStoreData>(
-                                         await File.ReadAllTextAsync(path, cancellationToken),
-                                         s_dataJsonOptions) ??
-                                     throw new InvalidDataException("Quick Capture backup data is invalid.");
-        foreach (QuickCaptureItem item in (data.Items ?? []).Concat(data.RecentItems ?? []))
-        {
-            var rebasedPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (TodoAttachment attachment in (item.Attachments ?? []).Where(attachment =>
-                         attachment is not null && attachment.IsManagedCopy))
-            {
-                string? rebasedPath = TryRebaseManagedPath(
-                    attachment.FilePath,
-                    sourceDataPath,
-                    stagedDataDirectory,
-                    "quick-capture");
-                if (rebasedPath is not null)
-                {
-                    rebasedPaths[attachment.FilePath] = rebasedPath;
-                    attachment.FilePath = rebasedPath;
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(item.ImagePath))
-            {
-                if (rebasedPaths.TryGetValue(item.ImagePath, out string? rebasedImagePath))
-                {
-                    item.ImagePath = rebasedImagePath;
-                }
-                else
-                {
-                    item.ImagePath = TryRebaseManagedPath(
-                        item.ImagePath,
-                        sourceDataPath,
-                        stagedDataDirectory,
-                        "quick-capture") ?? item.ImagePath;
-                }
-            }
-        }
-
-        await File.WriteAllTextAsync(
-            path,
-            JsonSerializer.Serialize(data, s_dataJsonOptions),
-            cancellationToken);
     }
 
     private async Task RebaseTodoFileAsync(
@@ -1201,13 +1119,7 @@ public sealed class BentoDeskDataBackupService
 
     private static bool ShouldIncludeInBackup(string relativePath)
     {
-        if (relativePath.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        return !relativePath.StartsWith("quick-capture/thumbnails/", StringComparison.OrdinalIgnoreCase) &&
-               !relativePath.StartsWith("quick-capture/exports/", StringComparison.OrdinalIgnoreCase);
+        return !relativePath.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase);
     }
 
     private static async Task<(long Length, string Sha256)> CopyAndHashAsync(

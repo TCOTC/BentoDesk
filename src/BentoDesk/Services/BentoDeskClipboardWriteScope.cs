@@ -37,16 +37,6 @@ public static class BentoDeskClipboardWriteScope
         MarkWrite(text: text);
     }
 
-    public static bool ShouldIgnore(QuickCaptureClipboardContent content)
-    {
-        if (content.HasImage && ShouldIgnoreImage())
-        {
-            return true;
-        }
-
-        return ShouldIgnoreText(content.Text);
-    }
-
     public static bool ShouldIgnoreText(string? text)
     {
         string? normalizedText = NormalizeText(text);
@@ -91,12 +81,6 @@ public static class BentoDeskClipboardWriteScope
             s_lastWriteHasImage = false;
             s_lastPaths = [];
         }
-    }
-
-    private static bool ShouldIgnoreImage()
-    {
-        ClipboardWriteSnapshot snapshot = GetFreshSnapshot();
-        return snapshot.IsFresh && snapshot.HasImage;
     }
 
     private static ClipboardWriteSnapshot GetFreshSnapshot()

@@ -20,11 +20,6 @@ namespace BentoDesk.Views;
 
 public sealed partial class SettingsWindow
 {
-    private void OpenQuickCaptureSettingsButton_Click(object sender, RoutedEventArgs e)
-    {
-        NavigateToSettingsSection("QuickCaptureSettings");
-    }
-
     private void OpenTodoSettingsButton_Click(object sender, RoutedEventArgs e)
     {
         NavigateToSettingsSection("TodoSettings");
@@ -33,105 +28,6 @@ public sealed partial class SettingsWindow
     private void OpenAppearanceDetailButton_Click(object sender, RoutedEventArgs e)
     {
         NavigateToSettingsSection("AppearanceDetail");
-    }
-
-    private async void ClearQuickCaptureDataButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (SettingsRoot.XamlRoot is null)
-        {
-            return;
-        }
-
-        var data = await App.Current.QuickCaptureService.GetDataAsync();
-        int recordCount = data.Items.Count(item => !item.IsDeleted);
-        int recentCount = data.RecentItems.Count(item => !item.IsDeleted);
-        var dialog = new ContentDialog
-        {
-            XamlRoot = SettingsRoot.XamlRoot,
-            Title = _localizationService.T("QuickCapture.ClearDataTitle"),
-            PrimaryButtonText = _localizationService.T("QuickCapture.ClearData"),
-            CloseButtonText = _localizationService.T("Common.Cancel"),
-            DefaultButton = ContentDialogButton.Close,
-            Content = new TextBlock
-            {
-                Text = _localizationService.Format(
-                    "QuickCapture.ClearDataDescriptionWithCount",
-                    recordCount,
-                    recentCount),
-                TextWrapping = TextWrapping.Wrap
-            }
-        };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
-        {
-            return;
-        }
-
-        await App.Current.QuickCaptureService.ClearAsync();
-        await ViewModel.RefreshQuickCaptureImageCacheInfoAsync();
-    }
-
-    private async void ClearQuickCaptureRecentButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (SettingsRoot.XamlRoot is null)
-        {
-            return;
-        }
-
-        var data = await App.Current.QuickCaptureService.GetDataAsync();
-        int recentCount = data.RecentItems.Count(item => !item.IsDeleted);
-        var dialog = new ContentDialog
-        {
-            XamlRoot = SettingsRoot.XamlRoot,
-            Title = _localizationService.T("QuickCapture.ClearRecentTitle"),
-            PrimaryButtonText = _localizationService.T("QuickCapture.ClearRecent"),
-            CloseButtonText = _localizationService.T("Common.Cancel"),
-            DefaultButton = ContentDialogButton.Close,
-            Content = new TextBlock
-            {
-                Text = _localizationService.Format(
-                    "QuickCapture.ClearRecentDescriptionWithCount",
-                    recentCount),
-                TextWrapping = TextWrapping.Wrap
-            }
-        };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
-        {
-            return;
-        }
-
-        await App.Current.QuickCaptureService.ClearRecentAsync();
-        await ViewModel.RefreshQuickCaptureImageCacheInfoAsync();
-    }
-
-    private async void CleanupQuickCaptureImageCacheButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (SettingsRoot.XamlRoot is null)
-        {
-            return;
-        }
-
-        var result = await App.Current.QuickCaptureService.CleanupUnusedImageCacheAsync();
-        await ViewModel.RefreshQuickCaptureImageCacheInfoAsync();
-
-        var dialog = new ContentDialog
-        {
-            XamlRoot = SettingsRoot.XamlRoot,
-            Title = _localizationService.T("Settings.QuickCapture.ImageCacheCleanupTitle"),
-            CloseButtonText = _localizationService.T("Common.Ok"),
-            DefaultButton = ContentDialogButton.Close,
-            Content = new TextBlock
-            {
-                Text = _localizationService.Format(
-                    "Settings.QuickCapture.ImageCacheCleanupDescription",
-                    result.DeletedFileCount,
-                    ViewModel.FormatBytes(result.DeletedBytes)),
-                TextWrapping = TextWrapping.Wrap
-            }
-        };
-
-        await dialog.ShowAsync();
     }
 
     private void ShowOnboardingButton_Click(object sender, RoutedEventArgs e)

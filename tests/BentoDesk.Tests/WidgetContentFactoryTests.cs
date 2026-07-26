@@ -7,7 +7,6 @@ public sealed class WidgetContentFactoryTests
 {
     [Theory]
     [InlineData(WidgetKind.File, "BentoDesk", WidgetContentStage.Implemented, true, WidgetContentAvailability.Available)]
-    [InlineData(WidgetKind.QuickCapture, "Quick Capture", WidgetContentStage.Implemented, false, WidgetContentAvailability.Available)]
     [InlineData(WidgetKind.Weather, "Weather", WidgetContentStage.Implemented, false, WidgetContentAvailability.Available)]
     [InlineData(WidgetKind.Todo, "Todo", WidgetContentStage.Implemented, false, WidgetContentAvailability.Available)]
     [InlineData(WidgetKind.Tags, "Tags", WidgetContentStage.Placeholder, false, WidgetContentAvailability.Planned)]
@@ -45,7 +44,6 @@ public sealed class WidgetContentFactoryTests
         Assert.Equal(
         [
             WidgetKind.File,
-            WidgetKind.QuickCapture,
             WidgetKind.Todo,
             WidgetKind.Music,
             WidgetKind.Weather,
@@ -57,7 +55,6 @@ public sealed class WidgetContentFactoryTests
 
     [Theory]
     [InlineData(WidgetKind.File, WidgetChromeCategory.Interactive, WidgetChromeMode.Standard)]
-    [InlineData(WidgetKind.QuickCapture, WidgetChromeCategory.Interactive, WidgetChromeMode.Standard)]
     [InlineData(WidgetKind.Todo, WidgetChromeCategory.Interactive, WidgetChromeMode.Standard)]
     [InlineData(WidgetKind.Tags, WidgetChromeCategory.Interactive, WidgetChromeMode.Standard)]
     [InlineData(WidgetKind.Music, WidgetChromeCategory.Display, WidgetChromeMode.Overlay)]
@@ -101,7 +98,6 @@ public sealed class WidgetContentFactoryTests
 
         Assert.Equal(
         [
-            WidgetKind.QuickCapture,
             WidgetKind.Todo,
             WidgetKind.Music,
             WidgetKind.Weather,
@@ -116,7 +112,6 @@ public sealed class WidgetContentFactoryTests
 
     [Theory]
     [InlineData(WidgetKind.File, true, false, true, true, false)]
-    [InlineData(WidgetKind.QuickCapture, true, false, false, true, false)]
     [InlineData(WidgetKind.Weather, true, false, false, true, false)]
     [InlineData(WidgetKind.Todo, true, false, false, true, false)]
     [InlineData(WidgetKind.Tags, false, true, false, false, true)]
@@ -373,7 +368,6 @@ public sealed class WidgetContentFactoryTests
 
     [Theory]
     [InlineData(WidgetKind.File)]
-    [InlineData(WidgetKind.QuickCapture)]
     [InlineData(WidgetKind.Productivity)]
     public void CreateDetachedContent_RejectsLegacyAndWindowOwnedKinds(WidgetKind widgetKind)
     {
@@ -389,7 +383,6 @@ public sealed class WidgetContentFactoryTests
 
     [Theory]
     [InlineData(WidgetKind.File)]
-    [InlineData(WidgetKind.QuickCapture)]
     public void CreatePlaceholderContent_RejectsImplementedKinds(WidgetKind widgetKind)
     {
         var factory = TestServices.CreateWidgetContentFactory();

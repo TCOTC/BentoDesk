@@ -14,7 +14,6 @@ public enum SearchResultKind
 {
     File,
     Todo,
-    QuickCapture,
     Action,
     Folder,
     History,
@@ -160,11 +159,6 @@ public sealed class SearchResultItem
     public bool TodoIsCompleted { get; init; }
 
     /// <summary>
-    /// For QuickCapture results: the item ID.
-    /// </summary>
-    public string? QuickCaptureItemId { get; init; }
-
-    /// <summary>
     /// For Action results: the action identifier.
     /// </summary>
     public string? ActionId { get; init; }
@@ -212,7 +206,6 @@ public sealed class SearchRecommendationItem
     public string? ActionId { get; init; }
     public string? TodoWidgetId { get; init; }
     public string? TodoItemId { get; init; }
-    public string? QuickCaptureItemId { get; init; }
 
     /// <summary>
     /// For History/Favorite recommendations: the query text to re-run when activated.

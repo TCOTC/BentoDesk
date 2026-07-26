@@ -81,53 +81,6 @@ public partial class SettingsViewModel
     }
 
 
-    public string SelectedQuickCaptureDefaultView
-    {
-        get => _selectedQuickCaptureDefaultView;
-        set
-        {
-            if (!SetProperty(ref _selectedQuickCaptureDefaultView, NormalizeQuickCaptureDefaultView(value)))
-            {
-                return;
-            }
-
-            if (_isRestoringDefaults || _isApplyingSettingsSnapshot)
-            {
-                return;
-            }
-
-            EnsureQuickCaptureTabEnabled(_selectedQuickCaptureDefaultView);
-            _settingsService.Settings.QuickCaptureDefaultView = _selectedQuickCaptureDefaultView;
-            _settingsService.SaveDebounced();
-            OnPropertyChanged(nameof(SelectedQuickCaptureDefaultViewText));
-        }
-    }
-
-    public string SelectedQuickCaptureDefaultViewText => GetQuickCaptureDefaultViewDisplayName(SelectedQuickCaptureDefaultView);
-
-    public string SelectedQuickCaptureTabStyle
-    {
-        get => _selectedQuickCaptureTabStyle;
-        set
-        {
-            if (!SetProperty(ref _selectedQuickCaptureTabStyle, SettingsService.NormalizeWidgetTabStyle(value)))
-            {
-                return;
-            }
-
-            if (_isRestoringDefaults || _isApplyingSettingsSnapshot)
-            {
-                return;
-            }
-
-            _settingsService.Settings.QuickCaptureTabStyle = _selectedQuickCaptureTabStyle;
-            _settingsService.SaveDebounced();
-            OnPropertyChanged(nameof(SelectedQuickCaptureTabStyleText));
-        }
-    }
-
-    public string SelectedQuickCaptureTabStyleText => GetWidgetTabStyleDisplayName(SelectedQuickCaptureTabStyle);
-
     public string SelectedTodoDefaultFilter
     {
         get => _selectedTodoDefaultFilter;
@@ -151,22 +104,6 @@ public partial class SettingsViewModel
     }
 
     public string SelectedTodoDefaultFilterText => GetTodoDefaultFilterDisplayName(SelectedTodoDefaultFilter);
-
-    private void EnsureQuickCaptureTabEnabled(string view)
-    {
-        switch (view)
-        {
-            case SettingsService.QuickCaptureDefaultViewPinned:
-                QuickCaptureShowPinnedTab = true;
-                break;
-            case SettingsService.QuickCaptureDefaultViewRecent:
-                QuickCaptureShowRecentTab = true;
-                break;
-            default:
-                QuickCaptureShowRecordsTab = true;
-                break;
-        }
-    }
 
     private void EnsureTodoTabEnabled(string filter)
     {
@@ -521,9 +458,6 @@ set => WidgetOpacity = Math.Clamp(1.0 - value / 100d, SettingsService.MinWidgetO
     {
         switch (kind)
         {
-            case WidgetKind.QuickCapture:
-                QuickCaptureEnabled = enabled;
-                return;
             case WidgetKind.Todo:
                 TodoEnabled = enabled;
                 return;
@@ -572,35 +506,6 @@ set => WidgetOpacity = Math.Clamp(1.0 - value / 100d, SettingsService.MinWidgetO
         {
             switch (kind)
             {
-                case WidgetKind.QuickCapture:
-                    QuickCaptureClipboardEnabled = false;
-                    QuickCaptureImageClipboardEnabled = false;
-                    QuickCaptureRecentLimit = QuickCaptureService.DefaultRecentLimit;
-                    QuickCaptureShowCreatedTime = true;
-                    QuickCaptureItemPreviewLineCount = SettingsService.DefaultQuickCaptureItemPreviewLineCount;
-                    QuickCaptureEditorEnterBehavior = SettingsService.EditorEnterBehaviorCtrlEnterSaves;
-                    SelectedQuickCaptureDefaultView = SettingsService.QuickCaptureDefaultViewRecords;
-                    SelectedQuickCaptureTabStyle = SettingsService.WidgetTabStyleButton;
-                    QuickCaptureShowTabBar = true;
-                    QuickCaptureShowRecordsTab = true;
-                    QuickCaptureShowPinnedTab = true;
-                    QuickCaptureShowRecentTab = true;
-                    _settingsService.Settings.QuickCaptureClipboardEnabled = false;
-                    _settingsService.Settings.QuickCaptureImageClipboardEnabled = false;
-                    _settingsService.Settings.QuickCaptureRecentLimit = QuickCaptureService.DefaultRecentLimit;
-                    _settingsService.Settings.QuickCaptureShowCreatedTime = true;
-                    _settingsService.Settings.QuickCaptureItemPreviewLineCount = SettingsService.DefaultQuickCaptureItemPreviewLineCount;
-                    _settingsService.Settings.QuickCaptureEditorEnterBehavior = SettingsService.EditorEnterBehaviorCtrlEnterSaves;
-                    _settingsService.Settings.QuickCaptureDefaultView = SettingsService.QuickCaptureDefaultViewRecords;
-                    _settingsService.Settings.QuickCaptureTabStyle = SettingsService.WidgetTabStyleButton;
-                    _settingsService.Settings.QuickCaptureShowTabBar = true;
-                    _settingsService.Settings.QuickCaptureShowRecordsTab = true;
-                    _settingsService.Settings.QuickCaptureShowPinnedTab = true;
-                    _settingsService.Settings.QuickCaptureShowRecentTab = true;
-                    _settingsService.Settings.LastQuickCaptureFileWidgetId = string.Empty;
-                    App.Current?.QuickCaptureClipboardService?.Refresh();
-                    RefreshQuickCaptureClipboardDiagnostics();
-                    break;
                 case WidgetKind.Todo:
                     TodoShowCompletedTasks = false;
                     TodoItemPreviewLineCount = SettingsService.DefaultTodoItemPreviewLineCount;
@@ -696,15 +601,6 @@ set => WidgetOpacity = Math.Clamp(1.0 - value / 100d, SettingsService.MinWidgetO
     {
         switch (kind)
         {
-            case WidgetKind.QuickCapture:
-                OnPropertyChanged(nameof(QuickCaptureEnabled));
-                OnPropertyChanged(nameof(QuickCaptureStatusText));
-                OnPropertyChanged(nameof(QuickCaptureDependencyStatusText));
-                OnPropertyChanged(nameof(QuickCaptureRecentLimitText));
-                OnPropertyChanged(nameof(QuickCaptureRecentLimitInput));
-                OnPropertyChanged(nameof(SelectedQuickCaptureDefaultViewText));
-                OnPropertyChanged(nameof(SelectedQuickCaptureTabStyleText));
-                break;
             case WidgetKind.Todo:
                 OnPropertyChanged(nameof(TodoEnabled));
                 OnPropertyChanged(nameof(SelectedTodoNewTaskPositionText));
@@ -881,22 +777,11 @@ set => WidgetOpacity = Math.Clamp(1.0 - value / 100d, SettingsService.MinWidgetO
 
     public string[] AvailableWidgetLayerModeDisplayNames => _cachedWidgetLayerModeDisplayNames ??= AvailableWidgetLayerModes.Select(GetWidgetLayerModeDisplayName).ToArray();
 
-    public string[] AvailableQuickCaptureDefaultViews { get; } =
-    [
-        SettingsService.QuickCaptureDefaultViewRecords,
-        SettingsService.QuickCaptureDefaultViewPinned,
-        SettingsService.QuickCaptureDefaultViewRecent
-    ];
-
-    public string[] AvailableQuickCaptureDefaultViewDisplayNames => _cachedQuickCaptureDefaultViewDisplayNames ??= AvailableQuickCaptureDefaultViews.Select(GetQuickCaptureDefaultViewDisplayName).ToArray();
-
     public string[] AvailableWidgetTabStyles { get; } =
     [
         SettingsService.WidgetTabStylePivot,
         SettingsService.WidgetTabStyleButton
     ];
-
-    public string[] AvailableQuickCaptureTabStyleDisplayNames => _cachedQuickCaptureTabStyleDisplayNames ??= AvailableWidgetTabStyles.Select(GetWidgetTabStyleDisplayName).ToArray();
 
     public string[] AvailableTodoNewTaskPositions { get; } =
     [

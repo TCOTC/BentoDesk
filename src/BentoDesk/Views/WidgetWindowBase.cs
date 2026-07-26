@@ -22,10 +22,10 @@ using WinRT.Interop;
 namespace BentoDesk.Views;
 
 /// <summary>
-/// Shared base class for all desktop widget windows (file, content, quick-capture).
+/// Shared base class for all desktop widget windows (file and content).
 /// Consolidates window setup, backdrop management, layer/Z-order control,
 /// drag/resize logic, and display-change restoration that was previously
-/// duplicated across WidgetWindow, ContentWidgetWindow, and QuickCaptureWidgetWindow.
+/// duplicated across WidgetWindow and ContentWidgetWindow.
 /// </summary>
 public abstract partial class WidgetWindowBase : Window
 {

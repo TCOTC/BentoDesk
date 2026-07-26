@@ -21,25 +21,21 @@ public sealed partial class OnboardingWindow
     private void SetupStep2Features()
     {
         Step2TodoToggle.Toggled -= Step2Toggle_Toggled;
-        Step2QuickCaptureToggle.Toggled -= Step2Toggle_Toggled;
         Step2MusicToggle.Toggled -= Step2Toggle_Toggled;
         Step2WeatherToggle.Toggled -= Step2Toggle_Toggled;
         Step2SearchToggle.Toggled -= Step2Toggle_Toggled;
 
         Step2TodoToggle.IsOn = FeatureWidgetSettings.IsEnabled(_settingsService.Settings, WidgetKind.Todo);
-        Step2QuickCaptureToggle.IsOn = FeatureWidgetSettings.IsEnabled(_settingsService.Settings, WidgetKind.QuickCapture);
         Step2MusicToggle.IsOn = FeatureWidgetSettings.IsEnabled(_settingsService.Settings, WidgetKind.Music);
         Step2WeatherToggle.IsOn = FeatureWidgetSettings.IsEnabled(_settingsService.Settings, WidgetKind.Weather);
         Step2SearchToggle.IsOn = _settingsService.Settings.SearchHotkeyEnabled;
 
         Step2TodoToggle.Toggled += Step2Toggle_Toggled;
-        Step2QuickCaptureToggle.Toggled += Step2Toggle_Toggled;
         Step2MusicToggle.Toggled += Step2Toggle_Toggled;
         Step2WeatherToggle.Toggled += Step2Toggle_Toggled;
         Step2SearchToggle.Toggled += Step2Toggle_Toggled;
 
         UpdateFeatureCardHighlight(Step2TodoCard, Step2TodoToggle.IsOn);
-        UpdateFeatureCardHighlight(Step2QuickCaptureCard, Step2QuickCaptureToggle.IsOn);
         UpdateFeatureCardHighlight(Step2MusicCard, Step2MusicToggle.IsOn);
         UpdateFeatureCardHighlight(Step2WeatherCard, Step2WeatherToggle.IsOn);
         UpdateFeatureCardHighlight(Step2SearchCard, Step2SearchToggle.IsOn);
@@ -57,11 +53,6 @@ public sealed partial class OnboardingWindow
         {
             FeatureWidgetSettings.SetEnabled(_settingsService.Settings, WidgetKind.Todo, toggle.IsOn);
             card = Step2TodoCard;
-        }
-        else if (toggle == Step2QuickCaptureToggle)
-        {
-            FeatureWidgetSettings.SetEnabled(_settingsService.Settings, WidgetKind.QuickCapture, toggle.IsOn);
-            card = Step2QuickCaptureCard;
         }
         else if (toggle == Step2MusicToggle)
         {

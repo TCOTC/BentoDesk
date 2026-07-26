@@ -276,15 +276,6 @@ public partial class SettingsViewModel
             : SettingsService.TodoNewTaskPositionTop;
     }
 
-    private static string NormalizeQuickCaptureDefaultView(string? view)
-    {
-        return view is
-            SettingsService.QuickCaptureDefaultViewPinned or
-            SettingsService.QuickCaptureDefaultViewRecent
-            ? view
-            : SettingsService.QuickCaptureDefaultViewRecords;
-    }
-
     private static string NormalizeTodoDefaultFilter(string? filter)
     {
         return filter is

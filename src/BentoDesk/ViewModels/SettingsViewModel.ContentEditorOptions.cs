@@ -5,8 +5,6 @@ namespace BentoDesk.ViewModels;
 
 public partial class SettingsViewModel
 {
-    private int _quickCaptureItemPreviewLineCount = SettingsService.DefaultQuickCaptureItemPreviewLineCount;
-    private string _quickCaptureEditorEnterBehavior = SettingsService.EditorEnterBehaviorCtrlEnterSaves;
     private int _todoItemPreviewLineCount = SettingsService.DefaultTodoItemPreviewLineCount;
     private string _todoEditorEnterBehavior = SettingsService.EditorEnterBehaviorCtrlEnterSaves;
     private string[]? _cachedItemPreviewLineCountDisplayNames;
@@ -37,50 +35,6 @@ public partial class SettingsViewModel
     public string[] AvailableEditorEnterBehaviorDisplayNames =>
         _cachedEditorEnterBehaviorDisplayNames ??=
             AvailableEditorEnterBehaviors.Select(GetEditorEnterBehaviorDisplayName).ToArray();
-
-    public int QuickCaptureItemPreviewLineCount
-    {
-        get => _quickCaptureItemPreviewLineCount;
-        set
-        {
-            int normalized = SettingsService.NormalizeItemPreviewLineCount(value);
-            if (!SetProperty(ref _quickCaptureItemPreviewLineCount, normalized))
-            {
-                return;
-            }
-
-            if (_isRestoringDefaults || _isApplyingSettingsSnapshot)
-            {
-                return;
-            }
-
-            _settingsService.Settings.QuickCaptureItemPreviewLineCount = normalized;
-            _settingsService.SaveDebounced();
-        }
-    }
-
-
-    public string QuickCaptureEditorEnterBehavior
-    {
-        get => _quickCaptureEditorEnterBehavior;
-        set
-        {
-            string normalized = SettingsService.NormalizeEditorEnterBehavior(value);
-            if (!SetProperty(ref _quickCaptureEditorEnterBehavior, normalized))
-            {
-                return;
-            }
-
-            if (_isRestoringDefaults || _isApplyingSettingsSnapshot)
-            {
-                return;
-            }
-
-            _settingsService.Settings.QuickCaptureEditorEnterBehavior = normalized;
-            _settingsService.SaveDebounced();
-        }
-    }
-
 
     public int TodoItemPreviewLineCount
     {
@@ -128,10 +82,6 @@ public partial class SettingsViewModel
 
     private void InitializeContentEditorSettings(AppSettings settings)
     {
-        _quickCaptureItemPreviewLineCount = SettingsService.NormalizeItemPreviewLineCount(
-            settings.QuickCaptureItemPreviewLineCount);
-        _quickCaptureEditorEnterBehavior = SettingsService.NormalizeEditorEnterBehavior(
-            settings.QuickCaptureEditorEnterBehavior);
         _todoItemPreviewLineCount = SettingsService.NormalizeItemPreviewLineCount(
             settings.TodoItemPreviewLineCount);
         _todoEditorEnterBehavior = SettingsService.NormalizeEditorEnterBehavior(
@@ -140,8 +90,6 @@ public partial class SettingsViewModel
 
     private void ApplyContentEditorSettingsSnapshot(AppSettings settings)
     {
-        QuickCaptureItemPreviewLineCount = settings.QuickCaptureItemPreviewLineCount;
-        QuickCaptureEditorEnterBehavior = settings.QuickCaptureEditorEnterBehavior;
         TodoItemPreviewLineCount = settings.TodoItemPreviewLineCount;
         TodoEditorEnterBehavior = settings.TodoEditorEnterBehavior;
     }

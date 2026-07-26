@@ -26,10 +26,6 @@ public sealed partial class OnboardingWindow
         {
             enabledWidgets.Add(_localizationService.T("Onboarding.Step2.TodoTitle"));
         }
-        if (FeatureWidgetSettings.IsEnabled(_settingsService.Settings, WidgetKind.QuickCapture))
-        {
-            enabledWidgets.Add(_localizationService.T("Onboarding.Step2.QuickCaptureTitle"));
-        }
         if (FeatureWidgetSettings.IsEnabled(_settingsService.Settings, WidgetKind.Music))
         {
             enabledWidgets.Add(_localizationService.T("Onboarding.Step2.MusicTitle"));

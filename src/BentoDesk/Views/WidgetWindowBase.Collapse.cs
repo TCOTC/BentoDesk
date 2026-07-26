@@ -184,7 +184,7 @@ public abstract partial class WidgetWindowBase
             : WidgetCollapseBehavior.Expanded;
 
     protected virtual bool SupportsCompactDropExpansion =>
-        Config.WidgetKind is WidgetKind.File or WidgetKind.Todo or WidgetKind.QuickCapture;
+        Config.WidgetKind is WidgetKind.File or WidgetKind.Todo;
 
     protected string ResolveEffectiveCompactContentMode()
     {

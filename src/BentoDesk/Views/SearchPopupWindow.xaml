@@ -56,7 +56,7 @@
             </Storyboard>
 
             <!--
-                Horizontal quick-action button (New todo / New note / Open settings).
+                Horizontal quick-action button (New todo / Open settings).
                 One row, equal-width cells, Fluent control-fill ladder on hover/press.
             -->
             <Style x:Key="QuickButtonStyle" TargetType="Button">
@@ -794,13 +794,6 @@
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <FontIcon Glyph="&#xE723;" FontSize="12"/>
                         <TextBlock x:Name="AttachSelectedLabel"/>
-                    </StackPanel>
-                </Button>
-                <Button x:Name="SaveSelectedButton" Padding="10,5"
-                        Click="SaveSelectedButton_Click">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE70B;" FontSize="12"/>
-                        <TextBlock x:Name="SaveSelectedLabel"/>
                     </StackPanel>
                 </Button>
             </toolkit:WrapPanel>

@@ -1,4 +1,4 @@
-﻿﻿// Copyright (c) BentoDesk. All rights reserved.
+﻿// Copyright (c) BentoDesk. All rights reserved.
 
 using BentoDesk.Models;
 using BentoDesk.Helpers;
@@ -53,45 +53,6 @@ public sealed partial class WidgetManager
                 }
             },
             TaskContinuationOptions.OnlyOnFaulted);
-    }
-
-    public async Task<QuickCaptureWidgetWindow> CreateOrShowQuickCaptureWidgetAsync(bool reveal = true, bool focusNewInput = false)
-    {
-        SetFeatureWidgetEnabledState(WidgetKind.QuickCapture, true);
-        RestoreDeletedQuickCaptureConfigs();
-
-        var config = _settingsService.Settings.Widgets.FirstOrDefault(widget =>
-            widget.WidgetKind == WidgetKind.QuickCapture);
-
-        if (config is null)
-        {
-            config = new WidgetConfig
-            {
-                Name = _localizationService.T("QuickCapture.Name"),
-                WidgetKind = WidgetKind.QuickCapture,
-                BoundsCoordinateVersion = WidgetConfig.CurrentBoundsCoordinateVersion,
-                Width = _settingsService.Settings.DefaultWidgetWidth,
-                Height = _settingsService.Settings.DefaultWidgetHeight
-            };
-            _settingsService.Settings.Widgets.Add(config);
-        }
-
-        config.IsDisabled = false;
-        config.IsVisible = true;
-        await _settingsService.SaveAsync();
-
-        var window = await CreateQuickCaptureWidgetFromConfigAsync(config);
-        if (reveal)
-        {
-            window.RevealFromTray(autoRestore: false);
-        }
-
-        if (focusNewInput)
-        {
-            window.FocusInputForNewNote();
-        }
-
-        return window;
     }
 
     public async Task<ContentWidgetWindow> CreateTodoWidgetAsync(string? name = null, bool focusNewInput = false)
@@ -238,230 +199,6 @@ public sealed partial class WidgetManager
         return await CreateContentWidgetFromConfigAsync(config, revealAfterCreate: true);
     }
 
-    private void RestoreDeletedQuickCaptureConfigs()
-    {
-        var quickCaptureIds = _settingsService.Settings.Widgets
-            .Where(widget => widget.WidgetKind == WidgetKind.QuickCapture)
-            .Select(widget => widget.Id)
-            .ToHashSet(StringComparer.Ordinal);
-
-        if (quickCaptureIds.Count == 0)
-        {
-            return;
-        }
-
-        _deletedWidgetIds.RemoveWhere(quickCaptureIds.Contains);
-        _settingsService.Settings.DeletedWidgetIds.RemoveAll(quickCaptureIds.Contains);
-    }
-
-    public async Task SetQuickCaptureEnabledAsync(bool enabled, bool reveal = true)
-    {
-        SetFeatureWidgetEnabledState(WidgetKind.QuickCapture, enabled);
-
-        if (enabled)
-        {
-            await CreateOrShowQuickCaptureWidgetAsync(reveal);
-            return;
-        }
-
-        foreach (var config in _settingsService.Settings.Widgets.Where(widget =>
-                     widget.WidgetKind == WidgetKind.QuickCapture &&
-                     !IsDeleted(widget.Id)))
-        {
-            config.IsVisible = false;
-            config.IsDisabled = false;
-        }
-
-        CloseLoadedQuickCaptureWidgets();
-        await _settingsService.SaveAsync();
-    }
-
-    private void CloseLoadedQuickCaptureWidgets()
-    {
-        foreach (var (_, (window, _)) in _quickCaptureWidgets.ToList())
-        {
-            CloseFeatureWidgetInstance(window);
-        }
-    }
-
-    public IReadOnlyList<QuickCaptureFileWidgetTarget> GetQuickCaptureFileWidgetTargets()
-    {
-        return _settingsService.Settings.Widgets
-            .Where(widget => widget.WidgetKind == WidgetKind.File &&
-                             !widget.IsDisabled &&
-                             !IsDeleted(widget.Id) &&
-                             TryGetFileWidgetFolderPath(widget, out _))
-            .Select(widget =>
-            {
-                TryGetFileWidgetFolderPath(widget, out string folderPath);
-                return new QuickCaptureFileWidgetTarget(widget.Id, widget.Name, folderPath);
-            })
-            .ToList();
-    }
-
-    public QuickCaptureFileWidgetTarget? GetLastQuickCaptureFileWidgetTarget()
-    {
-        string lastTargetId = _settingsService.Settings.LastQuickCaptureFileWidgetId;
-        if (string.IsNullOrWhiteSpace(lastTargetId))
-        {
-            return null;
-        }
-
-        return GetQuickCaptureFileWidgetTargets()
-            .FirstOrDefault(target => string.Equals(target.WidgetId, lastTargetId, StringComparison.Ordinal));
-    }
-
-    public async Task<string?> SaveQuickCaptureItemToFileWidgetAsync(
-        QuickCaptureItem item,
-        string targetWidgetId,
-        string? imageFileNamePrefix = null)
-    {
-        if (item.IsDeleted ||
-            string.IsNullOrWhiteSpace(targetWidgetId) ||
-            FindConfig(targetWidgetId) is not { } targetConfig ||
-            targetConfig.WidgetKind != WidgetKind.File ||
-            targetConfig.IsDisabled ||
-            IsDeleted(targetWidgetId) ||
-            !TryGetFileWidgetFolderPath(targetConfig, out string targetFolderPath))
-        {
-            return null;
-        }
-
-        Directory.CreateDirectory(targetFolderPath);
-        string? destinationPath = item.Type switch
-        {
-            QuickCaptureItemType.Image => await SaveQuickCaptureImageToFolderAsync(item, targetFolderPath, imageFileNamePrefix),
-            QuickCaptureItemType.Link => await SaveQuickCaptureLinkToFolderAsync(item, targetFolderPath),
-            _ => await SaveQuickCaptureTextToFolderAsync(item, targetFolderPath)
-        };
-
-        if (!string.IsNullOrWhiteSpace(destinationPath))
-        {
-            RememberLastQuickCaptureFileWidgetTarget(targetWidgetId);
-            if (_widgets.TryGetValue(targetWidgetId, out var targetEntry))
-            {
-                await targetEntry.ViewModel.RefreshFromConfigAsync();
-                targetEntry.Window.RevealSavedItem(destinationPath);
-            }
-        }
-
-        return destinationPath;
-    }
-
-    private void RememberLastQuickCaptureFileWidgetTarget(string widgetId)
-    {
-        if (string.Equals(_settingsService.Settings.LastQuickCaptureFileWidgetId, widgetId, StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        _settingsService.Settings.LastQuickCaptureFileWidgetId = widgetId;
-        _settingsService.SaveDebounced(notifySubscribers: false);
-    }
-
-    private async Task<string?> SaveQuickCaptureImageToFolderAsync(
-        QuickCaptureItem item,
-        string targetFolderPath,
-        string? imageFileNamePrefix)
-    {
-        if (string.IsNullOrWhiteSpace(item.ImagePath) || !File.Exists(item.ImagePath))
-        {
-            return null;
-        }
-
-        string fileName = QuickCaptureService.BuildImageExportFileName(
-            imageFileNamePrefix,
-            item.UpdatedAt == default ? item.CreatedAt : item.UpdatedAt,
-            item.ImagePath);
-        string destinationPath = FileService.GetAvailablePath(Path.Combine(targetFolderPath, fileName));
-        await Task.Run(() => File.Copy(item.ImagePath, destinationPath));
-        return destinationPath;
-    }
-
-    private async Task<string?> SaveQuickCaptureTextToFolderAsync(QuickCaptureItem item, string targetFolderPath)
-    {
-        string body = item.Body?.Trim() ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(body))
-        {
-            return null;
-        }
-
-        string fileName = BuildQuickCaptureContentFileName(
-            body,
-            _localizationService.T("QuickCapture.TextFileNamePrefix"),
-            ".txt");
-        string destinationPath = FileService.GetAvailablePath(Path.Combine(targetFolderPath, fileName));
-        await File.WriteAllTextAsync(destinationPath, body);
-        return destinationPath;
-    }
-
-    private async Task<string?> SaveQuickCaptureLinkToFolderAsync(QuickCaptureItem item, string targetFolderPath)
-    {
-        string url = string.IsNullOrWhiteSpace(item.Url) ? item.Body?.Trim() ?? string.Empty : item.Url.Trim();
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
-        {
-            return await SaveQuickCaptureTextToFolderAsync(item, targetFolderPath);
-        }
-
-        string baseText = string.IsNullOrWhiteSpace(uri.Host) ? uri.AbsoluteUri : uri.Host;
-        string fileName = BuildQuickCaptureContentFileName(
-            baseText,
-            _localizationService.T("QuickCapture.LinkFileNamePrefix"),
-            ".url");
-        string destinationPath = FileService.GetAvailablePath(Path.Combine(targetFolderPath, fileName));
-        await File.WriteAllTextAsync(destinationPath, $"[InternetShortcut]{Environment.NewLine}URL={uri.AbsoluteUri}{Environment.NewLine}");
-        return destinationPath;
-    }
-
-    private static string BuildQuickCaptureContentFileName(string? body, string fallbackName, string extension)
-    {
-        string firstLine = body?
-            .Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .FirstOrDefault() ?? string.Empty;
-        string baseName = FileService.SanitizeFileSystemName(firstLine);
-        if (baseName.Length > 36)
-        {
-            baseName = baseName[..36].Trim().TrimEnd('.');
-        }
-
-        if (string.IsNullOrWhiteSpace(baseName))
-        {
-            baseName = FileService.SanitizeFileSystemName(fallbackName);
-        }
-
-        if (string.IsNullOrWhiteSpace(baseName))
-        {
-            baseName = "Quick Capture";
-        }
-
-        return baseName.EndsWith(extension, StringComparison.OrdinalIgnoreCase)
-            ? baseName
-            : baseName + extension;
-    }
-
-    private bool TryGetFileWidgetFolderPath(WidgetConfig widget, out string folderPath)
-    {
-        folderPath = string.Empty;
-        if (widget.WidgetKind != WidgetKind.File)
-        {
-            return false;
-        }
-
-        if (!string.IsNullOrWhiteSpace(widget.MappedFolderPath))
-        {
-            folderPath = Path.GetFullPath(widget.MappedFolderPath);
-            return true;
-        }
-
-        if (!widget.FollowsDefaultStoragePath || string.IsNullOrWhiteSpace(widget.ManagedFolderName))
-        {
-            return false;
-        }
-
-        folderPath = Path.Combine(GetManagedStorageRootPath(), widget.ManagedFolderName);
-        return true;
-    }
-
     internal int RepairLegacyContentFeatureFileShells()
     {
         if (!FeatureWidgetSettings.IsEnabled(_settingsService.Settings, WidgetKind.Music))
@@ -548,13 +285,6 @@ public sealed partial class WidgetManager
 
     internal IDesktopWidgetWindow? GetFeatureWidget(WidgetKind kind)
     {
-        if (kind == WidgetKind.QuickCapture)
-        {
-            return _quickCaptureWidgets.Values
-                .Select(entry => (IDesktopWidgetWindow)entry.Window)
-                .FirstOrDefault(window => window.Config.WidgetKind == kind);
-        }
-
         return _contentWidgets.Values
             .FirstOrDefault(w => w.Config.WidgetKind == kind);
     }
@@ -630,11 +360,7 @@ public sealed partial class WidgetManager
                 .Where(widget => widget.WidgetKind == kind)
                 .ToList();
 
-            if (kind == WidgetKind.QuickCapture)
-            {
-                await _quickCaptureService.ClearAsync();
-            }
-            else if (kind == WidgetKind.Todo)
+            if (kind == WidgetKind.Todo)
             {
                 foreach (var todoConfig in configs)
                 {
@@ -695,9 +421,7 @@ public sealed partial class WidgetManager
     {
         var descriptor = new WidgetContentFactory(_localizationService).GetDescriptor(kind);
         config.WidgetKind = kind;
-        config.Name = kind == WidgetKind.QuickCapture
-            ? _localizationService.T("QuickCapture.Name")
-            : GetDefaultFeatureWidgetTitle(kind, descriptor);
+        config.Name = GetDefaultFeatureWidgetTitle(kind, descriptor);
         config.IsDefaultTitle = true;
         config.X = 100;
         config.Y = 100;
@@ -727,12 +451,6 @@ public sealed partial class WidgetManager
 
     private void CloseLoadedFeatureWidgetWindows(WidgetKind kind)
     {
-        if (kind == WidgetKind.QuickCapture)
-        {
-            CloseLoadedQuickCaptureWidgets();
-            return;
-        }
-
         foreach (var window in _contentWidgets.Values
                      .Where(window => window.Config.WidgetKind == kind)
                      .ToList())
@@ -836,8 +554,7 @@ public sealed partial class WidgetManager
 
     private static bool IsContentFeatureWidgetKind(WidgetKind kind)
     {
-        return FeatureWidgetSettings.IsFeatureWidget(kind) &&
-               kind != WidgetKind.QuickCapture;
+        return FeatureWidgetSettings.IsFeatureWidget(kind);
     }
 
     private void SetFeatureWidgetEnabledState(WidgetKind kind, bool enabled)
@@ -869,15 +586,7 @@ public sealed partial class WidgetManager
 
         window.Config.IsVisible = false;
 
-        if (window.Config.WidgetKind == WidgetKind.QuickCapture &&
-            _quickCaptureWidgets.TryGetValue(window.Config.Id, out var quickCaptureEntry) &&
-            ReferenceEquals(quickCaptureEntry.Window, window))
-        {
-            _quickCaptureWidgets.Remove(window.Config.Id);
-            _widgetWindowHandles.Remove(window.WindowHandle);
-            quickCaptureEntry.ViewModel.Dispose();
-        }
-        else if (window.Config.WidgetKind == WidgetKind.File &&
+        if (window.Config.WidgetKind == WidgetKind.File &&
                  _widgets.TryGetValue(window.Config.Id, out var fileEntry) &&
                  ReferenceEquals(fileEntry.Window, window))
         {
@@ -901,141 +610,6 @@ public sealed partial class WidgetManager
         }
 
         _settingsService.SaveDebounced();
-    }
-
-    private async Task<QuickCaptureWidgetWindow> CreateQuickCaptureWidgetFromConfigAsync(
-        WidgetConfig config,
-        bool keepPreparedForAnimation = false,
-        bool revealAfterCreate = false,
-        bool showRaisedWhileInitializing = false)
-    {
-        if (_quickCaptureWidgets.TryGetValue(config.Id, out var existing))
-        {
-            return existing.Window;
-        }
-
-        config.WidgetKind = WidgetKind.QuickCapture;
-        config.Name = string.IsNullOrWhiteSpace(config.Name)
-            ? _localizationService.T("QuickCapture.Name")
-            : config.Name;
-        config.IsDisabled = false;
-        NormalizeWidgetBounds(config);
-
-        var dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
-        var viewModel = new QuickCaptureWidgetViewModel(
-            config,
-            _quickCaptureService,
-            _settingsService,
-            _localizationService,
-            dispatcherQueue);
-        var window = new QuickCaptureWidgetWindow(viewModel, _settingsService, _localizationService);
-
-        _themeService.TrackWindow(window);
-        _quickCaptureWidgets[config.Id] = (window, viewModel);
-        _widgetWindowHandles.Add(window.WindowHandle);
-        ApplyCapsuleArrangementIfChanged(force: true);
-
-        window.Closed += (_, _) =>
-        {
-            if (_quickCaptureWidgets.TryGetValue(config.Id, out var currentEntry) &&
-                ReferenceEquals(currentEntry.Window, window))
-            {
-                _quickCaptureWidgets.Remove(config.Id);
-            }
-
-            _widgetWindowHandles.Remove(window.WindowHandle);
-            if (IsDeleted(config.Id) || FindConfig(config.Id) is null)
-            {
-                return;
-            }
-
-            if (_suppressClosedVisibilityPersistence.Contains(config.Id))
-            {
-                return;
-            }
-
-            if (_quickCaptureWidgets.ContainsKey(config.Id))
-            {
-                return;
-            }
-
-            config.IsVisible = false;
-            _settingsService.SaveDebounced();
-        };
-
-        try
-        {
-            window.PrepareTrayShowAnimation();
-            if (!keepPreparedForAnimation)
-            {
-                window.Activate();
-                window.PushToBottom();
-            }
-            else if (showRaisedWhileInitializing)
-            {
-                QueueDeferredQuickCaptureInitialization(config, window, viewModel);
-                return window;
-            }
-
-            await viewModel.InitializeAsync();
-            if (!keepPreparedForAnimation)
-            {
-                window.CompleteTrayShowWithoutAnimation();
-                if (revealAfterCreate)
-                {
-                    window.RevealFromTray(autoRestore: false);
-                }
-            }
-        }
-        catch
-        {
-            _quickCaptureWidgets.Remove(config.Id);
-            viewModel.Dispose();
-
-            try
-            {
-                window.Close();
-            }
-            catch
-            {
-            }
-
-            throw;
-        }
-
-        return window;
-    }
-
-    private void QueueDeferredQuickCaptureInitialization(
-        WidgetConfig config,
-        QuickCaptureWidgetWindow window,
-        QuickCaptureWidgetViewModel viewModel)
-    {
-        App.UiDispatcherQueue.TryEnqueue(async () =>
-        {
-            await Task.Yield();
-            try
-            {
-                await viewModel.InitializeAsync();
-            }
-            catch (Exception ex)
-            {
-                App.Log($"[WidgetManager] Failed to initialize quick capture widget '{config.Name}' ({config.Id}) after show: {ex}");
-                if (_quickCaptureWidgets.TryGetValue(config.Id, out var entry) &&
-                    ReferenceEquals(entry.Window, window))
-                {
-                    _quickCaptureWidgets.Remove(config.Id);
-                    viewModel.Dispose();
-                    try
-                    {
-                        window.Close();
-                    }
-                    catch
-                    {
-                    }
-                }
-            }
-        });
     }
 
 }

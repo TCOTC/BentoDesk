@@ -19,6 +19,8 @@ namespace BentoDesk.Controls.WidgetContents;
 
 public sealed partial class TodoWidgetContent
 {
+    private const int MaxDroppedTodoTextCharacters = 20000;
+
     private void RedColorFilterButton_Click(object sender, RoutedEventArgs e)
     {
         SelectColorFilter(TodoColorFilter.Red);
@@ -777,9 +779,9 @@ public sealed partial class TodoWidgetContent
         }
 
         text = text.Trim();
-        return text.Length <= QuickCaptureClipboardService.MaxClipboardTextCharacters
+        return text.Length <= MaxDroppedTodoTextCharacters
             ? text
-            : text[..QuickCaptureClipboardService.MaxClipboardTextCharacters].Trim();
+            : text[..MaxDroppedTodoTextCharacters].Trim();
     }
 
     private static string BuildDroppedTodoTitle(IReadOnlyList<DroppedFilePath> files)
