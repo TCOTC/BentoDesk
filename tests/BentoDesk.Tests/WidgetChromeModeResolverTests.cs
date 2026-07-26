@@ -19,12 +19,12 @@ public sealed class WidgetChromeModeResolverTests
     }
 
     [Fact]
-    public void Resolve_UsesInteractiveGlobalDefaultForSearch()
+    public void Resolve_UsesInteractiveGlobalDefaultForFile()
     {
         var settingsService = new SettingsService();
         settingsService.Settings.InteractiveWidgetChromeMode = SettingsService.WidgetChromeModeCompact;
-        var descriptor = TestServices.CreateWidgetContentFactory().GetDescriptor(WidgetKind.Search);
-        var config = new WidgetConfig { WidgetKind = WidgetKind.Search };
+        var descriptor = TestServices.CreateWidgetContentFactory().GetDescriptor(WidgetKind.File);
+        var config = new WidgetConfig { WidgetKind = WidgetKind.File };
 
         var mode = new WidgetChromeModeResolver(settingsService).Resolve(config, descriptor);
 
@@ -48,7 +48,7 @@ public sealed class WidgetChromeModeResolverTests
     [Fact]
     public void SetOverrideMode_SystemRemovesMetadata()
     {
-        var config = new WidgetConfig { WidgetKind = WidgetKind.Search };
+        var config = new WidgetConfig { WidgetKind = WidgetKind.File };
         WidgetChromeModeNames.SetOverrideMode(config, WidgetChromeMode.Hidden);
 
         WidgetChromeModeNames.SetOverrideMode(config, WidgetChromeMode.System);

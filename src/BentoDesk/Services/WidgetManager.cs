@@ -313,12 +313,7 @@ public sealed partial class WidgetManager
                 WidgetKind.Music,
                 async _ => await CreateSingletonContentFeatureWidgetAsync(WidgetKind.Music),
                 SetContentFeatureWidgetEnabledAsync,
-                () => HideAndCloseFeatureWidgetAsync(WidgetKind.Music)),
-            new(
-                WidgetKind.Search,
-                async _ => await CreateSingletonContentFeatureWidgetAsync(WidgetKind.Search),
-                SetSearchFeatureWidgetEnabledAsync,
-                () => HideAndCloseFeatureWidgetAsync(WidgetKind.Search))
+                () => HideAndCloseFeatureWidgetAsync(WidgetKind.Music))
         ];
 
         return handlers.ToDictionary(handler => handler.WidgetKind);
@@ -337,13 +332,6 @@ public sealed partial class WidgetManager
                     request.ShowRaisedWhileInitializing)),
             new(
                 WidgetKind.Music,
-                async request => await CreateContentWidgetFromConfigAsync(
-                    request.Config,
-                    request.KeepPreparedForAnimation,
-                    request.RevealAfterCreate,
-                    request.ShowRaisedWhileInitializing)),
-            new(
-                WidgetKind.Search,
                 async request => await CreateContentWidgetFromConfigAsync(
                     request.Config,
                     request.KeepPreparedForAnimation,

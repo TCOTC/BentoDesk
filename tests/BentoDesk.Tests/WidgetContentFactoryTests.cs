@@ -10,7 +10,6 @@ public sealed class WidgetContentFactoryTests
     [InlineData(WidgetKind.Tags, "Tags", WidgetContentStage.Placeholder, false, WidgetContentAvailability.Planned)]
     [InlineData(WidgetKind.Music, "Music", WidgetContentStage.Implemented, false, WidgetContentAvailability.Available)]
     [InlineData(WidgetKind.SystemMonitor, "System Monitor", WidgetContentStage.Placeholder, false, WidgetContentAvailability.Planned)]
-    [InlineData(WidgetKind.Search, "Search", WidgetContentStage.Implemented, false, WidgetContentAvailability.Available)]
     public void GetDescriptor_ReturnsContentMetadata(
         WidgetKind widgetKind,
         string title,
@@ -44,8 +43,7 @@ public sealed class WidgetContentFactoryTests
             WidgetKind.File,
             WidgetKind.Music,
             WidgetKind.Tags,
-            WidgetKind.SystemMonitor,
-            WidgetKind.Search
+            WidgetKind.SystemMonitor
         ], descriptors.Select(descriptor => descriptor.WidgetKind));
     }
 
@@ -54,7 +52,6 @@ public sealed class WidgetContentFactoryTests
     [InlineData(WidgetKind.Tags, WidgetChromeCategory.Interactive, WidgetChromeMode.Standard)]
     [InlineData(WidgetKind.Music, WidgetChromeCategory.Display, WidgetChromeMode.Overlay)]
     [InlineData(WidgetKind.SystemMonitor, WidgetChromeCategory.Display, WidgetChromeMode.Overlay)]
-    [InlineData(WidgetKind.Search, WidgetChromeCategory.Interactive, WidgetChromeMode.Standard)]
     public void GetDescriptor_ReturnsChromeDefaults(
         WidgetKind widgetKind,
         WidgetChromeCategory expectedCategory,
@@ -92,8 +89,7 @@ public sealed class WidgetContentFactoryTests
 
         Assert.Equal(
         [
-            WidgetKind.Music,
-            WidgetKind.Search
+            WidgetKind.Music
         ], descriptors.Select(descriptor => descriptor.WidgetKind));
         Assert.DoesNotContain(descriptors, descriptor => descriptor.WidgetKind == WidgetKind.File);
         Assert.DoesNotContain(descriptors, descriptor => descriptor.IsPlanned);
@@ -105,7 +101,6 @@ public sealed class WidgetContentFactoryTests
     [InlineData(WidgetKind.Tags, false, true, false, false, true)]
     [InlineData(WidgetKind.Music, true, false, false, true, false)]
     [InlineData(WidgetKind.SystemMonitor, false, true, false, false, true)]
-    [InlineData(WidgetKind.Search, true, false, false, true, false)]
     [InlineData(WidgetKind.Productivity, false, false, false, false, false)]
     public void ContentCapabilityQueries_ReturnExpectedReadOnlyState(
         WidgetKind widgetKind,

@@ -64,19 +64,7 @@ public sealed class WidgetContentFactory
             "WidgetContent.SystemMonitor.StatusLabel",
             "WidgetContent.SystemMonitor.StatusDescription",
             ChromeCategory: WidgetChromeCategory.Display,
-            DefaultChromeMode: WidgetChromeMode.Overlay),
-        new(
-            WidgetKind.Search,
-            "Search",
-            "\uE721",
-            WidgetContentStage.Implemented,
-            CanShowInCreateEntry: false,
-            WidgetContentAvailability.Available,
-            "WidgetContent.Search.StatusLabel",
-            "WidgetContent.Search.StatusDescription",
-            HasSettingsPage: true,
-            SettingsSectionTag: "SearchSettings",
-            DefaultChromeMode: WidgetChromeMode.Standard)
+            DefaultChromeMode: WidgetChromeMode.Overlay)
     ];
 
     private static readonly IReadOnlyDictionary<WidgetKind, WidgetContentDescriptor> Descriptors =
@@ -200,7 +188,6 @@ public sealed class WidgetContentFactory
         IWidgetContentProvider[] providers =
         [
             new MusicWidgetContentProvider(),
-            new SearchWidgetContentProvider(),
             new PlaceholderWidgetContentProvider(WidgetKind.Tags),
             new PlaceholderWidgetContentProvider(WidgetKind.SystemMonitor)
         ];

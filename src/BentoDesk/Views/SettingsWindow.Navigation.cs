@@ -47,7 +47,6 @@ public sealed partial class SettingsWindow
             ["FileStackSettings"] = FileStackSettingsSection,
             ["FeatureWidgets"] = FeatureWidgetsSection,
             ["MusicSettings"] = MusicSettingsSection,
-            ["SearchSettings"] = SearchSettingsSection,
             ["Interaction"] = InteractionSection,
             ["InteractionHotkeySettings"] = InteractionHotkeySettingsSection,
             ["InteractionHoverSettings"] = InteractionHoverSettingsSection,
@@ -442,10 +441,6 @@ public sealed partial class SettingsWindow
         if (sectionTag == "FeatureWidgets")
         {
             RefreshFeatureWidgetList();
-        }
-        if (sectionTag == "SearchSettings")
-        {
-            SearchSettingsSection.RefreshFromSettings();
         }
         if (sectionTag == "ManagedStorage")
         {

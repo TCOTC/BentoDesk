@@ -9,8 +9,7 @@ public static class FeatureWidgetSettings
 {
     private static readonly WidgetKind[] s_featureKinds =
     [
-        WidgetKind.Music,
-        WidgetKind.Search
+        WidgetKind.Music
     ];
 
     public static IReadOnlyList<WidgetKind> FeatureKinds => s_featureKinds;

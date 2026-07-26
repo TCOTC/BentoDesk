@@ -103,21 +103,6 @@ public sealed partial class ContentWidgetWindow
         }
     }
 
-    /// <summary>
-    /// Programmatically triggers the "add new item" action (same as clicking the + button).
-    /// Used by search actions to open the create-detail editor after showing the widget.
-    /// </summary>
-    internal void TriggerAddAction()
-    {
-        DispatcherQueue.TryEnqueue(async () =>
-        {
-            if (_contentHost.CurrentContent is IWidgetAddActionContent addActionContent)
-            {
-                await addActionContent.AddFromTitleButtonAsync();
-            }
-        });
-    }
-
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
         if (FeatureWidgetSettings.IsFeatureWidget(_config.WidgetKind) &&

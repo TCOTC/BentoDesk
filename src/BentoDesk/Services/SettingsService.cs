@@ -320,23 +320,6 @@ public sealed class SettingsService
         settings.MusicUseArtworkBackdrop = true;
         settings.MusicEnableCoverHoverMotion = true;
         settings.MusicDisplayMode = MusicDisplayModeAuto;
-        settings.SearchHotkeyEnabled = true;
-        settings.SearchHotkeyModifiers = (int)HotkeyModifierKeys.Alt;
-        settings.SearchHotkeyKey = 0x44;
-        settings.SearchDisplayMode = "Spotlight";
-        settings.SearchIncludeBentoDeskContent = true;
-        settings.SearchIncludeSystemIndex = true;
-        settings.SearchCustomIndexerEnabled = false;
-        settings.SearchCustomIndexPaths = [];
-        settings.SearchShowRecommendations = true;
-        settings.SearchMaxResults = 200;
-        settings.SearchDefaultTab = "all";
-        settings.SearchSaveHistory = true;
-        settings.SearchAppIconAnimation = 0;
-        settings.SearchPopupCustomX = null;
-        settings.SearchPopupCustomY = null;
-        settings.SearchPopupCustomWidth = null;
-        settings.SearchPopupCustomHeight = null;
         settings.ManagedDropAction = ManagedDropActionMove;
         settings.GlobalHotkeyEnabled = DefaultGlobalHotkeyEnabled;
         settings.GlobalHotkeyModifiers = DefaultGlobalHotkeyModifiers;
@@ -410,7 +393,6 @@ settings.FocusClickedWidgetOnRaise = false;
                 changed |= NormalizeWidgetContentSettings(_settings);
                 changed |= NormalizeOrganizerSettings(_settings);
                 changed |= NormalizeHotkeySettings(_settings);
-                changed |= NormalizeSearchSettings(_settings);
                 changed |= NormalizeDeletionSettings(_settings);
             }
 
@@ -476,7 +458,6 @@ settings.FocusClickedWidgetOnRaise = false;
                 NormalizeWidgetContentSettings(_settings);
                 NormalizeOrganizerSettings(_settings);
                 NormalizeHotkeySettings(_settings);
-                NormalizeSearchSettings(_settings);
                 json = JsonSerializer.Serialize(_settings, s_jsonOptions);
             }
 
@@ -1910,52 +1891,6 @@ settings.FocusClickedWidgetOnRaise = false;
         {
             settings.GlobalHotkeyModifiers = DefaultGlobalHotkeyModifiers;
             settings.GlobalHotkeyKey = DefaultGlobalHotkeyKey;
-            changed = true;
-        }
-
-        // Normalize the search hotkey modifiers.
-        int searchNormalizedModifiers = (int)((Models.HotkeyModifierKeys)settings.SearchHotkeyModifiers &
-            (Models.HotkeyModifierKeys.Alt | Models.HotkeyModifierKeys.Control | Models.HotkeyModifierKeys.Shift));
-        if (settings.SearchHotkeyModifiers != searchNormalizedModifiers)
-        {
-            settings.SearchHotkeyModifiers = searchNormalizedModifiers;
-            changed = true;
-        }
-
-        // Alt+Space is reserved by Windows for the window system menu and cannot be
-        // registered via RegisterHotKey. Reset a saved Alt+Space gesture to the
-        // working default (Alt+D) so the search hotkey functions out of the box.
-        var searchModifiers = (Models.HotkeyModifierKeys)settings.SearchHotkeyModifiers;
-        if (settings.SearchHotkeyKey == 0x20 && searchModifiers == Models.HotkeyModifierKeys.Alt)
-        {
-            settings.SearchHotkeyModifiers = (int)Models.HotkeyModifierKeys.Alt;
-            settings.SearchHotkeyKey = 0x44; // D
-            changed = true;
-        }
-
-        return changed;
-    }
-
-    private static bool NormalizeSearchSettings(AppSettings settings)
-    {
-        bool changed = false;
-
-        string normalized = settings.SearchDefaultTab?.Trim().ToLowerInvariant() ?? "all";
-        if (normalized is not ("all" or "app" or "file" or "bentodesk"))
-        {
-            normalized = "all";
-        }
-
-        if (!string.Equals(settings.SearchDefaultTab, normalized, StringComparison.Ordinal))
-        {
-            settings.SearchDefaultTab = normalized;
-            changed = true;
-        }
-
-        // Migrate legacy default (50) to new default (200)
-        if (settings.SearchMaxResults is > 0 and < 200)
-        {
-            settings.SearchMaxResults = 200;
             changed = true;
         }
 

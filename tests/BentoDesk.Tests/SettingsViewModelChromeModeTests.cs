@@ -16,7 +16,7 @@ public sealed class SettingsViewModelChromeModeTests
             CreateWidget(WidgetKind.Music, WidgetChromeMode.Standard),
             CreateWidget(WidgetKind.SystemMonitor, WidgetChromeMode.Standard),
             CreateWidget(WidgetKind.File, WidgetChromeMode.Hidden),
-            CreateWidget(WidgetKind.Search, WidgetChromeMode.Hidden)
+            CreateWidget(WidgetKind.Tags, WidgetChromeMode.Hidden)
         ];
 
         var changed = SettingsViewModel.ResetWidgetChromeOverrides(
@@ -40,7 +40,6 @@ public sealed class SettingsViewModelChromeModeTests
         settingsService.Settings.Widgets =
         [
             CreateWidget(WidgetKind.File, WidgetChromeMode.Hidden),
-            CreateWidget(WidgetKind.Search, WidgetChromeMode.Hidden),
             CreateWidget(WidgetKind.Tags, WidgetChromeMode.Hidden),
             CreateWidget(WidgetKind.Music, WidgetChromeMode.Standard)
         ];
@@ -51,11 +50,10 @@ public sealed class SettingsViewModelChromeModeTests
             WidgetChromeCategory.Interactive,
             SettingsService.WidgetChromeModeCompact);
 
-        Assert.Equal(3, changed);
+        Assert.Equal(2, changed);
         AssertSystemChromeMode(settingsService.Settings.Widgets[0]);
         AssertSystemChromeMode(settingsService.Settings.Widgets[1]);
-        AssertSystemChromeMode(settingsService.Settings.Widgets[2]);
-        AssertChromeMode(settingsService.Settings.Widgets[3], SettingsService.WidgetChromeModeStandard);
+        AssertChromeMode(settingsService.Settings.Widgets[2], SettingsService.WidgetChromeModeStandard);
     }
 
     private static WidgetConfig CreateWidget(WidgetKind kind, WidgetChromeMode mode)

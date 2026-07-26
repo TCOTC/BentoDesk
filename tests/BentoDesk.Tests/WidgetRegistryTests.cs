@@ -10,8 +10,6 @@ public sealed class WidgetRegistryTests
     {
         var registry = WidgetRegistry.Default;
 
-        Assert.True(registry.IsKnown(WidgetKind.Search));
-        Assert.True(registry.CanCreateWindow(WidgetKind.Search));
         Assert.True(registry.CanCreateWindow(WidgetKind.File));
         Assert.True(registry.CanCreateWindow(WidgetKind.Music));
     }

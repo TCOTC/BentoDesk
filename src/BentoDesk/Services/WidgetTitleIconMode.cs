@@ -52,7 +52,6 @@ public enum WidgetTitleIconKind
     MappedFolder,
     Music,
     Tags,
-    Search,
     SystemMonitor
 }
 
@@ -63,7 +62,6 @@ public static class WidgetTitleIconKindNames
     public const string MappedFolder = nameof(WidgetTitleIconKind.MappedFolder);
     public const string Music = nameof(WidgetTitleIconKind.Music);
     public const string Tags = nameof(WidgetTitleIconKind.Tags);
-    public const string Search = nameof(WidgetTitleIconKind.Search);
     public const string SystemMonitor = nameof(WidgetTitleIconKind.SystemMonitor);
 
     public static WidgetTitleIconKind NormalizeKind(string? value)
@@ -81,7 +79,6 @@ public static class WidgetTitleIconKindNames
             WidgetTitleIconKind.MappedFolder => MappedFolder,
             WidgetTitleIconKind.Music => Music,
             WidgetTitleIconKind.Tags => Tags,
-            WidgetTitleIconKind.Search => Search,
             WidgetTitleIconKind.SystemMonitor => SystemMonitor,
             _ => Default
         };
@@ -99,7 +96,6 @@ public static class WidgetTitleIconKindNames
             WidgetKind.File => ManagedStorage,
             WidgetKind.Music => Music,
             WidgetKind.Tags => Tags,
-            WidgetKind.Search => Search,
             WidgetKind.SystemMonitor => SystemMonitor,
             _ => Default
         };
@@ -113,7 +109,6 @@ public static class WidgetTitleIconKindNames
             "\uE71B" => MappedFolder,
             "\uEC4F" => Music,
             "\uE8EC" => Tags,
-            "\uE721" => Search,
             "\uE9D9" => SystemMonitor,
             _ => Default
         };
@@ -127,7 +122,6 @@ public static class WidgetTitleIconKindNames
             WidgetTitleIconKind.MappedFolder => "WidgetTitleIcon.Label.MappedFolder",
             WidgetTitleIconKind.Music => "WidgetTitleIcon.Label.Music",
             WidgetTitleIconKind.Tags => "WidgetTitleIcon.Label.Tags",
-            WidgetTitleIconKind.Search => "WidgetTitleIcon.Label.Search",
             WidgetTitleIconKind.SystemMonitor => "WidgetTitleIcon.Label.SystemMonitor",
             _ => "WidgetTitleIcon.Label.Default"
         };
@@ -141,7 +135,6 @@ public static class WidgetTitleIconKindNames
             WidgetTitleIconKind.MappedFolder => "mapped-folder",
             WidgetTitleIconKind.Music => "music",
             WidgetTitleIconKind.Tags => "tags",
-            WidgetTitleIconKind.Search => "search",
             WidgetTitleIconKind.SystemMonitor => "system-monitor",
             _ => "default"
         };

@@ -60,7 +60,6 @@ public sealed partial class WidgetManager
         string key = kind switch
         {
             WidgetKind.Music => "Music.Title",
-            WidgetKind.Search => "Search.Title",
             WidgetKind.Tags => "Tags.Title",
             WidgetKind.SystemMonitor => "SystemMonitor.Title",
             _ => string.Empty
@@ -107,13 +106,11 @@ public sealed partial class WidgetManager
             Width = kind switch
             {
                 WidgetKind.Music => 380,
-                WidgetKind.Search => 280,
                 _ => Math.Max(_settingsService.Settings.DefaultWidgetWidth, 320)
             },
             Height = kind switch
             {
                 WidgetKind.Music => 190,
-                WidgetKind.Search => 90,
                 _ => Math.Max(_settingsService.Settings.DefaultWidgetHeight, 360)
             }
         };
@@ -412,11 +409,6 @@ public sealed partial class WidgetManager
 
         HideAndCloseFeatureWidgetAsync(kind);
         await _settingsService.SaveAsync();
-    }
-
-    private Task SetSearchFeatureWidgetEnabledAsync(bool enabled, bool reveal)
-    {
-        return SetContentFeatureWidgetEnabledAsync(WidgetKind.Search, enabled, reveal);
     }
 
     private bool GetFeatureWidgetEnabledState(WidgetKind? kind)

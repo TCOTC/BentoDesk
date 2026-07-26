@@ -6,11 +6,11 @@ namespace BentoDesk.Tests;
 public sealed class WidgetTitleIconModeTests
 {
     [Fact]
-    public void SearchWidget_UsesDedicatedSearchIconFamily()
+    public void MusicWidget_UsesDedicatedMusicIconFamily()
     {
-        Assert.Equal(WidgetTitleIconKindNames.Search, WidgetTitleIconKindNames.FromWidgetKind(WidgetKind.Search));
-        Assert.Equal(WidgetTitleIconKindNames.Search, WidgetTitleIconKindNames.FromLegacyGlyph("\uE721"));
-        Assert.Equal("search", WidgetTitleIconKindNames.GetColorAssetName(WidgetTitleIconKind.Search));
-        Assert.Equal("WidgetTitleIcon.Label.Search", WidgetTitleIconKindNames.GetLocalizationKey(WidgetTitleIconKind.Search));
+        Assert.Equal(WidgetTitleIconKindNames.Music, WidgetTitleIconKindNames.FromWidgetKind(WidgetKind.Music));
+        Assert.Equal(WidgetTitleIconKindNames.Music, WidgetTitleIconKindNames.FromLegacyGlyph("\uEC4F"));
+        Assert.Equal("music", WidgetTitleIconKindNames.GetColorAssetName(WidgetTitleIconKind.Music));
+        Assert.Equal("WidgetTitleIcon.Label.Music", WidgetTitleIconKindNames.GetLocalizationKey(WidgetTitleIconKind.Music));
     }
 }

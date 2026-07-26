@@ -32,7 +32,7 @@ public sealed class SettingsSynchronizationTests
         settingsService.Settings.WidgetCapsuleBarDirection =
             SettingsService.WidgetCapsuleBarDirectionVertical;
         settingsService.Settings.WidgetCapsuleBarSpacing = 12;
-        settingsService.Settings.WidgetCapsuleBarOrder = ["search", "music"];
+        settingsService.Settings.WidgetCapsuleBarOrder = ["music", "tags"];
         settingsService.Settings.WidgetCapsuleFreePlacements["music"] = new BentoDesk.Models.WidgetCompactPlacement
         {
             X = 120,
@@ -62,7 +62,7 @@ public sealed class SettingsSynchronizationTests
             SettingsService.WidgetCapsuleBarDirectionVertical,
             reloadedService.Settings.WidgetCapsuleBarDirection);
         Assert.Equal(12d, reloadedService.Settings.WidgetCapsuleBarSpacing);
-        Assert.Equal(new[] { "search", "music" }, reloadedService.Settings.WidgetCapsuleBarOrder);
+        Assert.Equal(new[] { "music", "tags" }, reloadedService.Settings.WidgetCapsuleBarOrder);
         Assert.Equal(120d, reloadedService.Settings.WidgetCapsuleFreePlacements["music"].X);
         Assert.Equal(SettingsService.MusicDisplayModeCover, reloadedService.Settings.MusicDisplayMode);
     }

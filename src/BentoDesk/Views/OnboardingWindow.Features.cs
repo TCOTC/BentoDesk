@@ -21,16 +21,12 @@ public sealed partial class OnboardingWindow
     private void SetupStep2Features()
     {
         Step2MusicToggle.Toggled -= Step2Toggle_Toggled;
-        Step2SearchToggle.Toggled -= Step2Toggle_Toggled;
 
         Step2MusicToggle.IsOn = FeatureWidgetSettings.IsEnabled(_settingsService.Settings, WidgetKind.Music);
-        Step2SearchToggle.IsOn = _settingsService.Settings.SearchHotkeyEnabled;
 
         Step2MusicToggle.Toggled += Step2Toggle_Toggled;
-        Step2SearchToggle.Toggled += Step2Toggle_Toggled;
 
         UpdateFeatureCardHighlight(Step2MusicCard, Step2MusicToggle.IsOn);
-        UpdateFeatureCardHighlight(Step2SearchCard, Step2SearchToggle.IsOn);
     }
 
     private void Step2Toggle_Toggled(object sender, RoutedEventArgs e)
@@ -45,11 +41,6 @@ public sealed partial class OnboardingWindow
         {
             FeatureWidgetSettings.SetEnabled(_settingsService.Settings, WidgetKind.Music, toggle.IsOn);
             card = Step2MusicCard;
-        }
-        else if (toggle == Step2SearchToggle)
-        {
-            _settingsService.Settings.SearchHotkeyEnabled = toggle.IsOn;
-            card = Step2SearchCard;
         }
         else
         {

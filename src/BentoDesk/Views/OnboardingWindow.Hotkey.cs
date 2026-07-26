@@ -25,12 +25,6 @@ public sealed partial class OnboardingWindow
         Step4HotkeyToggle.IsOn = _settingsService.Settings.GlobalHotkeyEnabled;
         Step4HotkeyToggle.Toggled += Step4HotkeyToggle_Toggled;
 
-        // Search hotkey toggle
-        Step4SearchHotkeyToggle.Toggled -= Step4SearchHotkeyToggle_Toggled;
-        Step4SearchHotkeyToggle.IsOn = _settingsService.Settings.SearchHotkeyEnabled;
-        Step4SearchHotkeyToggle.Toggled += Step4SearchHotkeyToggle_Toggled;
-        RefreshSearchHotkeyText();
-
         // Startup toggle
         Step4StartupToggle.Toggled -= Step4StartupToggle_Toggled;
         Step4StartupToggle.IsOn = StartupService.IsEnabled();
@@ -63,16 +57,6 @@ public sealed partial class OnboardingWindow
 
         Step4KeycapText.Text = hotkeyText;
         Step4HotkeyChangeButton.Content = hotkeyText;
-    }
-
-    private void RefreshSearchHotkeyText()
-    {
-        string searchText = GlobalHotkeyService.FormatGesture(
-            new GlobalHotkeyGesture(
-                (HotkeyModifierKeys)_settingsService.Settings.SearchHotkeyModifiers,
-                _settingsService.Settings.SearchHotkeyKey),
-            _localizationService);
-        Step4SearchHotkeyText.Text = searchText;
     }
 
     private void Step4HotkeyChange_Click(object sender, RoutedEventArgs e)
@@ -208,17 +192,6 @@ public sealed partial class OnboardingWindow
             _keycapPulseStoryboard = null;
             SetElementTransform(Step4Keycap);
         }
-    }
-
-    private void Step4SearchHotkeyToggle_Toggled(object sender, RoutedEventArgs e)
-    {
-        if (sender is not ToggleSwitch toggle)
-        {
-            return;
-        }
-
-        _settingsService.Settings.SearchHotkeyEnabled = toggle.IsOn;
-        _settingsService.SaveDebounced();
     }
 
     private void Step4StartupToggle_Toggled(object sender, RoutedEventArgs e)

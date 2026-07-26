@@ -69,13 +69,6 @@ public partial class App : Application
     private OnboardingWindow? _onboardingWindow;
     private NativeAppNotificationService? _nativeNotificationService;
     private DisplayAreaWatcherService? _displayAreaWatcher;
-    private SearchIndexService? _searchIndexService;
-    private SearchEngineService? _searchEngineService;
-    private UsnJournalIndexService? _usnIndexService;
-    private FileMetaService? _fileMetaService;
-    private SearchHotkeyService? _searchHotkeyService;
-    private SearchPopupWindow? _searchPopupWindow;
-    private SearchHistoryService? _searchHistoryService;
     private bool _widgetsRaisedFromTray;
     private bool _hasUpdateAvailable;
     private bool _updateNotificationShown;
@@ -96,9 +89,6 @@ public partial class App : Application
     public LocalizationService LocalizationService { get; private set; } = null!;
     public ThemeService ThemeService { get; private set; } = null!;
     public GlobalHotkeyService? GlobalHotkeyService { get; private set; }
-    public SearchHotkeyService? SearchHotkeyService => _searchHotkeyService;
-    public SearchEngineService? SearchEngineService => _searchEngineService;
-    internal SearchHistoryService? SearchHistoryService => _searchHistoryService;
     public WidgetManager? WidgetManager { get; private set; }
     public ResizeGuideOverlayService ResizeGuideOverlay { get; private set; } = null!;
     public NativeAppNotificationService? NativeNotificationService => _nativeNotificationService;
@@ -839,9 +829,6 @@ public partial class App : Application
             _displayAreaWatcher.DisplaysChanged += OnDisplaysChanged;
             _displayAreaWatcher.Start();
 
-            // Initialize search services
-            InitializeSearchServices();
-
             // Configure taskbar Jump List with quick actions
             _ = JumpListService.ConfigureAsync(LocalizationService);
 
@@ -1339,8 +1326,6 @@ public partial class App : Application
         await SettingsService.SaveAsync();
         _nativeNotificationService?.Dispose();
         _nativeNotificationService = null;
-        _usnIndexService?.Dispose();
-        _usnIndexService = null;
         WidgetManager?.CloseAll();
         _trayIcon?.Dispose();
         _trayIcon = null;
@@ -1372,163 +1357,5 @@ public partial class App : Application
     {
         Log($"Unhandled exception: {e.Exception}");
         e.Handled = true;
-    }
-
-    // ─── Search Services ─────────────────────────────────────────────
-
-    private void InitializeSearchServices()
-    {
-        try
-        {
-            _searchIndexService = new SearchIndexService(SettingsService);
-            var windowsIndexService = new WindowsIndexSearchService(SettingsService);
-            _usnIndexService = new UsnJournalIndexService();
-            _searchEngineService = new SearchEngineService(SettingsService, LocalizationService, _searchIndexService, windowsIndexService, _usnIndexService);
-            _searchHistoryService = new SearchHistoryService();
-
-            // Load the persisted index so search returns results immediately,
-            // before the first background scan completes.
-            _searchIndexService.TryLoadPersistedIndex();
-
-            // Start background indexing if enabled
-            if (SettingsService.Settings.SearchCustomIndexerEnabled)
-            {
-                _searchIndexService.StartIndexing();
-                Log("[Search] File indexer started");
-
-                // USN journal full-disk index (Everything-style). Requires admin;
-                // when unavailable it self-degrades (IsAvailable stays false) and the
-                // search engine falls back to the directory-scan index above.
-                _usnIndexService.StartIndexing();
-                Log("[Search] USN journal indexer started");
-            }
-
-            // Create search hotkey service
-            _searchHotkeyService = new SearchHotkeyService(SettingsService, ToggleSearchPopupAsync);
-            if (_trayWindow is not null)
-            {
-                var trayHwnd = WindowNative.GetWindowHandle(_trayWindow);
-                if (trayHwnd != IntPtr.Zero)
-                {
-                    _searchHotkeyService.Attach(trayHwnd);
-                    Log("[Search] Hotkey service attached");
-                }
-            }
-
-            Log("[Search] Services initialized");
-        }
-        catch (Exception ex)
-        {
-            Log($"[Search] Initialization failed: {ex}");
-        }
-    }
-
-    private Task ToggleSearchPopupAsync()
-    {
-        if (!UiDispatcherQueue.HasThreadAccess)
-        {
-            UiDispatcherQueue.TryEnqueue(() => _ = ToggleSearchPopupAsync());
-            return Task.CompletedTask;
-        }
-
-        if (_searchEngineService is null)
-        {
-            Log("[Search] Engine not initialized");
-            return Task.CompletedTask;
-        }
-
-        if (_searchPopupWindow is null)
-        {
-            _fileMetaService ??= new FileMetaService();
-            var viewModel = new ViewModels.SearchPopupViewModel(
-                _searchEngineService, SettingsService, LocalizationService, _searchHistoryService!, _fileMetaService);
-            _searchPopupWindow = new SearchPopupWindow(viewModel, SettingsService, LocalizationService);
-            _searchPopupWindow.ActionRequested += OnSearchActionRequested;
-            _searchPopupWindow.Closed += (_, _) =>
-            {
-                _searchPopupWindow = null;
-            };
-            // Set callback to hide popup when item is opened.
-            viewModel.HidePopupCallback = () => _searchPopupWindow?.HidePopup();
-            Log("[Search] Popup window created");
-        }
-
-        _searchPopupWindow.TogglePopup();
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Public entry point used by the search widget (and other callers) to open the popup.
-    /// </summary>
-    public void OpenSearchPopup() => _ = ToggleSearchPopupAsync();
-
-    /// <summary>
-    /// Opens the search popup with a pre-filled query and immediately executes the search.
-    /// Used by search history items in the widget.
-    /// </summary>
-    public void OpenSearchPopupWithQuery(string query)
-    {
-        if (!UiDispatcherQueue.HasThreadAccess)
-        {
-            UiDispatcherQueue.TryEnqueue(() => OpenSearchPopupWithQuery(query));
-            return;
-        }
-
-        if (_searchEngineService is null)
-        {
-            return;
-        }
-
-        if (_searchPopupWindow is null)
-        {
-            _fileMetaService ??= new FileMetaService();
-            var viewModel = new ViewModels.SearchPopupViewModel(
-                _searchEngineService, SettingsService, LocalizationService, _searchHistoryService!, _fileMetaService);
-            _searchPopupWindow = new SearchPopupWindow(viewModel, SettingsService, LocalizationService);
-            _searchPopupWindow.ActionRequested += OnSearchActionRequested;
-            _searchPopupWindow.Closed += (_, _) =>
-            {
-                _searchPopupWindow = null;
-            };
-            viewModel.HidePopupCallback = () => _searchPopupWindow?.HidePopup();
-        }
-
-        _searchPopupWindow.ShowPopupWithQuery(query);
-    }
-
-    private void OnSearchActionRequested(object? sender, string actionId)
-    {
-        _ = HandleSearchActionAsync(actionId);
-    }
-
-    private async Task HandleSearchActionAsync(string actionId)
-    {
-        switch (actionId)
-        {
-            case "open-settings":
-                ShowSettings();
-                break;
-
-            case "toggle-widgets":
-                await ToggleTrayWidgetsAsync();
-                break;
-
-            case "toggle-theme":
-                ToggleTheme();
-                break;
-        }
-    }
-
-    private void ToggleTheme()
-    {
-        var settings = SettingsService.Settings;
-        settings.Theme = settings.Theme switch
-        {
-            "Light" => "Dark",
-            "Dark" => "Light",
-            _ => "Light"
-        };
-        SettingsService.SaveDebounced();
-        ThemeService.RefreshAppearance();
     }
 }

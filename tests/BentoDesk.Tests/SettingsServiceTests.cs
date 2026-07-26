@@ -110,23 +110,6 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal(WidgetKind.File, widget.WidgetKind);
     }
 
-    [Theory]
-    [InlineData("file", "file")]
-    [InlineData(" APP ", "app")]
-    [InlineData("not-a-tab", "all")]
-    public async Task LoadAsync_NormalizesSearchDefaultTab(string storedValue, string expected)
-    {
-        var settings = new AppSettings { SearchDefaultTab = storedValue };
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            JsonSerializer.Serialize(settings, s_jsonOptions));
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
-        Assert.Equal(expected, service.Settings.SearchDefaultTab);
-    }
-
     [Fact]
     public async Task LoadAsync_NormalizesWidgetChromeSettingsAndMetadata()
     {
@@ -146,9 +129,9 @@ public sealed class SettingsServiceTests : IDisposable
                   }
                 },
                 {
-                  "id": "search",
-                  "name": "Search",
-                  "widgetKind": "Search",
+                  "id": "tags",
+                  "name": "Tags",
+                  "widgetKind": "Tags",
                   "metadata": {
                     "ChromeMode": "System"
                   }

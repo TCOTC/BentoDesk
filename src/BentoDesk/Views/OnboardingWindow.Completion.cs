@@ -26,10 +26,6 @@ public sealed partial class OnboardingWindow
         {
             enabledWidgets.Add(_localizationService.T("Onboarding.Step2.MusicTitle"));
         }
-        if (_settingsService.Settings.SearchHotkeyEnabled)
-        {
-            enabledWidgets.Add(_localizationService.T("Onboarding.Step2.SearchTitle"));
-        }
         Step5WidgetsSummary.Text = enabledWidgets.Count > 0
             ? string.Join(" · ", enabledWidgets)
             : _localizationService.T("Onboarding.Step5.NoWidgets");
@@ -66,12 +62,6 @@ public sealed partial class OnboardingWindow
             ? _localizationService.T("Onboarding.Step5.SummaryPinned")
             : _localizationService.T("Onboarding.Step5.SummaryNotPinned");
         Step5StorageSummary.Text = $"{System.IO.Path.GetFileName(path)} · {pinStatus}";
-
-        // Start search demo animation
-        if (!_isAnimating)
-        {
-            StartSearchDemoAnimation();
-        }
     }
 
     // ════════════════════════════════════════════════════════════

@@ -955,7 +955,7 @@ public sealed partial class WidgetShell : UserControl
     private void ApplyCompactActionLabels(bool isPlaying)
     {
         var localization = App.Current.LocalizationService;
-        SetAccessibleLabel(CompactPrimaryActionButton, localization.T("Search.Title"));
+        SetAccessibleLabel(CompactPrimaryActionButton, localization.T("Widget.Compact.Expand"));
         SetAccessibleLabel(CompactPreviousButton, localization.T("Music.Control.Previous"));
         SetAccessibleLabel(
             CompactPlayPauseButton,

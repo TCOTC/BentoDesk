@@ -1297,8 +1297,6 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                     </StackPanel>
                 </StackPanel>
 
-                <sections:SearchSettingsSection x:Name="SearchSettingsSection" Visibility="Collapsed" />
-
                 <StackPanel
                     x:Name="GeneralSection"
                     Style="{StaticResource SectionPanelStyle}">

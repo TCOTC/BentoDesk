@@ -193,7 +193,7 @@ public static class WidgetCompactBoundsCalculator
                 contentMode,
                 SettingsService.WidgetCompactContentModeSmart,
                 StringComparison.Ordinal) &&
-            widgetKind is WidgetKind.Music or WidgetKind.Search;
+            widgetKind is WidgetKind.Music;
         return usesSmartDetailLayout ? SmartDetailHeight : Height;
     }
 
