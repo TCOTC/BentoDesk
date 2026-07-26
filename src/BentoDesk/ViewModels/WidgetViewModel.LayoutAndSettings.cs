@@ -90,11 +90,12 @@ public partial class WidgetViewModel
         IconLabelMaxWidth = labelMaxWidth;
         IconTileWidth = Math.Max(iconSize + Lerp(6, 28, horizontalT), labelMaxWidth + Lerp(4, 16, horizontalT));
         IconTileHeight = iconSize + Lerp(24, 70, verticalT);
+        // 项间距需留出可点空白，便于在文件之间起框选；过小会导致几乎只能从边缘空白起框。
         IconTileMargin = new Thickness(
-            Lerp(0, 2, horizontalT),
-            Lerp(0, 2, verticalT),
-            Lerp(0, 2, horizontalT),
-            Lerp(0, 2, verticalT));
+            Lerp(3, 10, horizontalT),
+            Lerp(3, 10, verticalT),
+            Lerp(3, 10, horizontalT),
+            Lerp(3, 10, verticalT));
         IconTilePadding = new Thickness(
             Lerp(1, 5, horizontalT),
             Lerp(1, 6, verticalT),
@@ -105,7 +106,7 @@ public partial class WidgetViewModel
         IconLabelFontSize = textSize;
 
         double listScale = Lerp(0.68, 0.90, densityT);
-        double listItemMarginY = Lerp(0, 2, verticalT);
+        double listItemMarginY = Lerp(2, 6, verticalT);
         ListItemMargin = new Thickness(0, listItemMarginY * listScale, 0, listItemMarginY * listScale);
         ListItemPadding = new Thickness(
             Lerp(4, 12, horizontalT) * listScale,
