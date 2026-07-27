@@ -39,11 +39,10 @@ public static class WidgetLayerService
             return;
         }
 
-        // PlaceJustAboveProgman only moves this HWND. Re-applying it on an
-        // already-attached DefView-owned window can reorder the ownership group
-        // and drop sibling widgets below Progman (invisible behind desktop).
-        // Always restack the whole peer group into the desktop band afterward.
-        BringAbovePeerWidgets(windowHandle);
+        // Quiet pin only — do not BringAbovePeerWidgets. Deactivate/restore used
+        // to steal front from the newly clicked peer and reshuffle the whole
+        // group, which flashes siblings and can drop one below Progman.
+        EnsureInDesktopBand(windowHandle);
         App.Log(
             $"[WidgetVis] MoveToDesktopBottom hwnd=0x{windowHandle.ToInt64():X} attached=True");
         LogPeersSnapshotIfAnomalous("MoveToDesktopBottom", windowHandle);
@@ -185,70 +184,83 @@ public static class WidgetLayerService
                 .ToArray();
         }
 
-        foreach (IntPtr peer in peers)
-        {
-            _ = ApplyDesktopOwner(peer, defView, clearTopMost: false);
-        }
-
         bool needsSink = sinkIfAboveDesktopBand && IsAboveDesktopBand(windowHandle);
         bool isFront = IsFrontAmongPeers(windowHandle, peers);
         IntPtr progman = Win32Helper.FindWindow("Progman", null);
-        bool peersOrphaned = IsBelowProgman(windowHandle, progman) ||
-            peers.Any(peer => IsBelowProgman(peer, progman));
+        bool selfOrphaned = IsBelowProgman(windowHandle, progman);
+        bool peerOrphaned = peers.Any(peer => IsBelowProgman(peer, progman));
 
         // Same-box re-clicks: already front and in the desktop band — do not
-        // reshuffle peers (SetWindowPos on an already-correct stack can flash).
-        // Orphaned peers below Progman must still be rescued.
-        if (!needsSink && isFront && !peersOrphaned)
+        // touch Z-order (any SetWindowPos on DefView-owned peers can flash).
+        if (!needsSink && isFront && !selfOrphaned && !peerOrphaned)
         {
             return;
         }
 
         App.Log(
-            $"[WidgetVis] RaiseAbovePeers reshuffle hwnd=0x{windowHandle.ToInt64():X} " +
-            $"peers={peers.Length} needsSink={needsSink} isFront={isFront} orphaned={peersOrphaned}");
-        if (peersOrphaned)
+            $"[WidgetVis] RaiseAbovePeers raise-self hwnd=0x{windowHandle.ToInt64():X} " +
+            $"peers={peers.Length} needsSink={needsSink} isFront={isFront} " +
+            $"selfOrphan={selfOrphaned} peerOrphan={peerOrphaned}");
+        if (selfOrphaned || peerOrphaned)
         {
             LogPeersSnapshot("RaiseAbovePeers-before-rescue", windowHandle);
         }
 
-        // Always sink-front + stack peers atomically. StackPeersUnder alone loses to
-        // Guard clamps that pin every peer to the same foreign HWND (last writer wins).
-        SinkBelowAppsAndStackPeers(windowHandle, peers);
+        // Only move the clicked HWND into the desktop-band front seat. Full peer
+        // DeferWindowPos restacks were creating a rotating below-Progman orphan
+        // (other boxes flash on every click).
+        RaiseSelfInDesktopBand(windowHandle);
         _ = ApplyDesktopOwner(windowHandle, defView, clearTopMost: false);
 
-        // Guard / WinUI can race the batch; one retry usually settles peer order.
+        progman = Win32Helper.FindWindow("Progman", null);
+        peerOrphaned = peers.Any(peer => IsBelowProgman(peer, progman));
+        if (peerOrphaned)
+        {
+            RescueOrphanedPeersQuiet(windowHandle, peers);
+        }
+
         if (!IsFrontAmongPeers(windowHandle, peers))
         {
-            App.Log($"[WidgetVis] RaiseAbovePeers retry stack hwnd=0x{windowHandle.ToInt64():X}");
-            SinkBelowAppsAndStackPeers(windowHandle, peers);
+            App.Log($"[WidgetVis] RaiseAbovePeers retry self hwnd=0x{windowHandle.ToInt64():X}");
+            RaiseSelfInDesktopBand(windowHandle);
         }
 
         LogPeersSnapshotIfAnomalous("RaiseAbovePeers-after", windowHandle);
     }
 
     /// <summary>
-    /// True when <paramref name="candidate"/> is higher in Z-order than
-    /// <paramref name="reference"/> (found walking <c>GW_HWNDPREV</c>).
+    /// Pins a single HWND into the desktop band without restacking siblings.
     /// </summary>
-    private static bool IsHwndAbove(IntPtr candidate, IntPtr reference)
+    private static void EnsureInDesktopBand(IntPtr windowHandle)
     {
-        IntPtr current = reference;
-        for (int i = 0; i < 64; i++)
+        IntPtr progman = Win32Helper.FindWindow("Progman", null);
+        if (IsAboveDesktopBand(windowHandle) || IsBelowProgman(windowHandle, progman))
         {
-            current = Win32Helper.GetWindow(current, Win32Helper.GW_HWNDPREV);
-            if (current == IntPtr.Zero)
-            {
-                return false;
-            }
+            RaiseSelfInDesktopBand(windowHandle);
+        }
+    }
 
-            if (current == candidate)
-            {
-                return true;
-            }
+    /// <summary>
+    /// Moves only <paramref name="windowHandle"/> to the top of the desktop band
+    /// (just under the lowest normal app above Progman).
+    /// </summary>
+    private static void RaiseSelfInDesktopBand(IntPtr windowHandle)
+    {
+        Win32Helper.ClearWindowTopMost(windowHandle);
+
+        const uint flags =
+            Win32Helper.SWP_NOMOVE |
+            Win32Helper.SWP_NOSIZE |
+            Win32Helper.SWP_NOACTIVATE;
+
+        if (TryGetDesktopBandInsertAfter(windowHandle, out IntPtr insertAfter) &&
+            insertAfter != IntPtr.Zero)
+        {
+            Win32Helper.SetWindowPos(windowHandle, insertAfter, 0, 0, 0, 0, flags);
+            return;
         }
 
-        return false;
+        PlaceJustAboveProgman(windowHandle);
     }
 
     private static string GetClassNameOrEmpty(IntPtr hWnd)
@@ -285,19 +297,26 @@ public static class WidgetLayerService
     }
 
     /// <summary>
-    /// Moves <paramref name="windowHandle"/> under the lowest normal app above
-    /// Progman, and stacks peers under it, in one <c>DeferWindowPos</c> batch so
-    /// peers never paint above the front widget mid-update.
+    /// Pulls peers that fell below Progman back under <paramref name="front"/>
+    /// without calling <see cref="PlaceJustAboveProgman"/> on them (that reorders
+    /// the DefView ownership group and drops a different sibling).
     /// </summary>
-    private static void SinkBelowAppsAndStackPeers(IntPtr windowHandle, IntPtr[] peers)
+    private static void RescueOrphanedPeersQuiet(IntPtr front, IntPtr[] peers)
     {
-        Win32Helper.ClearWindowTopMost(windowHandle);
-
-        if (!TryGetDesktopBandInsertAfter(windowHandle, out IntPtr insertAfter) ||
-            insertAfter == IntPtr.Zero)
+        if (peers.Length == 0)
         {
-            StackPeersUnder(windowHandle, peers);
             return;
+        }
+
+        IntPtr progman = Win32Helper.FindWindow("Progman", null);
+        if (progman == IntPtr.Zero)
+        {
+            return;
+        }
+
+        if (IsBelowProgman(front, progman))
+        {
+            RaiseSelfInDesktopBand(front);
         }
 
         const uint flags =
@@ -305,37 +324,52 @@ public static class WidgetLayerService
             Win32Helper.SWP_NOSIZE |
             Win32Helper.SWP_NOACTIVATE;
 
-        int count = 1 + peers.Length;
-        IntPtr hdwp = Win32Helper.BeginDeferWindowPos(count);
-        if (hdwp == IntPtr.Zero)
+        bool rescued = false;
+        foreach (IntPtr peer in peers)
         {
-            Win32Helper.SetWindowPos(windowHandle, insertAfter, 0, 0, 0, 0, flags);
-            StackPeersUnder(windowHandle, peers);
-            return;
-        }
-
-        hdwp = Win32Helper.DeferWindowPos(hdwp, windowHandle, insertAfter, 0, 0, 0, 0, flags);
-        if (hdwp == IntPtr.Zero)
-        {
-            Win32Helper.SetWindowPos(windowHandle, insertAfter, 0, 0, 0, 0, flags);
-            StackPeersUnder(windowHandle, peers);
-            return;
-        }
-
-        // Bottom-to-top so the last insert sits just under front (preserves prior
-        // peer relative order; dictionary order would reshuffle 1/2 when raising 3).
-        foreach (IntPtr peer in OrderPeersBottomToTop(peers))
-        {
-            IntPtr next = Win32Helper.DeferWindowPos(hdwp, peer, windowHandle, 0, 0, 0, 0, flags);
-            if (next == IntPtr.Zero)
+            if (!IsBelowProgman(peer, progman))
             {
-                break;
+                continue;
             }
 
-            hdwp = next;
+            rescued = true;
+            Win32Helper.SetWindowPos(peer, front, 0, 0, 0, 0, flags);
+
+            if (!IsBelowProgman(peer, progman))
+            {
+                continue;
+            }
+
+            // Still orphaned: tuck under any healthy sibling above Progman.
+            IntPtr anchor = IntPtr.Zero;
+            foreach (IntPtr candidate in peers)
+            {
+                if (candidate != peer && !IsBelowProgman(candidate, progman))
+                {
+                    anchor = candidate;
+                    break;
+                }
+            }
+
+            if (anchor == IntPtr.Zero)
+            {
+                anchor = front;
+            }
+
+            if (!IsBelowProgman(anchor, progman))
+            {
+                Win32Helper.SetWindowPos(peer, anchor, 0, 0, 0, 0, flags);
+            }
         }
 
-        _ = Win32Helper.EndDeferWindowPos(hdwp);
+        if (!rescued)
+        {
+            return;
+        }
+
+        App.Log(
+            $"[WidgetVis] RescueOrphanedPeersQuiet front=0x{front.ToInt64():X} peers={peers.Length}");
+        RaiseSelfInDesktopBand(front);
     }
 
     private static bool IsDesktopShellClass(IntPtr hWnd)
@@ -349,55 +383,6 @@ public static class WidgetLayerService
 
         string name = className.ToString();
         return name is "Progman" or "WorkerW" or "SHELLDLL_DefView";
-    }
-
-    private static void StackPeersUnder(IntPtr windowHandle, IntPtr[] peers)
-    {
-        // SetWindowPos(peer, front) places peer immediately below front. Apply
-        // bottom-most peers first so the previously topmost peer remains just
-        // under front (e.g. click 3 must not undo “2 above 1”).
-        foreach (IntPtr peer in OrderPeersBottomToTop(peers))
-        {
-            Win32Helper.SetWindowPos(
-                peer,
-                windowHandle,
-                0,
-                0,
-                0,
-                0,
-                Win32Helper.SWP_NOMOVE |
-                    Win32Helper.SWP_NOSIZE |
-                    Win32Helper.SWP_NOACTIVATE);
-        }
-    }
-
-    /// <summary>
-    /// Peers ordered from bottom to top in the current Z-order.
-    /// </summary>
-    private static IntPtr[] OrderPeersBottomToTop(IntPtr[] peers)
-    {
-        if (peers.Length <= 1)
-        {
-            return peers;
-        }
-
-        return peers
-            .OrderByDescending(peer => CountPeersAbove(peer, peers))
-            .ToArray();
-    }
-
-    private static int CountPeersAbove(IntPtr self, IntPtr[] peers)
-    {
-        int count = 0;
-        foreach (IntPtr peer in peers)
-        {
-            if (peer != self && IsHwndAbove(peer, self))
-            {
-                count++;
-            }
-        }
-
-        return count;
     }
 
     /// <summary>
