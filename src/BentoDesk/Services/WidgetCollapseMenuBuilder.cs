@@ -9,7 +9,10 @@ internal static class WidgetCollapseMenuBuilder
         WidgetConfig config,
         LocalizationService localizationService,
         Action<WidgetCollapseBehavior> applyBehavior,
-        Action resetCompactWidth)
+        Action resetCompactWidth,
+        bool isCollapsed,
+        Action syncWidthToOtherState,
+        bool canSyncWidth)
     {
         WidgetCollapseBehavior selectedBehavior = WidgetCollapseBehaviorNames.GetOverride(config);
         var subItem = new MenuFlyoutSubItem
@@ -36,6 +39,18 @@ internal static class WidgetCollapseMenuBuilder
         }
 
         subItem.Items.Add(new MenuFlyoutSeparator());
+
+        string syncKey = isCollapsed
+            ? "Widget.Compact.SyncWidthToExpanded"
+            : "Widget.Compact.SyncWidthToCompact";
+        var syncWidthItem = new MenuFlyoutItem
+        {
+            Text = localizationService.T(syncKey),
+            IsEnabled = canSyncWidth
+        };
+        syncWidthItem.Click += (_, _) => syncWidthToOtherState();
+        subItem.Items.Add(syncWidthItem);
+
         var resetWidthItem = new MenuFlyoutItem
         {
             Text = localizationService.T("Widget.Compact.RestoreAutomaticWidth"),
@@ -45,6 +60,13 @@ internal static class WidgetCollapseMenuBuilder
         subItem.Items.Add(resetWidthItem);
 
         return subItem;
+    }
+
+    internal static double ClampExpandedLogicalWidth(double width)
+    {
+        const double maxExpandedWidth = 1200;
+        double finiteWidth = double.IsFinite(width) ? width : SettingsService.DefaultWidgetWidth;
+        return Math.Clamp(finiteWidth, SettingsService.MinWidgetWidth, maxExpandedWidth);
     }
 
     private static string GetTextKey(WidgetCollapseBehavior behavior)

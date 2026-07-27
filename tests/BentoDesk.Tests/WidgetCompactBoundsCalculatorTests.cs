@@ -88,7 +88,8 @@ public sealed class WidgetCompactBoundsCalculatorTests
     [Theory]
     [InlineData(100, 144)]
     [InlineData(286, 286)]
-    [InlineData(700, 480)]
+    [InlineData(700, 700)]
+    [InlineData(1300, 1200)]
     public void Calculate_CustomWidthOverridesStyleAndIsClamped(double customWidth, int expectedWidth)
     {
         var result = WidgetCompactBoundsCalculator.Calculate(

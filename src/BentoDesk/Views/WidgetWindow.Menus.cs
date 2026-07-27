@@ -390,7 +390,10 @@ public sealed partial class WidgetWindow
             ViewModel.Config,
             _localizationService,
             SetCollapseBehaviorOverride,
-            ResetCompactWidthOverride));
+            ResetCompactWidthOverride,
+            IsWidgetCollapsed,
+            SyncWidthToOtherState,
+            CanSyncWidthToOtherState()));
 
         flyout.Items.Add(new MenuFlyoutSeparator());
 

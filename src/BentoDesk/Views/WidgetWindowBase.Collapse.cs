@@ -274,6 +274,88 @@ public abstract partial class WidgetWindowBase
             durationMs: ResolveCompactTransitionDuration(requestedDurationMs: null));
     }
 
+    protected void SyncWidthToOtherState()
+    {
+        if (IsClosing || !TryResolveSyncedWidth(out double nextWidth, out bool writeExpanded))
+        {
+            return;
+        }
+
+        if (writeExpanded)
+        {
+            Config.Width = nextWidth;
+        }
+        else
+        {
+            Config.CompactWidth = nextWidth;
+            _stableCompactBounds = null;
+            ObserveCompactOverrides();
+        }
+
+        SettingsService.UpdateWidget(Config, notifySubscribers: false);
+        SettingsService.SaveDebounced(notifySubscribers: false);
+    }
+
+    protected bool CanSyncWidthToOtherState() =>
+        !IsClosing && TryResolveSyncedWidth(out _, out _);
+
+    /// <summary>
+    /// Resolves the logical width to write into the other state so that both
+    /// states reconstruct the same physical pixel width.
+    /// Expanded bounds use work-area DPI; compact bounds use window DPI.
+    /// </summary>
+    private bool TryResolveSyncedWidth(out double nextLogicalWidth, out bool writeExpanded)
+    {
+        nextLogicalWidth = 0;
+        writeExpanded = _targetCollapsed;
+        RectInt32 current = GetCurrentWindowBounds();
+        int physicalWidth = current.Width;
+
+        if (_targetCollapsed)
+        {
+            // 折叠 → 写展开：与 UpdateConfigFromPhysicalBounds / ResolveExpandedPhysicalSize 同一套 DPI。
+            RectInt32 workArea = ResolveCompactWorkArea(current);
+            double expandedScale = WidgetPositioningService.GetDpiScale(workArea);
+            double nextExpanded = WidgetCollapseMenuBuilder.ClampExpandedLogicalWidth(
+                WidgetPositioningService.ToLogicalPixels(physicalWidth, expandedScale));
+            int nextPhysical = WidgetPositioningService.ToPhysicalPixels(nextExpanded, expandedScale);
+            int currentExpandedPhysical = WidgetPositioningService.ToPhysicalPixels(
+                WidgetCollapseMenuBuilder.ClampExpandedLogicalWidth(Config.Width),
+                expandedScale);
+            if (nextPhysical == currentExpandedPhysical)
+            {
+                return false;
+            }
+
+            nextLogicalWidth = nextExpanded;
+            return true;
+        }
+
+        // 展开 → 写折叠：与 PersistCompletedWidgetResize / GetCompactBounds 同一套 DPI。
+        double compactScale = Win32Helper.GetDpiScaleForWindow(HWnd, RootElement.XamlRoot);
+        double nextCompact = WidgetCompactBoundsCalculator.ClampLogicalWidth(
+            WidgetPositioningService.ToLogicalPixels(physicalWidth, compactScale));
+
+        // 尚无自定义折叠宽度时，允许写入覆盖值（即使碰巧与自动宽度相同，也会变成可「恢复自动宽度」）。
+        if (Config.CompactWidth is not { } existingCompactWidth)
+        {
+            nextLogicalWidth = nextCompact;
+            return true;
+        }
+
+        int nextPhysicalCompact = WidgetPositioningService.ToPhysicalPixels(nextCompact, compactScale);
+        int currentCompactPhysical = WidgetPositioningService.ToPhysicalPixels(
+            WidgetCompactBoundsCalculator.ClampLogicalWidth(existingCompactWidth),
+            compactScale);
+        if (nextPhysicalCompact == currentCompactPhysical)
+        {
+            return false;
+        }
+
+        nextLogicalWidth = nextCompact;
+        return true;
+    }
+
     protected void BeginCompactInteraction()
     {
         _compactInteractionDepth++;

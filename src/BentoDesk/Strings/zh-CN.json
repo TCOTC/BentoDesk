@@ -35,6 +35,8 @@
   "Widget.Refreshed": "已刷新",
   "Settings.Collapse.Animation.None": "关闭动画",
   "Widget.Compact.RestoreAutomaticWidth": "恢复自动宽度",
+  "Widget.Compact.SyncWidthToExpanded": "将折叠宽度同步到展开",
+  "Widget.Compact.SyncWidthToCompact": "将展开宽度同步到折叠",
   "Settings.Restore.Title": "恢复默认偏好",
   "Tray.UpdateAvailableMessage": "版本 {0} 已可用，可在设置的关于页处理更新。",
   "Widget.DeleteItemsTitleOne": "将“{0}”移到回收站？",

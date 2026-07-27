@@ -15,7 +15,8 @@ public enum WidgetCompactWidthTier
 public static class WidgetCompactBoundsCalculator
 {
     public const double MinWidth = 144;
-    public const double MaxWidth = 480;
+    /// <summary>Matches the expanded widget max so one-shot width sync can equalize both states.</summary>
+    public const double MaxWidth = 1200;
     public const double MinimalWidth = 172;
     public const double SummaryWidth = 248;
     public const double SmartWidth = 272;

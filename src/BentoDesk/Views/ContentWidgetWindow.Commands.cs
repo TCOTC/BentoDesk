@@ -117,7 +117,10 @@ public sealed partial class ContentWidgetWindow
             _config,
             App.Current.LocalizationService,
             SetCollapseBehaviorOverride,
-            ResetCompactWidthOverride));
+            ResetCompactWidthOverride,
+            IsWidgetCollapsed,
+            SyncWidthToOtherState,
+            CanSyncWidthToOtherState()));
         flyout.Items.Add(new MenuFlyoutSeparator());
 
         var rename = new MenuFlyoutItem
