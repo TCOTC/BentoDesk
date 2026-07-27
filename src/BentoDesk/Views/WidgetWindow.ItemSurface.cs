@@ -129,10 +129,10 @@ public sealed partial class WidgetWindow
         EmptyStateIcon.Foreground = GetOrUpdateSolidColorBrush(EmptyStateIcon.Foreground, secondaryText);
         SelectionRectangle.Background = GetOrUpdateSolidColorBrush(
             SelectionRectangle.Background,
-            WithAlpha(accentColor, isDark ? (byte)0x2D : (byte)0x24));
+            WithAlpha(accentColor, isDark ? (byte)0x48 : (byte)0x3A));
         SelectionRectangle.BorderBrush = GetOrUpdateSolidColorBrush(
             SelectionRectangle.BorderBrush,
-            WithAlpha(accentColor, isDark ? (byte)0xD8 : (byte)0xCC));
+            WithAlpha(accentColor, isDark ? (byte)0xEE : (byte)0xE0));
         StatusToastText.Foreground = GetOrUpdateSolidColorBrush(StatusToastText.Foreground, isDark ? Colors.White : Colors.Black);
 
         UpdateInteractiveSurfaces();
@@ -331,16 +331,17 @@ public sealed partial class WidgetWindow
 
         var defaultBackground = ColorHelper.FromArgb(0x00, 0xFF, 0xFF, 0xFF);
 
+        // 选中态需明显高于悬停，否则框选后在亚克力 / 壁纸背景下难辨认。
         var selectedBackground = WithAlpha(
             BuildAccentSurfaceColor(
                 isDark,
                 accentColor,
                 isDark
                     ? ColorHelper.FromArgb(0xFF, 0x31, 0x36, 0x3E)
-                    : ColorHelper.FromArgb(0xFF, 0xF1, 0xF6, 0xFC),
-                accentMix: isDark ? 0.30 : 0.18,
-                overlayMix: isDark ? 0.08 : 0.04),
-            isDark ? (byte)0x62 : (byte)0x72);
+                    : ColorHelper.FromArgb(0xFF, 0xE8, 0xF1, 0xFC),
+                accentMix: isDark ? 0.42 : 0.30,
+                overlayMix: isDark ? 0.06 : 0.03),
+            isDark ? (byte)0x98 : (byte)0xA8);
 
         var hoverBackground = WithAlpha(
             BuildAccentSurfaceColor(
@@ -370,10 +371,10 @@ public sealed partial class WidgetWindow
                 accentColor,
                 isDark
                     ? ColorHelper.FromArgb(0xFF, 0x34, 0x39, 0x42)
-                    : ColorHelper.FromArgb(0xFF, 0xEC, 0xF4, 0xFC),
-                accentMix: isDark ? 0.34 : 0.21,
-                overlayMix: isDark ? 0.08 : 0.05),
-            isDark ? (byte)0x78 : (byte)0x88);
+                    : ColorHelper.FromArgb(0xFF, 0xDE, 0xEC, 0xFA),
+                accentMix: isDark ? 0.48 : 0.36,
+                overlayMix: isDark ? 0.06 : 0.03),
+            isDark ? (byte)0xAE : (byte)0xBA);
 
         var dropTargetBackground = WithAlpha(
             BuildAccentSurfaceColor(
