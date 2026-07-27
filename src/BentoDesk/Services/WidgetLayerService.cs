@@ -31,7 +31,14 @@ public static class WidgetLayerService
         if (!TryAttachToDesktopIconLayer(windowHandle))
         {
             FallbackToDesktopBottom(windowHandle);
+            return;
         }
+
+        // PlaceJustAboveProgman only moves this HWND. Re-applying it on an
+        // already-attached DefView-owned window can reorder the ownership group
+        // and drop sibling widgets below Progman (invisible behind desktop).
+        // Always restack the whole peer group into the desktop band afterward.
+        BringAbovePeerWidgets(windowHandle);
     }
 
     public static IntPtr ClearTopMostPreservingForeground(IntPtr windowHandle)
@@ -65,6 +72,35 @@ public static class WidgetLayerService
     {
         NoteFrontPeer(windowHandle);
         RaiseAbovePeersCore(windowHandle, sinkIfAboveDesktopBand: true);
+    }
+
+    /// <summary>
+    /// True when walking upward from <paramref name="windowHandle"/> hits Progman
+    /// (the window currently sits below the desktop shell band).
+    /// </summary>
+    private static bool IsBelowProgman(IntPtr windowHandle, IntPtr progman)
+    {
+        if (progman == IntPtr.Zero || windowHandle == IntPtr.Zero)
+        {
+            return false;
+        }
+
+        IntPtr current = windowHandle;
+        for (int i = 0; i < 128; i++)
+        {
+            current = Win32Helper.GetWindow(current, Win32Helper.GW_HWNDPREV);
+            if (current == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            if (current == progman)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -146,10 +182,14 @@ public static class WidgetLayerService
 
         bool needsSink = sinkIfAboveDesktopBand && IsAboveDesktopBand(windowHandle);
         bool isFront = IsFrontAmongPeers(windowHandle, peers);
+        IntPtr progman = Win32Helper.FindWindow("Progman", null);
+        bool peersOrphaned = IsBelowProgman(windowHandle, progman) ||
+            peers.Any(peer => IsBelowProgman(peer, progman));
 
         // Same-box re-clicks: already front and in the desktop band — do not
         // reshuffle peers (SetWindowPos on an already-correct stack can flash).
-        if (!needsSink && isFront)
+        // Orphaned peers below Progman must still be rescued.
+        if (!needsSink && isFront && !peersOrphaned)
         {
             return;
         }
@@ -467,17 +507,29 @@ public static class WidgetLayerService
             return false;
         }
 
+        bool alreadyAttached;
+        lock (s_desktopLayerLock)
+        {
+            alreadyAttached = s_desktopLayerAttachments.ContainsKey(windowHandle);
+        }
+
         if (!ApplyDesktopOwner(windowHandle, defView))
         {
             return false;
         }
 
-        // Resting: under normal apps, just above Progman. Never HWND_TOP.
-        PlaceJustAboveProgman(windowHandle);
-        _ = ApplyDesktopOwner(windowHandle, defView);
+        // Only sink on first attach. Re-calling PlaceJustAboveProgman on an
+        // already-attached window reorders the DefView ownership group and can
+        // drop sibling widgets below Progman (right-click restore repro).
+        if (!alreadyAttached)
+        {
+            PlaceJustAboveProgman(windowHandle);
+            _ = ApplyDesktopOwner(windowHandle, defView);
+        }
+
         App.LogVerbose(
             $"[WidgetLayer] DesktopPinned owner attached hwnd=0x{windowHandle.ToInt64():X} " +
-            $"defView=0x{defView.ToInt64():X}");
+            $"defView=0x{defView.ToInt64():X} firstAttach={!alreadyAttached}");
         return true;
     }
 
