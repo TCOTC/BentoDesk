@@ -29,8 +29,7 @@ public sealed partial class WidgetWindow
 {
     public void PushToBottom()
     {
-        _isAtDesktopLayer = true;
-        WidgetLayerService.MoveToDesktopBottom(_hWnd);
+        LayerOnShow("file-show");
         App.LogVerbose($"[ZOrder] Widget PushToBottom hwnd=0x{_hWnd.ToInt64():X}");
     }
 
@@ -129,29 +128,13 @@ public sealed partial class WidgetWindow
 
     public void EnsureRaisedFromTrayTopMost()
     {
+        // Tray raise is show/hide only; keep DefView pin without TopMost.
         if (!Visible)
         {
-            App.LogVerbose($"[ZOrder] Widget EnsureRaisedFromTrayTopMost SKIPPED not-visible hwnd=0x{_hWnd.ToInt64():X}");
             return;
         }
 
-        if (_isAtDesktopLayer)
-        {
-            App.LogVerbose($"[ZOrder] Widget EnsureRaisedFromTrayTopMost SKIPPED atDesktop hwnd=0x{_hWnd.ToInt64():X}");
-            return;
-        }
-
-        if (App.Current.WidgetManager is not { WidgetsRaisedFromTray: true })
-        {
-            App.LogVerbose($"[ZOrder] Widget EnsureRaisedFromTrayTopMost SKIPPED not-raised hwnd=0x{_hWnd.ToInt64():X}");
-            return;
-        }
-
-        App.LogVerbose($"[ZOrder] Widget EnsureRaisedFromTrayTopMost hwnd=0x{_hWnd.ToInt64():X} atDesktop={_isAtDesktopLayer}");
-        _appWindow.Show();
-        Win32Helper.ShowWindow(_hWnd, Win32Helper.SW_SHOWNORMAL);
-        WidgetLayerService.BringToFront(_hWnd);
-        HoldTemporaryTopMost();
+        LayerOnShow("tray-ensure-pin");
     }
 
     public void ActivateRaisedFromTrayBatch()
@@ -161,7 +144,7 @@ public sealed partial class WidgetWindow
             return;
         }
 
-        HoldTemporaryTopMost();
+        LayerOnUserActivate("tray-activate-batch");
         base.Activate();
         Win32Helper.SetForegroundWindow(_hWnd);
         RootGrid.Focus(FocusState.Programmatic);
@@ -472,7 +455,7 @@ public sealed partial class WidgetWindow
 
         _isHideAnimationRunning = false;
         _trayAnimation.Stop();
-        WidgetLayerService.ClearTopMost(_hWnd);
+        WidgetLayerService.Pin(_hWnd, "file-hide");
         Win32Helper.ShowWindow(_hWnd, Win32Helper.SW_HIDE);
         _appWindow.Hide();
         _trayAnimation.RevealWindowForTrayShow();
@@ -520,10 +503,10 @@ public sealed partial class WidgetWindow
         PlayTrayHideAnimation(CompleteTrayHideAnimation);
     }
 
-public void CloseWindow()
-{
-_trayAnimation.RevealWindowForTrayShow();
-WidgetLayerService.ReleaseWindow(_hWnd);
-Close();
-}
+    public void CloseWindow()
+    {
+        _trayAnimation.RevealWindowForTrayShow();
+        LayerOnClose();
+        Close();
+    }
 }

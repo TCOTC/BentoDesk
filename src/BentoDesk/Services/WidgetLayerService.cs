@@ -26,59 +26,140 @@ public static class WidgetLayerService
     private static long s_frontPeerGeneration;
     private static IntPtr s_frontPeerHwnd;
 
-    public static void MoveToDesktopBottom(IntPtr windowHandle)
+    /// <summary>
+    /// Attaches to DefView and quietly keeps this HWND in the desktop band.
+    /// Never claims peer front (deactivate/restore must not steal the clicked box).
+    /// </summary>
+    public static void Pin(IntPtr windowHandle, string reason = "pin")
     {
         bool attached = TryAttachToDesktopIconLayer(windowHandle);
         if (!attached)
         {
             FallbackToDesktopBottom(windowHandle);
             App.Log(
-                $"[WidgetVis] MoveToDesktopBottom hwnd=0x{windowHandle.ToInt64():X} " +
+                $"[WidgetVis] op=Pin reason={reason} hwnd=0x{windowHandle.ToInt64():X} " +
                 $"attached=False fallback=True vis={Win32Helper.IsWindowVisible(windowHandle)}");
-            LogPeersSnapshotIfAnomalous("MoveToDesktopBottom-fallback", windowHandle);
+            LogPeersSnapshotIfAnomalous($"Pin:{reason}-fallback", windowHandle);
             return;
         }
 
-        // Quiet pin only — do not BringAbovePeerWidgets. Deactivate/restore used
-        // to steal front from the newly clicked peer and reshuffle the whole
-        // group, which flashes siblings and can drop one below Progman.
         EnsureInDesktopBand(windowHandle);
         App.Log(
-            $"[WidgetVis] MoveToDesktopBottom hwnd=0x{windowHandle.ToInt64():X} attached=True");
-        LogPeersSnapshotIfAnomalous("MoveToDesktopBottom", windowHandle);
-    }
-
-    public static IntPtr ClearTopMostPreservingForeground(IntPtr windowHandle)
-    {
-        MoveToDesktopBottom(windowHandle);
-        return Win32Helper.GetForegroundWindow();
-    }
-
-    public static void ClearTopMost(IntPtr windowHandle)
-    {
-        MoveToDesktopBottom(windowHandle);
-    }
-
-    public static void HoldTemporaryTopMost(IntPtr windowHandle)
-    {
-        // Desktop-fixed layer: interaction must not lift widgets above other apps.
-        MoveToDesktopBottom(windowHandle);
-    }
-
-    public static void BringToFront(IntPtr windowHandle)
-    {
-        MoveToDesktopBottom(windowHandle);
+            $"[WidgetVis] op=Pin reason={reason} hwnd=0x{windowHandle.ToInt64():X} attached=True");
+        LogPeersSnapshotIfAnomalous($"Pin:{reason}", windowHandle);
     }
 
     /// <summary>
-    /// Raises one widget above its peers without leaving the desktop band
-    /// (must stay below normal apps). Never uses <c>HWND_TOP</c> — that lifts
-    /// WinUI windows above Chrome/other apps even when DefView-owned.
+    /// Designates this HWND as the front peer and raises only itself within the
+    /// desktop band (never <c>HWND_TOP</c>). Rescues Progman orphans if needed.
     /// </summary>
-    public static void BringAbovePeerWidgets(IntPtr windowHandle)
+    /// <returns>Front-peer generation used by <see cref="ScheduleFront"/>.</returns>
+    public static long Front(IntPtr windowHandle, string reason = "front")
     {
-        NoteFrontPeer(windowHandle);
+        long generation = NoteFrontPeer(windowHandle);
+        App.Log(
+            $"[WidgetVis] op=Front reason={reason} hwnd=0x{windowHandle.ToInt64():X} gen={generation}");
         RaiseAbovePeersCore(windowHandle, sinkIfAboveDesktopBand: true);
+        return generation;
+    }
+
+    /// <summary>
+    /// Pulls any attached peers below Progman back under a healthy front.
+    /// </summary>
+    public static void Rescue(IntPtr preferredFront = default, string reason = "rescue")
+    {
+        IntPtr[] attached;
+        IntPtr front;
+        lock (s_desktopLayerLock)
+        {
+            attached = s_desktopLayerAttachments.Keys
+                .Where(Win32Helper.IsWindow)
+                .ToArray();
+            front = preferredFront != IntPtr.Zero && Win32Helper.IsWindow(preferredFront)
+                ? preferredFront
+                : s_frontPeerHwnd;
+        }
+
+        if (attached.Length == 0)
+        {
+            return;
+        }
+
+        if (front == IntPtr.Zero || !Win32Helper.IsWindow(front))
+        {
+            front = attached[0];
+        }
+
+        IntPtr[] peers = attached.Where(peer => peer != front).ToArray();
+        IntPtr progman = Win32Helper.FindWindow("Progman", null);
+        bool anyOrphan = IsBelowProgman(front, progman) ||
+            peers.Any(peer => IsBelowProgman(peer, progman));
+        if (!anyOrphan)
+        {
+            return;
+        }
+
+        App.Log(
+            $"[WidgetVis] op=Rescue reason={reason} front=0x{front.ToInt64():X} peers={peers.Length}");
+        RescueOrphanedPeersQuiet(front, peers);
+        LogPeersSnapshotIfAnomalous($"Rescue:{reason}", front);
+    }
+
+    /// <summary>
+    /// One delayed Front settle after WinUI async z-order; cancelled when another
+    /// widget becomes the designated front peer.
+    /// </summary>
+    public static void ScheduleFront(IntPtr windowHandle, string reason = "schedule-front")
+    {
+        long generation;
+        lock (s_desktopLayerLock)
+        {
+            // Same gesture already called Front — keep generation so settle can run.
+            if (s_frontPeerHwnd == windowHandle && s_frontPeerGeneration > 0)
+            {
+                generation = s_frontPeerGeneration;
+            }
+            else
+            {
+                generation = NoteFrontPeer(windowHandle);
+            }
+        }
+
+        Microsoft.UI.Dispatching.DispatcherQueue? dispatcher = App.UiDispatcherQueue;
+        if (dispatcher is null)
+        {
+            return;
+        }
+
+        App.LogVerbose(
+            $"[WidgetVis] op=ScheduleFront reason={reason} hwnd=0x{windowHandle.ToInt64():X} gen={generation}");
+        _ = dispatcher.TryEnqueue(async () =>
+        {
+            await Task.Delay(32);
+            if (!IsCurrentFrontPeer(windowHandle, generation))
+            {
+                return;
+            }
+
+            RaiseAbovePeersCore(windowHandle, sinkIfAboveDesktopBand: true);
+        });
+    }
+
+    /// <summary>
+    /// Detaches DefView ownership and clears a stale front-peer designation.
+    /// </summary>
+    public static void Release(IntPtr windowHandle)
+    {
+        lock (s_desktopLayerLock)
+        {
+            if (s_frontPeerHwnd == windowHandle)
+            {
+                s_frontPeerHwnd = IntPtr.Zero;
+            }
+        }
+
+        DetachFromDesktopIconLayerIfNeeded(windowHandle);
+        App.LogVerbose($"[WidgetVis] op=Release hwnd=0x{windowHandle.ToInt64():X}");
     }
 
     /// <summary>
@@ -108,40 +189,6 @@ public static class WidgetLayerService
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Re-asserts DefView ownership and peer fronting after click/activation.
-    /// </summary>
-    public static void ReassertDesktopLayer(IntPtr windowHandle)
-    {
-        BringAbovePeerWidgets(windowHandle);
-    }
-
-    /// <summary>
-    /// Schedules a single delayed reassert that is cancelled automatically when
-    /// another widget becomes the front peer (prevents overlap-click flicker).
-    /// </summary>
-    public static void ScheduleReassertDesktopLayer(IntPtr windowHandle)
-    {
-        long generation = NoteFrontPeer(windowHandle);
-        Microsoft.UI.Dispatching.DispatcherQueue? dispatcher = App.UiDispatcherQueue;
-        if (dispatcher is null)
-        {
-            return;
-        }
-
-        _ = dispatcher.TryEnqueue(async () =>
-        {
-            // One settle pass after WinUI's async z-order; ignore if stale.
-            await Task.Delay(32);
-            if (!IsCurrentFrontPeer(windowHandle, generation))
-            {
-                return;
-            }
-
-            RaiseAbovePeersCore(windowHandle, sinkIfAboveDesktopBand: true);
-        });
     }
 
     private static long NoteFrontPeer(IntPtr windowHandle)
@@ -446,10 +493,8 @@ public static class WidgetLayerService
         return name is "Progman" or "WorkerW" or "SHELLDLL_DefView";
     }
 
-    public static void ReleaseWindow(IntPtr windowHandle)
-    {
-        DetachFromDesktopIconLayerIfNeeded(windowHandle);
-    }
+    /// <summary>Obsolete alias — use <see cref="Release"/>.</summary>
+    public static void ReleaseWindow(IntPtr windowHandle) => Release(windowHandle);
 
     public static void InvalidateDesktopIconViewCache()
     {

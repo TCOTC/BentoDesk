@@ -23,29 +23,20 @@ public abstract partial class WidgetWindowBase
 {
     protected void ElevateForInteraction()
     {
-        if (App.Current.WidgetManager is { WidgetsRaisedFromTray: true })
-        {
-            App.Log($"[WidgetVis] Elevate skipped hwnd=0x{HWnd.ToInt64():X} reason=raised-from-tray");
-            return;
-        }
-
         LastElevateForInteractionUtc = DateTime.UtcNow;
-        HoldTemporaryTopMost();
+        LayerOnUserActivate("elevate");
+        // Clear idle-suppress for drag/resize so restore can run after interaction.
+        SuppressIdleRestore = false;
         OnElevated();
         App.Log($"[WidgetVis] Elevate hwnd=0x{HWnd.ToInt64():X}");
         WidgetLayerService.LogPeersSnapshotIfAnomalous("Elevate", HWnd);
     }
 
+    /// <summary>Obsolete name — prefer <see cref="LayerOnUserActivate"/>.</summary>
     protected void HoldTemporaryTopMost()
     {
-        // Desktop-fixed layer: keep DefView ownership and peer order. Never use
-        // MoveToDesktopBottom here — that sinks only this HWND and orphans peers
-        // (other boxes can disappear behind desktop icons after a title click).
-        IsAtDesktopLayer = true;
-        KeepRaisedUntilDeactivate = false;
-        RestoreDesktopLayerWhenIdle = false;
-        WidgetLayerService.BringAbovePeerWidgets(HWnd);
-        App.LogVerbose($"[ZOrder] {LogPrefix} HoldTemporaryTopMost reassert hwnd=0x{HWnd.ToInt64():X}");
+        LayerOnUserActivate("hold-front");
+        SuppressIdleRestore = false;
     }
 
     protected void StartTopMostSafetyTimer()
@@ -64,8 +55,7 @@ public abstract partial class WidgetWindowBase
             TopMostSafetyTimer.Tick += (_, _) =>
             {
                 TopMostSafetyTimer?.Stop();
-                if (!IsAtDesktopLayer &&
-                    App.Current.WidgetManager is not { WidgetsRaisedFromTray: true })
+                if (!IsAtDesktopLayer)
                 {
                     if (ShouldDeferDesktopLayerRestore())
                     {
@@ -75,7 +65,7 @@ public abstract partial class WidgetWindowBase
                     }
 
                     App.Log($"[ZOrder] {LogPrefix} safety timer: force restore hwnd=0x{HWnd.ToInt64():X}");
-                    RestoreDesktopLayer(force: true);
+                    LayerOnRestore(force: true, reason: "safety-timer");
                 }
             };
         }
@@ -106,45 +96,14 @@ public abstract partial class WidgetWindowBase
                Win32Helper.GetAncestor(foregroundWindow, Win32Helper.GA_ROOTOWNER) == HWnd;
     }
 
-    protected void RestoreDesktopLayer(bool force = false)
-    {
-        if (!force && !RestoreDesktopLayerWhenIdle && KeepRaisedUntilDeactivate)
-        {
-            App.LogVerbose(
-                $"[WidgetVis] RestoreDesktopLayer skipped hwnd=0x{HWnd.ToInt64():X} " +
-                $"force={force} idle={RestoreDesktopLayerWhenIdle} keepRaised={KeepRaisedUntilDeactivate}");
-            return;
-        }
-
-        if (!force && (IsDragging || IsResizing || HasBlockingFlyoutOpen()))
-        {
-            if (force || RestoreDesktopLayerWhenIdle)
-            {
-                RestoreDesktopLayerWhenIdle = true;
-            }
-
-            App.Log(
-                $"[WidgetVis] RestoreDesktopLayer deferred hwnd=0x{HWnd.ToInt64():X} " +
-                $"force={force} drag={IsDragging} resize={IsResizing} flyout={HasBlockingFlyoutOpen()}");
-            return;
-        }
-
-        TopMostSafetyTimer?.Stop();
-        TopMostSafetyTimer = null;
-        KeepRaisedUntilDeactivate = false;
-        RestoreDesktopLayerWhenIdle = false;
-        App.Log($"[WidgetVis] RestoreDesktopLayer hwnd=0x{HWnd.ToInt64():X} force={force}");
-        ClearTopMostOnly();
-        ApplyBackdropPreference();
-        WidgetLayerService.LogPeersSnapshot("RestoreDesktopLayer", HWnd);
-        WidgetLayerService.SchedulePeersSettleSnapshot("RestoreDesktopLayer", HWnd);
-    }
+    protected void RestoreDesktopLayer(bool force = false) =>
+        LayerOnRestore(force, reason: force ? "restore-force" : "restore");
 
     protected void ClearTopMostOnly()
     {
         IsAtDesktopLayer = true;
-        IntPtr foreground = WidgetLayerService.ClearTopMostPreservingForeground(HWnd);
-        App.LogVerbose($"[ZOrder] {LogPrefix} ClearTopMostOnly hwnd=0x{HWnd.ToInt64():X} fg=0x{foreground.ToInt64():X}");
+        WidgetLayerService.Pin(HWnd, "clear-topmost");
+        App.LogVerbose($"[ZOrder] {LogPrefix} ClearTopMostOnly hwnd=0x{HWnd.ToInt64():X}");
     }
 
     // ── Drag logic ─────────────────────────────────────────────
@@ -502,13 +461,7 @@ public abstract partial class WidgetWindowBase
         EndCompactInteraction();
         App.Current.WidgetManager?.EndWidgetInteraction(reason);
         App.Log($"[WidgetVis] ReleaseInteractionLayer hwnd=0x{HWnd.ToInt64():X} reason={reason}");
-        if (App.Current.WidgetManager?.RequestRestoreRaisedWidgetsToDesktopLayer(reason) == true)
-        {
-            WidgetLayerService.LogPeersSnapshot($"ReleaseInteraction-manager-restore:{reason}", HWnd);
-            return;
-        }
-
-        RestoreDesktopLayer();
+        LayerOnRestore(reason: $"release:{reason}");
     }
 
     // ── Tray animation helpers ─────────────────────────────────

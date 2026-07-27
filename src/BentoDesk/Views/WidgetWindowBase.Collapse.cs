@@ -1791,87 +1791,14 @@ public abstract partial class WidgetWindowBase
 
     private void RaiseForExpandedState()
     {
-        if (_isRaisedForExpandedState)
-        {
-            WidgetLayerService.BringAbovePeerWidgets(HWnd);
-            return;
-        }
-
-        // A tray-raised group is already above normal application windows, but
-        // the expanding widget still needs to move above its sibling widgets.
-        // Do not mark it for desktop-layer restoration because the manager owns
-        // the raised lifetime of the whole group.
-        if (App.Current.WidgetManager is { WidgetsRaisedFromTray: true })
-        {
-            WidgetLayerService.BringAbovePeerWidgets(HWnd);
-            return;
-        }
-
-        // The widget may physically sit above application windows even though
-        // the tray-raised state was already released: the release only clears
-        // TopMost and leaves the windows in place (e.g. the user opened and
-        // closed another window after the raise).  Marking it for desktop-layer
-        // restoration here would push it to HWND_BOTTOM on collapse — below the
-        // app window — while its siblings stay on top.  Detect the physical
-        // Z-order instead and keep the collapse a pure visual change.
-        if (!IsPhysicallyAtDesktopBottom())
-        {
-            App.LogVerbose($"[ZOrder] RaiseForExpandedState: widget floats above app window, skip desktop-restore mark hwnd=0x{HWnd.ToInt64():X}");
-            WidgetLayerService.BringAbovePeerWidgets(HWnd);
-            return;
-        }
-
-        _isRaisedForExpandedState = true;
-        IsAtDesktopLayer = false;
-        KeepRaisedUntilDeactivate = true;
+        // Desktop-fixed layer: expand only becomes front among peers. Never leave
+        // the DefView band or mark IsAtDesktopLayer=false (that reopened the old
+        // deactivate-restore race and flashed siblings).
+        SuppressIdleRestore = true;
         RestoreDesktopLayerWhenIdle = false;
         LastElevateForInteractionUtc = DateTime.UtcNow;
-        WidgetLayerService.BringAbovePeerWidgets(HWnd);
-    }
-
-    /// <summary>
-    /// Walks the Z-order below this window and reports whether it physically
-    /// rests at the desktop layer: the first visible non-BentoDesk window below
-    /// it must be a desktop shell window (Progman/WorkerW).  When the first
-    /// foreign window below is a normal app window, this window is currently
-    /// floating above that app (e.g. after a released tray raise).
-    /// </summary>
-    private bool IsPhysicallyAtDesktopBottom()
-    {
-        IntPtr current = Win32Helper.GetWindow(HWnd, Win32Helper.GW_HWNDNEXT);
-        while (current != IntPtr.Zero)
-        {
-            if (Win32Helper.IsWindowVisible(current) &&
-                !App.Current.IsBentoDeskWindow(current))
-            {
-                return WindowHasShellClass(current, ["Progman", "WorkerW"]);
-            }
-
-            current = Win32Helper.GetWindow(current, Win32Helper.GW_HWNDNEXT);
-        }
-
-        return true;
-    }
-
-    private static bool WindowHasShellClass(IntPtr hWnd, string[] classNames)
-    {
-        var buffer = new System.Text.StringBuilder(256);
-        int length = Win32Helper.GetClassName(hWnd, buffer, buffer.Capacity);
-        if (length <= 0)
-        {
-            return false;
-        }
-
-        string actual = buffer.ToString();
-        foreach (string className in classNames)
-        {
-            if (string.Equals(actual, className, StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        _isRaisedForExpandedState = true;
+        LayerOnUserActivate("expand");
     }
 
     private void RestoreLayerAfterExpandedState()
@@ -1882,11 +1809,10 @@ public abstract partial class WidgetWindowBase
         }
 
         _isRaisedForExpandedState = false;
-        KeepRaisedUntilDeactivate = false;
+        SuppressIdleRestore = false;
         RestoreDesktopLayerWhenIdle = false;
         IsAtDesktopLayer = true;
-        // Keep peer stacking when returning from hover-expand raise.
-        WidgetLayerService.BringAbovePeerWidgets(HWnd);
+        LayerOnRestore(force: true, reason: "expand-collapse");
     }
 
     private void ScheduleSmartCollapse(int? delayMs = null)

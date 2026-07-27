@@ -63,7 +63,7 @@ public sealed partial class ContentWidgetWindow
 
         if (ShouldOpenTitleBarFlyout(e.OriginalSource))
         {
-            App.Current.WidgetManager?.ActivateAllVisibleWidgetsFromTitle(HWnd);
+            LayerOnUserActivate("content-title-activate");
         }
         if (_config.IsPositionLocked) return;
         BeginWindowDragCore(e, ContentWidgetShell.TitleBar);
@@ -207,24 +207,15 @@ public sealed partial class ContentWidgetWindow
         if (args.WindowActivationState == WindowActivationState.Deactivated)
         {
             _contentHost.OnDeactivated();
-            if (Visible && !IsAtDesktopLayer &&
-                App.Current.WidgetManager is not { WidgetsRaisedFromTray: true })
-            {
-                QueueRestoreDesktopLayerIfForegroundLeavesBentoDesk();
-            }
             return;
         }
 
         _contentHost.OnActivated();
 
-        // WinUI activation can lift the HWND above normal apps. Re-pin now; one
-        // delayed settle is generation-gated so a later click on another widget
-        // cancels this pass (avoids overlap flicker).
+        // PointerPressed already Front'd; only schedule WinUI async settle.
         if (Visible)
         {
-            IsAtDesktopLayer = true;
-            WidgetLayerService.ReassertDesktopLayer(HWnd);
-            WidgetLayerService.ScheduleReassertDesktopLayer(HWnd);
+            LayerScheduleFrontSettle("content-activated");
         }
     }
 
@@ -233,13 +224,13 @@ public sealed partial class ContentWidgetWindow
         DispatcherQueue.TryEnqueue(async () =>
         {
             await Task.Delay(80);
-            if (!Visible || IsAtDesktopLayer || ShouldDeferDesktopLayerRestore())
+            if (!Visible || ShouldDeferDesktopLayerRestore())
             {
                 return;
             }
 
             App.Log($"[ZOrder] Content Deactivated->Restore hwnd=0x{HWnd.ToInt64():X}");
-            RestoreDesktopLayer(force: true);
+            LayerOnRestore(force: true, reason: "content-deactivated");
         });
     }
 
@@ -263,8 +254,7 @@ public sealed partial class ContentWidgetWindow
 
     private void PushToBottom()
     {
-        IsAtDesktopLayer = true;
-        WidgetLayerService.MoveToDesktopBottom(HWnd);
+        LayerOnShow("content-show");
         App.LogVerbose($"[ZOrder] Content PushToBottom hwnd=0x{HWnd.ToInt64():X}");
     }
 }

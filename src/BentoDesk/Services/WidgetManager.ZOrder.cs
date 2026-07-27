@@ -46,40 +46,30 @@ public sealed partial class WidgetManager
 
     public void BringAllVisibleWidgetsToFront(IntPtr exceptHwnd = default)
     {
+        // Quiet pin only — does not reorder peer front.
         foreach (var window in GetLoadedDesktopWindows())
         {
             if (window.Visible && window.WindowHandle != exceptHwnd)
             {
-                WidgetLayerService.BringToFront(window.WindowHandle);
+                WidgetLayerService.Pin(window.WindowHandle, "manager-pin-all");
             }
         }
     }
 
     public void ActivateAllVisibleWidgetsFromTitle(IntPtr activeHwnd)
     {
-        // Desktop-fixed layer: title activation only reorders peers within the desktop layer.
+        // Title activation: only the clicked widget becomes front.
         if (activeHwnd != IntPtr.Zero)
         {
-            WidgetLayerService.BringAbovePeerWidgets(activeHwnd);
+            WidgetLayerService.Front(activeHwnd, "title-activate");
         }
     }
 
     public bool RequestRestoreRaisedWidgetsToDesktopLayer(string reason = "interaction-ended")
     {
-        if (!_widgetsRaisedFromTray)
-        {
-            App.LogVerbose($"[TrayBatch] RestoreRequest ignored reason={reason} state=not-raised");
-            return false;
-        }
-
-        if (App.UiDispatcherQueue is { } dispatcherQueue && !dispatcherQueue.HasThreadAccess)
-        {
-            dispatcherQueue.TryEnqueue(() => RequestRestoreRaisedWidgetsToDesktopLayer(reason));
-            return true;
-        }
-
-        App.LogVerbose($"[TrayBatch] RestoreRequest held reason={reason} until=next-toggle");
-        return true;
+        // RaisedSession removed: tray is show/hide only. Callers should Pin via LayerOnRestore.
+        App.LogVerbose($"[TrayBatch] RestoreRequest ignored reason={reason} state=desktop-fixed");
+        return false;
     }
 
     private void QueueRequestedLayerRestoreCheck(string reason, TimeSpan delay)

@@ -85,7 +85,11 @@ public abstract partial class WidgetWindowBase : Window
 
     // ── Protected state: layer / Z-order ───────────────────────
     protected bool IsAtDesktopLayer;
-    protected bool KeepRaisedUntilDeactivate;
+    /// <summary>
+    /// When true, non-force <see cref="LayerOnRestore"/> is skipped (e.g. expand
+    /// or drag still needs the widget to stay front until deactivate).
+    /// </summary>
+    protected bool SuppressIdleRestore;
     protected bool RestoreDesktopLayerWhenIdle;
     protected bool IsHideAnimationRunning;
     protected DateTime LastElevateForInteractionUtc = DateTime.MinValue;
@@ -255,7 +259,7 @@ public abstract partial class WidgetWindowBase : Window
         DisplayChangeWatcher = null;
         DisposeAcrylicController();
         DisposeMicaController();
-        WidgetLayerService.ReleaseWindow(HWnd);
+        WidgetLayerService.Release(HWnd);
         TrackWindowClosedForDiagnostics();
     }
 

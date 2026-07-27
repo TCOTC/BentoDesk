@@ -540,7 +540,7 @@ IsHideAnimationRunning = true;
             return;
         }
 
-        HoldTemporaryTopMost();
+        LayerOnUserActivate("content-tray-activate-batch");
         base.Activate();
         Win32Helper.SetForegroundWindow(HWnd);
         RootGrid.Focus(FocusState.Programmatic);
@@ -554,10 +554,7 @@ IsHideAnimationRunning = true;
             return;
         }
 
-        AppWindow.Show();
-        Win32Helper.ShowWindow(HWnd, Win32Helper.SW_SHOWNORMAL);
-        WidgetLayerService.BringToFront(HWnd);
-        HoldTemporaryTopMost();
+        LayerOnShow("content-tray-ensure-pin");
     }
 
     public void ForceRestoreDesktopLayerFromManager()
@@ -572,7 +569,7 @@ IsHideAnimationRunning = true;
             return;
         }
 
-        RestoreDesktopLayer(force: true);
+        LayerOnRestore(force: true, reason: "manager-restore");
         _contentHost.OnDeactivated();
     }
 
@@ -585,7 +582,7 @@ IsHideAnimationRunning = true;
         Visible = false;
         _config.IsVisible = false;
         SettingsService.SaveDebounced();
-        WidgetLayerService.ClearTopMost(HWnd);
+        LayerOnHide("content-hide");
         Win32Helper.ShowWindow(HWnd, Win32Helper.SW_HIDE);
         AppWindow.Hide();
         TrayAnimation.RestoreVisualState();
@@ -609,7 +606,7 @@ IsHideAnimationRunning = true;
 
         IsClosing = true;
         TrayAnimation.RevealWindowForTrayShow();
-        WidgetLayerService.ReleaseWindow(HWnd);
+        LayerOnClose();
         Close();
     }
 

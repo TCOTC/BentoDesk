@@ -75,7 +75,7 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
     private Win32Helper.POINT _lastTitleBarClickPoint;
     private bool _hasPendingTitleBarClick;
     private bool _isAtDesktopLayer { get => IsAtDesktopLayer; set => IsAtDesktopLayer = value; }
-    private bool _keepRaisedUntilDeactivate { get => KeepRaisedUntilDeactivate; set => KeepRaisedUntilDeactivate = value; }
+    private bool _keepRaisedUntilDeactivate { get => SuppressIdleRestore; set => SuppressIdleRestore = value; }
     private bool _restoreDesktopLayerWhenIdle { get => RestoreDesktopLayerWhenIdle; set => RestoreDesktopLayerWhenIdle = value; }
     private bool _isHideAnimationRunning { get => IsHideAnimationRunning; set => IsHideAnimationRunning = value; }
     private bool _isMigrationBusy;
@@ -264,7 +264,7 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
             Visible = false;
             CleanupStackTransitions();
             CleanupWidgetCollapse();
-            WidgetLayerService.ReleaseWindow(_hWnd);
+            WidgetLayerService.Release(_hWnd);
             _settingsService.SettingsChanged -= OnSettingsChanged;
             _localizationService.LanguageChanged -= OnLanguageChanged;
             ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
@@ -413,25 +413,14 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
 
         if (args.WindowActivationState == WindowActivationState.Deactivated)
         {
-            if (Visible && !_isAtDesktopLayer &&
-                App.Current.WidgetManager is not { WidgetsRaisedFromTray: true } &&
-                (DateTime.UtcNow - _lastElevateForInteractionUtc).TotalMilliseconds > 300)
-            {
-                App.Log($"[ZOrder] Widget Deactivated→QueueRestore hwnd=0x{_hWnd.ToInt64():X}");
-                QueueRestoreDesktopLayerIfForegroundLeavesBentoDesk();
-            }
-
+            // Desktop-fixed layer stays pinned; no TopMost fall-back restore.
             return;
         }
 
-        // WinUI activation can lift the HWND above normal apps. Re-pin now; one
-        // delayed settle is generation-gated so a later click on another widget
-        // cancels this pass (avoids overlap flicker).
+        // PointerPressed already Front'd; only schedule WinUI async settle.
         if (Visible)
         {
-            _isAtDesktopLayer = true;
-            WidgetLayerService.ReassertDesktopLayer(_hWnd);
-            WidgetLayerService.ScheduleReassertDesktopLayer(_hWnd);
+            LayerScheduleFrontSettle("file-activated");
         }
     }
 
@@ -441,7 +430,7 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
         {
             await Task.Delay(80);
 
-            if (!Visible || _isAtDesktopLayer)
+            if (!Visible)
             {
                 return;
             }
@@ -453,31 +442,20 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
                 return;
             }
 
-            _restoreDesktopLayerWhenIdle = true;
-            if (App.Current.WidgetManager is { } widgetManager)
-            {
-                if (!widgetManager.RequestRestoreRaisedWidgetsToDesktopLayer("file-window-deactivated"))
-                {
-                    RestoreDesktopLayer(force: true);
-                }
-            }
-            else
-            {
-                RestoreDesktopLayer(force: true);
-            }
+            LayerOnRestore(force: true, reason: "file-deactivated");
         });
     }
 
     public void RestoreDesktopLayerFromManager()
     {
-        RestoreDesktopLayer(force: true);
+        LayerOnRestore(force: true, reason: "manager-restore");
     }
 
     public void ForceRestoreDesktopLayerFromManager()
     {
         App.LogVerbose($"[ZOrder] Widget ForceRestore hwnd=0x{_hWnd.ToInt64():X} visible={Visible} atDesktop={_isAtDesktopLayer}");
         ForceCancelTransientState();
-        RestoreDesktopLayer(force: true);
+        LayerOnRestore(force: true, reason: "manager-force-restore");
     }
 
     private void ForceCancelTransientState()

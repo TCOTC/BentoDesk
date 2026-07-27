@@ -105,9 +105,7 @@ public abstract partial class WidgetWindowBase
             OnRootElementThemeChanged();
         };
 
-        // Title bar already calls BringAbovePeerWidgets; content clicks did not.
-        // Handle both on the tunneling preview so activation cannot leave the
-        // widget covering other apps for a frame (or permanently).
+        // Title bar and content clicks both route through LayerOnUserActivate.
         RootElement.AddHandler(
             UIElement.PointerPressedEvent,
             new PointerEventHandler(DesktopWidgetRoot_PointerPressed),
@@ -128,7 +126,7 @@ public abstract partial class WidgetWindowBase
 
         IsAtDesktopLayer = true;
         App.Log($"[WidgetVis] ContentPointerPressed hwnd=0x{HWnd.ToInt64():X}");
-        WidgetLayerService.ReassertDesktopLayer(HWnd);
+        LayerOnUserActivate("content-pointer");
         WidgetLayerService.LogPeersSnapshotIfAnomalous("ContentPointerPressed", HWnd);
     }
 
@@ -168,10 +166,10 @@ public abstract partial class WidgetWindowBase
             }
 
             // AppWindow.MoveAndResize can lift the HWND out of the desktop band.
-            // Reassert with peer stacking — do not sink this window alone.
+            // Quiet pin only — do not Front (would steal sibling order on resize).
             if (IsAtDesktopLayer)
             {
-                WidgetLayerService.BringAbovePeerWidgets(HWnd);
+                LayerAfterBoundsChange("move-resize");
             }
         }
         finally

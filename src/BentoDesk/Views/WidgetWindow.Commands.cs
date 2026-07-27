@@ -120,7 +120,7 @@ public sealed partial class WidgetWindow
             return;
         }
 
-        App.Current.WidgetManager?.ActivateAllVisibleWidgetsFromTitle(_hWnd);
+        LayerOnUserActivate("title-activate");
         if (ViewModel.IsPositionLocked)
         {
             return;
@@ -304,12 +304,7 @@ public sealed partial class WidgetWindow
 
     private void RestoreAfterFileDrag(string reason)
     {
-        if (App.Current.WidgetManager?.RequestRestoreRaisedWidgetsToDesktopLayer(reason) == true)
-        {
-            return;
-        }
-
-        RestoreDesktopLayer();
+        LayerOnRestore(reason: reason);
     }
 
     private async Task PickAndImportFilesAsync()

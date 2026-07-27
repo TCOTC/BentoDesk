@@ -188,7 +188,7 @@ public sealed partial class ContentWidgetWindow
         IsHideAnimationRunning = false;
         _isHidePrepared = false;
         TrayAnimation.Stop();
-        WidgetLayerService.ClearTopMost(HWnd);
+        WidgetLayerService.Pin(HWnd, "content-tray-hide");
         Win32Helper.ShowWindow(HWnd, Win32Helper.SW_HIDE);
         AppWindow.Hide();
         TrayAnimation.RevealWindowForTrayShow();

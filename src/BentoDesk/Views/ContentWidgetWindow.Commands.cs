@@ -374,12 +374,7 @@ public sealed partial class ContentWidgetWindow
         ContentWidgetShell.TitleEditorContent = null;
         EndCompactInteraction();
         App.Current.WidgetManager?.EndWidgetInteraction(reason);
-        if (App.Current.WidgetManager?.RequestRestoreRaisedWidgetsToDesktopLayer(reason) == true)
-        {
-            return;
-        }
-
-        RestoreDesktopLayerFromManager();
+        LayerOnRestore(reason: reason);
     }
 
     private async Task ShowErrorDialogAsync(string title, string message)
@@ -410,12 +405,7 @@ public sealed partial class ContentWidgetWindow
         {
             EndCompactInteraction();
             App.Current.WidgetManager?.EndWidgetInteraction("content-flyout-closed");
-            if (App.Current.WidgetManager?.RequestRestoreRaisedWidgetsToDesktopLayer("content-flyout-closed") == true)
-            {
-                return;
-            }
-
-            RestoreDesktopLayerFromManager();
+            LayerOnRestore(reason: "content-flyout-closed");
         };
         WidgetFlyoutDesktopDismiss.Track(flyout);
 
