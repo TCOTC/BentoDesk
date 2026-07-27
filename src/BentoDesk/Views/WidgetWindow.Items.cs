@@ -46,6 +46,7 @@ public sealed partial class WidgetWindow
             or nameof(WidgetViewModel.FollowsDefaultStoragePath))
         {
             ApplyTitleBarLayout();
+            UpdateTitleIconOpenFolderCursor();
             UpdateEmptyState();
         }
         else if (e.PropertyName is nameof(WidgetViewModel.WidgetOpacity) or nameof(WidgetViewModel.MappedFolderPath))

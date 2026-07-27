@@ -74,6 +74,8 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
     private DateTime _lastTitleBarClickTimeUtc;
     private Win32Helper.POINT _lastTitleBarClickPoint;
     private bool _hasPendingTitleBarClick;
+    private bool _pendingTitleIconFolderOpen;
+    private bool _isTitleIconClickCapture;
     private bool _isAtDesktopLayer { get => IsAtDesktopLayer; set => IsAtDesktopLayer = value; }
     private bool _keepRaisedUntilDeactivate { get => SuppressIdleRestore; set => SuppressIdleRestore = value; }
     private bool _restoreDesktopLayerWhenIdle { get => RestoreDesktopLayerWhenIdle; set => RestoreDesktopLayerWhenIdle = value; }
@@ -308,6 +310,7 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
         TitleEditBox.PlaceholderText = _localizationService.T("Widget.TitlePlaceholder");
         ToolTipService.SetToolTip(LockButton, _localizationService.T("Widget.Lock"));
         ToolTipService.SetToolTip(FileWidgetShell.LockActionButton, _localizationService.T("Widget.Lock"));
+        UpdateTitleIconOpenFolderCursor();
         UpdateCollapseWidgetButtonVisual();
         MigrationTitleText.Text = _localizationService.T("Widget.Migration.Title");
         MigrationDescriptionText.Text = _localizationService.T("Widget.Migration.Description");
@@ -325,6 +328,28 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
     protected override void OnCompactInteractionChromeUpdated()
     {
         UpdateCollapseWidgetButtonVisual();
+        UpdateTitleIconOpenFolderCursor();
+    }
+
+    protected override string ResolveCompactMoveHandleToolTip(LocalizationService localization) =>
+        ViewModel.FollowsDefaultStoragePath
+            ? localization.T("Widget.OpenStorageFolder")
+            : localization.T("Widget.OpenCurrentFolder");
+
+    private void UpdateTitleIconOpenFolderCursor()
+    {
+        string tip = ResolveCompactMoveHandleToolTip(_localizationService);
+        if (ToolTipService.GetToolTip(FileTitleMoveHandleHost) as string != tip)
+        {
+            ToolTipService.SetToolTip(FileTitleMoveHandleHost, tip);
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(FileTitleMoveHandleHost, tip);
+        }
+
+        // 与资源管理器打开文件夹一致用箭头；手型会在 ToolTip 弹出时闪成默认再闪回。
+        var property = typeof(UIElement).GetProperty(
+            "ProtectedCursor",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        property?.SetValue(FileTitleMoveHandleHost, InputSystemCursor.Create(InputSystemCursorShape.Arrow));
     }
 
     private void UpdateCollapseWidgetButtonVisual()
@@ -554,7 +579,33 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
             return false;
         }
 
-        return ShouldOpenTitleBarFlyout(source) && IsWithin(source, TitleBarGrid);
+        // 标题图标单击打开文件夹，排除在双击重命名命中之外。
+        return ShouldOpenTitleBarFlyout(source) &&
+               IsWithin(source, TitleBarGrid) &&
+               !IsWithin(source, FileTitleMoveHandleHost);
+    }
+
+    private bool IsTitleIconHit(object? originalSource)
+    {
+        return originalSource is DependencyObject source &&
+               IsWithin(source, FileTitleMoveHandleHost);
+    }
+
+    private void OpenMappedFolderInExplorer()
+    {
+        string? path = ViewModel.MappedFolderPath;
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        if (!Directory.Exists(path))
+        {
+            App.Log($"[Widget] Open mapped folder skipped, missing path='{path}'");
+            return;
+        }
+
+        Win32Helper.OpenFile(_hWnd, path);
     }
 
     private bool IsTitleBarDoubleClick(Win32Helper.POINT currentPoint)

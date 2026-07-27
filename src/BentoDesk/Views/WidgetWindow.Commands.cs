@@ -103,6 +103,7 @@ public sealed partial class WidgetWindow
 
         if (!ShouldStartTitleDrag(e.OriginalSource))
         {
+            _pendingTitleIconFolderOpen = false;
             return;
         }
 
@@ -115,14 +116,27 @@ public sealed partial class WidgetWindow
         if (TitleEditBox.Visibility == Visibility.Visible &&
             ShouldOpenTitleBarFlyout(e.OriginalSource))
         {
+            _pendingTitleIconFolderOpen = false;
             _ = CommitRenameAsync();
             e.Handled = true;
             return;
         }
 
+        bool onTitleIcon = IsTitleIconHit(e.OriginalSource);
+        _pendingTitleIconFolderOpen = onTitleIcon;
+        _isTitleIconClickCapture = false;
+
         LayerOnUserActivate("title-activate");
         if (ViewModel.IsPositionLocked)
         {
+            // 锁定位置时仍允许单击图标打开文件夹。
+            if (onTitleIcon)
+            {
+                TitleBarGrid.CapturePointer(e.Pointer);
+                _isTitleIconClickCapture = true;
+                e.Handled = true;
+            }
+
             return;
         }
 
@@ -130,6 +144,7 @@ public sealed partial class WidgetWindow
         if (CanStartRenameFromTitleArea(e.OriginalSource) && IsTitleBarDoubleClick(cursorPt))
         {
             _hasPendingTitleBarClick = false;
+            _pendingTitleIconFolderOpen = false;
             StartRename();
             e.Handled = true;
             return;
@@ -209,6 +224,11 @@ public sealed partial class WidgetWindow
             _hasPendingTitleBarClick = false;
         }
 
+        if (_pendingTitleIconFolderOpen && dragDistanceSquared > 25)
+        {
+            _pendingTitleIconFolderOpen = false;
+        }
+
         if (!_hasMovedTitleBarDrag)
         {
             if (dragDistanceSquared < 16)
@@ -239,6 +259,11 @@ public sealed partial class WidgetWindow
 
     private void TitleBarGrid_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
+        if (TryCompleteTitleIconFolderOpen(e))
+        {
+            return;
+        }
+
         EndWindowDrag(e);
     }
 
@@ -249,6 +274,14 @@ public sealed partial class WidgetWindow
 
     private void TitleBarGrid_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
     {
+        if (_isTitleIconClickCapture)
+        {
+            _isTitleIconClickCapture = false;
+            _pendingTitleIconFolderOpen = false;
+            e.Handled = true;
+            return;
+        }
+
         if (!_isDragging)
         {
             return;
@@ -257,6 +290,7 @@ public sealed partial class WidgetWindow
         _isDragging = false;
         bool hasMoved = _hasMovedTitleBarDrag;
         _dragCaptureElement = null;
+        _pendingTitleIconFolderOpen = false;
         App.Current?.ResizeGuideOverlay.EndDrag();
         if (hasMoved)
         {
@@ -280,6 +314,9 @@ public sealed partial class WidgetWindow
             return;
         }
 
+        bool shouldOpenFolder = _pendingTitleIconFolderOpen && !_hasMovedTitleBarDrag;
+        _pendingTitleIconFolderOpen = false;
+
         _isDragging = false;
         _dragCaptureElement?.ReleasePointerCapture(e.Pointer);
         _dragCaptureElement = null;
@@ -300,6 +337,32 @@ public sealed partial class WidgetWindow
         _displayChangeWatcher?.ResumeRestore();
         _hasMovedTitleBarDrag = false;
         e.Handled = true;
+
+        if (shouldOpenFolder)
+        {
+            OpenMappedFolderInExplorer();
+        }
+    }
+
+    private bool TryCompleteTitleIconFolderOpen(PointerRoutedEventArgs e)
+    {
+        if (!_isTitleIconClickCapture)
+        {
+            return false;
+        }
+
+        _isTitleIconClickCapture = false;
+        bool shouldOpenFolder = _pendingTitleIconFolderOpen;
+        _pendingTitleIconFolderOpen = false;
+        TitleBarGrid.ReleasePointerCapture(e.Pointer);
+        e.Handled = true;
+
+        if (shouldOpenFolder)
+        {
+            OpenMappedFolderInExplorer();
+        }
+
+        return true;
     }
 
     private void RestoreAfterFileDrag(string reason)

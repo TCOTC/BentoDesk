@@ -528,12 +528,18 @@ public abstract partial class WidgetWindowBase
             localization.T(EffectiveCollapseBehavior == WidgetCollapseBehavior.Expanded
                 ? "Widget.Compact.Move"
                 : "Widget.Compact.MoveOrCollapse"));
-        Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(
-            WidgetShellControl.CompactMoveHandleElement,
-            localization.T("Widget.Compact.Move"));
+        string moveHandleTip = ResolveCompactMoveHandleToolTip(localization);
+        if (Microsoft.UI.Xaml.Controls.ToolTipService.GetToolTip(
+                WidgetShellControl.CompactMoveHandleElement) as string != moveHandleTip)
+        {
+            Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(
+                WidgetShellControl.CompactMoveHandleElement,
+                moveHandleTip);
+        }
+
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
             WidgetShellControl.CompactMoveHandleElement,
-            localization.T("Widget.Compact.Move"));
+            moveHandleTip);
         // 中间标题区仅在悬停展开时是可展开命中区；点击展开只靠按钮，勿挂「展开盒子」提示。
         bool hoverExpand = EffectiveCollapseBehavior == WidgetCollapseBehavior.Smart;
         if (hoverExpand)

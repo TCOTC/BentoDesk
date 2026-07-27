@@ -276,7 +276,7 @@ public sealed partial class WidgetWindow
                     : _localizationService.T("Widget.OpenCurrentFolder"),
                 Icon = new FontIcon { Glyph = "\uE838" }
             };
-            openFolderItem.Click += (_, _) => Win32Helper.OpenFile(ViewModel.MappedFolderPath);
+            openFolderItem.Click += (_, _) => OpenMappedFolderInExplorer();
             flyout.Items.Add(openFolderItem);
 
             if (!ViewModel.FollowsDefaultStoragePath)

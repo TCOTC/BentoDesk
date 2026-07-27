@@ -172,6 +172,12 @@ public abstract partial class WidgetWindowBase : Window
     /// </summary>
     protected virtual void OnCompactInteractionChromeUpdated() { }
 
+    /// <summary>
+    /// Tooltip for the compact / title-bar move-handle (file widgets may override).
+    /// </summary>
+    protected virtual string ResolveCompactMoveHandleToolTip(LocalizationService localization) =>
+        localization.T("Widget.Compact.Move");
+
     /// <summary>Called after elevation for interaction (e.g. set focus).</summary>
     protected virtual void OnElevated() { }
 
