@@ -426,52 +426,72 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <Grid Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center">
+                    <Grid
+                        Grid.Column="0"
+                        Margin="0,0,10,0"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Background="Transparent">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <controls:WidgetTitleIcon
-                            x:Name="FileTitleIcon"
-                            Glyph="{Binding IconGlyph}"
-                            IconSize="16"
-                            IconKind="{Binding TitleIconKind}"
-                            LabelText="{Binding Name}"
-                            Margin="0,0,8,0"
-                            VerticalAlignment="Center" />
-
-                        <Grid
-                            Grid.Column="1"
-                            MaxWidth="300"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center">
-                            <TextBlock
-                                x:Name="TitleText"
-                                MaxWidth="300"
-                                Margin="0,-1,0,0"
-                                FontSize="14"
-                                FontWeight="Normal"
-                                HorizontalAlignment="Left"
-                                IsDoubleTapEnabled="True"
-                                Text="{Binding Name}"
-                                TextAlignment="Left"
-                                TextTrimming="CharacterEllipsis"
+                        <Border
+                            x:Name="FileTitleMoveHandleHost"
+                            VerticalAlignment="Stretch"
+                            Background="Transparent"
+                            Padding="0,0,8,0"
+                            PointerEntered="FileTitleMoveHandleHost_PointerEntered"
+                            PointerExited="FileTitleMoveHandleHost_PointerExited">
+                            <controls:WidgetTitleIcon
+                                x:Name="FileTitleIcon"
+                                Glyph="{Binding IconGlyph}"
+                                IconSize="16"
+                                IconKind="{Binding TitleIconKind}"
+                                LabelText="{Binding Name}"
                                 VerticalAlignment="Center" />
+                        </Border>
 
-                            <TextBox
-                                x:Name="TitleEditBox"
+                        <Border
+                            x:Name="FileTitleExpansionHost"
+                            Grid.Column="1"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Background="Transparent"
+                            PointerEntered="FileTitleExpansionHost_PointerEntered"
+                            PointerExited="FileTitleExpansionHost_PointerExited">
+                            <Grid
                                 MaxWidth="300"
-                                Margin="0,-1,0,0"
-                                Padding="0"
                                 HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Style="{StaticResource WidgetTitleRenameTextBoxStyle}"
-                                Visibility="Collapsed"
-                                TextChanged="TitleEditBox_TextChanged"
-                                KeyDown="TitleEditBox_KeyDown"
-                                LostFocus="TitleEditBox_LostFocus" />
-                        </Grid>
+                                VerticalAlignment="Center">
+                                <TextBlock
+                                    x:Name="TitleText"
+                                    MaxWidth="300"
+                                    Margin="0,-1,0,0"
+                                    FontSize="14"
+                                    FontWeight="Normal"
+                                    HorizontalAlignment="Left"
+                                    IsDoubleTapEnabled="True"
+                                    Text="{Binding Name}"
+                                    TextAlignment="Left"
+                                    TextTrimming="CharacterEllipsis"
+                                    VerticalAlignment="Center" />
+
+                                <TextBox
+                                    x:Name="TitleEditBox"
+                                    MaxWidth="300"
+                                    Margin="0,-1,0,0"
+                                    Padding="0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource WidgetTitleRenameTextBoxStyle}"
+                                    Visibility="Collapsed"
+                                    TextChanged="TitleEditBox_TextChanged"
+                                    KeyDown="TitleEditBox_KeyDown"
+                                    LostFocus="TitleEditBox_LostFocus" />
+                            </Grid>
+                        </Border>
                     </Grid>
 
                     <StackPanel
@@ -480,9 +500,10 @@
                         Orientation="Horizontal"
                         Spacing="4"
                         VerticalAlignment="Center"
-                        Opacity="0">
+                        Opacity="0"
+                        IsHitTestVisible="False">
                         <StackPanel.RenderTransform>
-                            <TranslateTransform x:Name="RightButtonsTransform" X="12" />
+                            <TranslateTransform x:Name="RightButtonsTransform" X="0" />
                         </StackPanel.RenderTransform>
 
                         <Button

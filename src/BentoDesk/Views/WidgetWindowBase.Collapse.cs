@@ -602,19 +602,45 @@ public abstract partial class WidgetWindowBase
 
     private void ApplyEffectiveCollapseBehavior(bool animate)
     {
+        WidgetCollapseBehavior previousBehavior = _lastEffectiveCollapseBehavior;
         ApplyCollapseBehaviorVisuals();
         WidgetCollapseBehavior behavior = EffectiveCollapseBehavior;
-        WidgetCompactInteractionSnapshot snapshot = CaptureCompactInteractionSnapshot();
-        bool desiredCollapsed = EffectiveCollapseBehavior switch
+        bool behaviorChanged = previousBehavior != behavior;
+        bool desiredCollapsed = behavior switch
         {
             WidgetCollapseBehavior.Expanded => false,
             WidgetCollapseBehavior.Click => Config.IsCollapsed,
-            WidgetCollapseBehavior.Smart => _targetCollapsed
-                ? !WidgetCompactInteractionPolicy.CanHoverExpand(behavior, snapshot)
-                : WidgetCompactInteractionPolicy.CanAutoCollapse(behavior, snapshot),
+            // 悬停展开的收起只应由指针离开计时器驱动；设置刷新不得批量收起其他盒子。
+            WidgetCollapseBehavior.Smart => ResolveSmartDesiredCollapsed(
+                previousBehavior,
+                behaviorChanged),
             _ => false
         };
         SetCollapsedState(desiredCollapsed, persistManualState: false, animate: animate);
+    }
+
+    private bool ResolveSmartDesiredCollapsed(
+        WidgetCollapseBehavior previousBehavior,
+        bool behaviorChanged)
+    {
+        if (!behaviorChanged)
+        {
+            return _targetCollapsed;
+        }
+
+        // 从「保持展开」切入悬停展开：进入收起态。
+        if (previousBehavior == WidgetCollapseBehavior.Expanded)
+        {
+            return true;
+        }
+
+        // 从「点击展开」切入：保留当时的展开/收起状态。
+        if (previousBehavior == WidgetCollapseBehavior.Click)
+        {
+            return Config.IsCollapsed;
+        }
+
+        return _targetCollapsed;
     }
 
     private void ApplyCollapseBehaviorVisuals()
@@ -1949,7 +1975,8 @@ public abstract partial class WidgetWindowBase
         KeepRaisedUntilDeactivate = false;
         RestoreDesktopLayerWhenIdle = false;
         IsAtDesktopLayer = true;
-        WidgetLayerService.MoveToDesktopBottom(HWnd);
+        // Keep peer stacking when returning from hover-expand raise.
+        WidgetLayerService.BringAbovePeerWidgets(HWnd);
     }
 
     private void ScheduleSmartCollapse(int? delayMs = null)

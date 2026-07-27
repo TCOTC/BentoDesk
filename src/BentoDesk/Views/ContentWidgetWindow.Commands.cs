@@ -411,6 +411,7 @@ public sealed partial class ContentWidgetWindow
 
             RestoreDesktopLayerFromManager();
         };
+        WidgetFlyoutDesktopDismiss.Track(flyout);
 
         if (position is Windows.Foundation.Point point)
         {

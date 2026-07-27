@@ -52,35 +52,60 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <StackPanel
+                <Grid
                     x:Name="TitleIdentityHost"
                     Grid.Column="0"
-                    VerticalAlignment="Center"
-                    IsDoubleTapEnabled="{x:Bind IsTitleEditable, Mode=OneWay}"
-                    Orientation="Horizontal"
-                    Spacing="8"
-                    DoubleTapped="TitleText_DoubleTapped"
-                    PointerEntered="TitleIdentityHost_PointerEntered"
-                    PointerExited="TitleIdentityHost_PointerExited">
-                    <controls:WidgetTitleIcon
-                        x:Name="TitleIcon"
-                        AccentColor="{x:Bind TitleIconAccentColor, Mode=OneWay}"
-                        Glyph="{x:Bind TitleGlyph, Mode=OneWay}"
-                        IconSize="{Binding TitleIconSize}"
-                        IconKind="{x:Bind TitleIconKind, Mode=OneWay}"
-                        LabelText="{Binding DisplayName}"
-                        Mode="{x:Bind TitleIconMode, Mode=OneWay}" />
-                    <TextBlock
-                        x:Name="TitleText"
-                        FontSize="{Binding TitleTextSize}"
-                        Text="{Binding DisplayName}"
-                        TextTrimming="CharacterEllipsis"
-                        VerticalAlignment="Center" />
-                    <ContentPresenter
-                        x:Name="TitleEditorPresenter"
-                        Content="{x:Bind TitleEditorContent, Mode=OneWay}"
-                        Visibility="Collapsed" />
-                </StackPanel>
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Background="Transparent">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border
+                        x:Name="TitleMoveHandleHost"
+                        VerticalAlignment="Stretch"
+                        Background="Transparent"
+                        Padding="0,0,8,0"
+                        PointerEntered="TitleMoveHandleHost_PointerEntered"
+                        PointerExited="TitleMoveHandleHost_PointerExited">
+                        <controls:WidgetTitleIcon
+                            x:Name="TitleIcon"
+                            VerticalAlignment="Center"
+                            AccentColor="{x:Bind TitleIconAccentColor, Mode=OneWay}"
+                            Glyph="{x:Bind TitleGlyph, Mode=OneWay}"
+                            IconSize="{Binding TitleIconSize}"
+                            IconKind="{x:Bind TitleIconKind, Mode=OneWay}"
+                            LabelText="{Binding DisplayName}"
+                            Mode="{x:Bind TitleIconMode, Mode=OneWay}" />
+                    </Border>
+                    <Border
+                        x:Name="TitleExpansionHost"
+                        Grid.Column="1"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Background="Transparent"
+                        IsDoubleTapEnabled="{x:Bind IsTitleEditable, Mode=OneWay}"
+                        DoubleTapped="TitleText_DoubleTapped"
+                        PointerEntered="TitleExpansionHost_PointerEntered"
+                        PointerExited="TitleExpansionHost_PointerExited">
+                        <StackPanel
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <TextBlock
+                                x:Name="TitleText"
+                                FontSize="{Binding TitleTextSize}"
+                                Text="{Binding DisplayName}"
+                                TextTrimming="CharacterEllipsis"
+                                VerticalAlignment="Center" />
+                            <ContentPresenter
+                                x:Name="TitleEditorPresenter"
+                                Content="{x:Bind TitleEditorContent, Mode=OneWay}"
+                                Visibility="Collapsed" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
 
                     <StackPanel
                         x:Name="RightActionButtons"

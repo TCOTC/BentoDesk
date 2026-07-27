@@ -39,7 +39,6 @@ internal static class WidgetCollapseMenuBuilder
         var resetWidthItem = new MenuFlyoutItem
         {
             Text = localizationService.T("Widget.Compact.RestoreAutomaticWidth"),
-            Icon = new FontIcon { Glyph = "\uE8A7" },
             IsEnabled = config.CompactWidth is not null
         };
         resetWidthItem.Click += (_, _) => resetCompactWidth();

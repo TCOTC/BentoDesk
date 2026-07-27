@@ -120,6 +120,7 @@ public sealed partial class WidgetWindow
 
         _isInlineFlyoutOpen = true;
         BeginInteractionLayer("file-message-opened");
+        WidgetFlyoutDesktopDismiss.Track(flyout);
         flyout.ShowAt(TitleBarGrid);
         await completion.Task;
     }
@@ -188,6 +189,7 @@ public sealed partial class WidgetWindow
     {
         BeginInteractionLayer("file-flyout-opened");
         flyout.Closed += (_, _) => ReleaseInteractionLayer("file-flyout-closed");
+        WidgetFlyoutDesktopDismiss.Track(flyout);
 
         if (position is Windows.Foundation.Point point)
         {
@@ -474,6 +476,7 @@ public sealed partial class WidgetWindow
         var target = items.Length == 1
             ? FindItemSurface(items[0]) ?? GetActiveItemsView() as FrameworkElement ?? RootGrid
             : GetActiveItemsView() as FrameworkElement ?? RootGrid;
+        WidgetFlyoutDesktopDismiss.Track(flyout);
         flyout.ShowAt(target);
     }
 
@@ -509,6 +512,7 @@ public sealed partial class WidgetWindow
         DispatcherQueue.TryEnqueue(() =>
         {
             BeginInteractionLayer("file-delete-widget-opened");
+            WidgetFlyoutDesktopDismiss.Track(flyout);
             if (position is Windows.Foundation.Point point)
             {
                 flyout.ShowAt(target, point);

@@ -166,9 +166,10 @@ public abstract partial class WidgetWindowBase
             }
 
             // AppWindow.MoveAndResize can lift the HWND out of the desktop band.
+            // Reassert with peer stacking — do not sink this window alone.
             if (IsAtDesktopLayer)
             {
-                WidgetLayerService.MoveToDesktopBottom(HWnd);
+                WidgetLayerService.BringAbovePeerWidgets(HWnd);
             }
         }
         finally

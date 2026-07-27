@@ -35,12 +35,14 @@ public abstract partial class WidgetWindowBase
 
     protected void HoldTemporaryTopMost()
     {
-        // Desktop-fixed layer only: keep the window attached, never temporarily topmost.
+        // Desktop-fixed layer: keep DefView ownership and peer order. Never use
+        // MoveToDesktopBottom here — that sinks only this HWND and orphans peers
+        // (other boxes can disappear behind desktop icons after a title click).
         IsAtDesktopLayer = true;
         KeepRaisedUntilDeactivate = false;
         RestoreDesktopLayerWhenIdle = false;
-        WidgetLayerService.MoveToDesktopBottom(HWnd);
-        App.LogVerbose($"[ZOrder] {LogPrefix} HoldTemporaryTopMost pinned hwnd=0x{HWnd.ToInt64():X}");
+        WidgetLayerService.BringAbovePeerWidgets(HWnd);
+        App.LogVerbose($"[ZOrder] {LogPrefix} HoldTemporaryTopMost reassert hwnd=0x{HWnd.ToInt64():X}");
     }
 
     protected void StartTopMostSafetyTimer()

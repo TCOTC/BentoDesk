@@ -65,6 +65,7 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
 
     private Storyboard? _showButtonsStoryboard;
     private Storyboard? _hideButtonsStoryboard;
+    private bool _isPointerOverRoot;
     private DispatcherQueueTimer? _statusToastTimer;
     private bool _emptyStateUpdateQueued;
     private bool _deletePending;
@@ -200,6 +201,9 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
         ApplyLocalizedText();
         FileWidgetShell.SetDividerMargin(new Thickness(12, 0, 12, 0));
         FileWidgetShell.SetCollapseChromeMode(WidgetCollapseChromeMode.TitleBarOnly);
+        FileWidgetShell.SetExternalCompactInteractionHosts(
+            FileTitleMoveHandleHost,
+            FileTitleExpansionHost);
 
         HWnd = WindowNative.GetWindowHandle(this);
         Diagnostics = new WidgetWindowDiagnostics("File", ViewModel.Config, () => HWnd);
@@ -311,9 +315,10 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
 
     protected override void OnCollapseBehaviorChanged(WidgetCollapseBehavior behavior)
     {
-        CollapseWidgetButton.Visibility = behavior == WidgetCollapseBehavior.Expanded
-            ? Visibility.Collapsed
-            : Visibility.Visible;
+        // 悬停展开不需要折叠按钮；仅点击展开模式显示。
+        CollapseWidgetButton.Visibility = behavior == WidgetCollapseBehavior.Click
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         UpdateCollapseWidgetButtonVisual();
     }
 
@@ -543,12 +548,32 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
             return true;
         }
 
+        // 收起态只允许从图标拖动区起拖，中间标题留给悬停展开。
+        if (FileWidgetShell.IsCollapsed &&
+            !IsWithin(source, FileWidgetShell.CompactMoveHandleElement) &&
+            !IsWithin(source, FileWidgetShell.CompactReorderHandleElement))
+        {
+            return false;
+        }
+
         return !IsWithin(source, LockButton) &&
                !IsWithin(source, CollapseWidgetButton) &&
                !IsWithin(source, FileWidgetShell.LockActionButton) &&
                !IsWithin(source, FileWidgetShell.CollapseActionButton) &&
                !IsWithin(source, TitleEditBox);
     }
+
+    private void FileTitleMoveHandleHost_PointerEntered(object sender, PointerRoutedEventArgs e) =>
+        FileWidgetShell.ReportCompactMoveHandleEntered();
+
+    private void FileTitleMoveHandleHost_PointerExited(object sender, PointerRoutedEventArgs e) =>
+        FileWidgetShell.ReportCompactMoveHandleExited();
+
+    private void FileTitleExpansionHost_PointerEntered(object sender, PointerRoutedEventArgs e) =>
+        FileWidgetShell.ReportCompactExpansionEntered();
+
+    private void FileTitleExpansionHost_PointerExited(object sender, PointerRoutedEventArgs e) =>
+        FileWidgetShell.ReportCompactExpansionExited();
 
     private bool CanStartRenameFromTitleArea(object? originalSource)
     {
@@ -671,54 +696,49 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
         var showRightOpacity = new DoubleAnimation
         {
             To = 1.0,
-            Duration = new Duration(TimeSpan.FromMilliseconds(250)),
+            Duration = new Duration(TimeSpan.FromMilliseconds(180)),
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
         };
         Storyboard.SetTarget(showRightOpacity, RightActionButtons);
         Storyboard.SetTargetProperty(showRightOpacity, "Opacity");
         _showButtonsStoryboard.Children.Add(showRightOpacity);
 
-        var showRightX = new DoubleAnimation
-        {
-            To = 0,
-            Duration = new Duration(TimeSpan.FromMilliseconds(250)),
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-        };
-        Storyboard.SetTarget(showRightX, RightButtonsTransform);
-        Storyboard.SetTargetProperty(showRightX, "X");
-        _showButtonsStoryboard.Children.Add(showRightX);
-
         _hideButtonsStoryboard = new Storyboard();
 
         var hideRightOpacity = new DoubleAnimation
         {
             To = 0.0,
-            Duration = new Duration(TimeSpan.FromMilliseconds(200)),
+            Duration = new Duration(TimeSpan.FromMilliseconds(150)),
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
         };
         Storyboard.SetTarget(hideRightOpacity, RightActionButtons);
         Storyboard.SetTargetProperty(hideRightOpacity, "Opacity");
         _hideButtonsStoryboard.Children.Add(hideRightOpacity);
-
-        var hideRightX = new DoubleAnimation
-        {
-            To = 12,
-            Duration = new Duration(TimeSpan.FromMilliseconds(200)),
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
-        };
-        Storyboard.SetTarget(hideRightX, RightButtonsTransform);
-        Storyboard.SetTargetProperty(hideRightX, "X");
-        _hideButtonsStoryboard.Children.Add(hideRightX);
     }
 
     private void RootGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
-        ApplyTitleActionButtonPanelVisibility(_chromeModeResolver.Resolve(ViewModel.Config, _chromeDescriptor));
+        _isPointerOverRoot = true;
+        var chromeMode = _chromeModeResolver.Resolve(ViewModel.Config, _chromeDescriptor);
+        if (chromeMode is WidgetChromeMode.Overlay or WidgetChromeMode.Hidden)
+        {
+            return;
+        }
+
+        SetTitleActionButtonsVisible(visible: true, animate: true);
     }
 
     private void RootGrid_PointerExited(object sender, PointerRoutedEventArgs e)
     {
-        ApplyTitleActionButtonPanelVisibility(_chromeModeResolver.Resolve(ViewModel.Config, _chromeDescriptor));
+        _isPointerOverRoot = false;
+        var chromeMode = _chromeModeResolver.Resolve(ViewModel.Config, _chromeDescriptor);
+        if (chromeMode is WidgetChromeMode.Overlay or WidgetChromeMode.Hidden)
+        {
+            SetTitleActionButtonsVisible(visible: false, animate: false);
+            return;
+        }
+
+        SetTitleActionButtonsVisible(visible: false, animate: true);
     }
 
     private static Windows.UI.Color ApplySurfaceOpacity(Windows.UI.Color color, double opacity)

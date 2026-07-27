@@ -210,13 +210,40 @@ public sealed partial class WidgetWindow
 
     private void ApplyTitleActionButtonPanelVisibility(WidgetChromeMode chromeMode)
     {
+        SetTitleActionButtonsVisible(
+            visible: chromeMode is not (WidgetChromeMode.Overlay or WidgetChromeMode.Hidden) &&
+                     _isPointerOverRoot,
+            animate: false);
+    }
+
+    private void SetTitleActionButtonsVisible(bool visible, bool animate)
+    {
+        EnsureStoryboards();
         _showButtonsStoryboard?.Stop();
         _hideButtonsStoryboard?.Stop();
+        RightButtonsTransform.X = 0;
 
-        bool showButtons = chromeMode is not (WidgetChromeMode.Overlay or WidgetChromeMode.Hidden);
-        RightActionButtons.Opacity = showButtons ? 1 : 0;
-        RightActionButtons.IsHitTestVisible = showButtons;
-        RightButtonsTransform.X = showButtons ? 0 : 12;
+        if (visible)
+        {
+            RightActionButtons.IsHitTestVisible = true;
+            if (!animate)
+            {
+                RightActionButtons.Opacity = 1;
+                return;
+            }
+
+            _showButtonsStoryboard!.Begin();
+            return;
+        }
+
+        RightActionButtons.IsHitTestVisible = false;
+        if (!animate)
+        {
+            RightActionButtons.Opacity = 0;
+            return;
+        }
+
+        _hideButtonsStoryboard!.Begin();
     }
 
     private IEnumerable<Border> FindInteractiveSurfaceBorders(DependencyObject parent)

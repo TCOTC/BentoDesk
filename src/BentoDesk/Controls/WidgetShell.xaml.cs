@@ -130,6 +130,8 @@ public sealed partial class WidgetShell : UserControl
     private bool _isCompactKeyboardFocused;
     private bool _usesSmartCompactBehavior;
     private bool _showCompactSummary;
+    private FrameworkElement? _externalCompactMoveHandle;
+    private FrameworkElement? _externalCompactBodyElement;
     private bool _isPointerOverCompactIdentity;
     private bool _isPointerOverCompactExpansionZone;
     private bool _isPointerOverCompactActions;
@@ -196,6 +198,7 @@ public sealed partial class WidgetShell : UserControl
         InitializeComponent();
         CompactTitleIcon.SetCompactPresentationMode(true);
         SetProtectedCursor(CompactIdentityHost, InputSystemCursorShape.SizeAll);
+        SetProtectedCursor(TitleMoveHandleHost, InputSystemCursorShape.SizeAll);
         SetProtectedCursor(CompactReorderHandle, InputSystemCursorShape.SizeAll);
         SetProtectedCursor(TitleBarReorderHandle, InputSystemCursorShape.SizeAll);
         ShellRoot.AddHandler(UIElement.DragEnterEvent, new DragEventHandler(ShellRoot_DragEnter), true);
@@ -291,7 +294,7 @@ public sealed partial class WidgetShell : UserControl
     public TextBlock TitleTextElement => TitleText;
     public ContentPresenter TitleEditorPresenterElement => TitleEditorPresenter;
     public StackPanel RightActionButtonHost => RightActionButtons;
-    public StackPanel TitleIdentityHostElement => TitleIdentityHost;
+    public FrameworkElement TitleIdentityHostElement => TitleIdentityHost;
     public ContentPresenter ShellContentPresenterElement => ShellContentPresenter;
     public Button LockActionButton => LockButton;
     public Button CollapseActionButton => CollapseButton;
@@ -299,9 +302,13 @@ public sealed partial class WidgetShell : UserControl
     public FrameworkElement OverlayDragHandleElement => OverlayDragHandle;
 
     public FrameworkElement CompactMoveHandleElement =>
-        UsesTitleBarOnlyCollapse ? TitleIdentityHost : CompactIdentityHost;
+        UsesTitleBarOnlyCollapse
+            ? ResolveTitleBarCompactHost(_externalCompactMoveHandle, TitleMoveHandleHost)
+            : CompactIdentityHost;
     public FrameworkElement CompactBodyElement =>
-        UsesTitleBarOnlyCollapse ? TitleIdentityHost : CompactTextContainer;
+        UsesTitleBarOnlyCollapse
+            ? ResolveTitleBarCompactHost(_externalCompactBodyElement, TitleExpansionHost)
+            : CompactTextContainer;
     public FrameworkElement CompactReorderHandleElement =>
         UsesTitleBarOnlyCollapse ? TitleBarReorderHandle : CompactReorderHandle;
 
@@ -324,6 +331,33 @@ public sealed partial class WidgetShell : UserControl
     public bool IsCompactMoveHandlePress => _isCompactMoveHandlePress;
 
     public WidgetCollapseChromeMode CollapseChromeMode => _collapseChromeMode;
+
+    public void SetExternalCompactInteractionHosts(
+        FrameworkElement? moveHandle,
+        FrameworkElement? expansionHost)
+    {
+        _externalCompactMoveHandle = moveHandle;
+        _externalCompactBodyElement = expansionHost;
+        if (moveHandle is not null)
+        {
+            SetProtectedCursor(moveHandle, InputSystemCursorShape.SizeAll);
+        }
+    }
+
+    public void ReportCompactMoveHandleEntered() => NotifyTitleMoveHandleEntered();
+
+    public void ReportCompactMoveHandleExited() => NotifyTitleMoveHandleExited();
+
+    public void ReportCompactExpansionEntered() => NotifyTitleExpansionEntered();
+
+    public void ReportCompactExpansionExited() => NotifyTitleExpansionExited();
+
+    private FrameworkElement ResolveTitleBarCompactHost(
+        FrameworkElement? externalHost,
+        FrameworkElement defaultHost) =>
+        TitleBarContent is not null && externalHost is not null
+            ? externalHost
+            : defaultHost;
 
     public void SetCollapseChromeMode(WidgetCollapseChromeMode mode)
     {
@@ -2708,8 +2742,11 @@ public sealed partial class WidgetShell : UserControl
             bool pressedActionButton = e.OriginalSource is DependencyObject actionSource &&
                 IsWithin(actionSource, RightActionButtons) &&
                 !pressedReorderHandle;
-            _isCompactMoveHandlePress = !pressedReorderHandle && !pressedActionButton;
-            if (pressedReorderHandle)
+            bool pressedMoveHandle = e.OriginalSource is DependencyObject moveSource &&
+                IsWithin(moveSource, CompactMoveHandleElement);
+            // 收起态仅图标区拖动；中间标题区留给悬停展开，避免与拖动抢命中。
+            _isCompactMoveHandlePress = pressedMoveHandle;
+            if (pressedReorderHandle || (!pressedMoveHandle && !pressedActionButton))
             {
                 CompactPointerPressed?.Invoke(this, EventArgs.Empty);
             }
@@ -2741,7 +2778,19 @@ public sealed partial class WidgetShell : UserControl
         _isCompactMoveHandlePress = false;
     }
 
-    private void TitleIdentityHost_PointerEntered(object sender, PointerRoutedEventArgs e)
+    private void TitleMoveHandleHost_PointerEntered(object sender, PointerRoutedEventArgs e) =>
+        NotifyTitleMoveHandleEntered();
+
+    private void TitleMoveHandleHost_PointerExited(object sender, PointerRoutedEventArgs e) =>
+        NotifyTitleMoveHandleExited();
+
+    private void TitleExpansionHost_PointerEntered(object sender, PointerRoutedEventArgs e) =>
+        NotifyTitleExpansionEntered();
+
+    private void TitleExpansionHost_PointerExited(object sender, PointerRoutedEventArgs e) =>
+        NotifyTitleExpansionExited();
+
+    private void NotifyTitleMoveHandleEntered()
     {
         if (!_isCollapsed || !UsesTitleBarOnlyCollapse)
         {
@@ -2750,27 +2799,39 @@ public sealed partial class WidgetShell : UserControl
 
         _isPointerOverCompactIdentity = true;
         CompactMoveHandlePointerEntered?.Invoke(this, EventArgs.Empty);
-        if (_usesSmartCompactBehavior)
-        {
-            _isPointerOverCompactExpansionZone = true;
-            CompactExpansionPointerEntered?.Invoke(this, EventArgs.Empty);
-        }
     }
 
-    private void TitleIdentityHost_PointerExited(object sender, PointerRoutedEventArgs e)
+    private void NotifyTitleMoveHandleExited()
     {
-        if (!UsesTitleBarOnlyCollapse)
+        if (!UsesTitleBarOnlyCollapse || !_isPointerOverCompactIdentity)
         {
             return;
         }
 
         _isPointerOverCompactIdentity = false;
         CompactMoveHandlePointerExited?.Invoke(this, EventArgs.Empty);
-        if (_usesSmartCompactBehavior)
+    }
+
+    private void NotifyTitleExpansionEntered()
+    {
+        if (!_isCollapsed || !UsesTitleBarOnlyCollapse || !_usesSmartCompactBehavior)
         {
-            _isPointerOverCompactExpansionZone = false;
-            CompactExpansionPointerExited?.Invoke(this, EventArgs.Empty);
+            return;
         }
+
+        _isPointerOverCompactExpansionZone = true;
+        CompactExpansionPointerEntered?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void NotifyTitleExpansionExited()
+    {
+        if (!UsesTitleBarOnlyCollapse || !_isPointerOverCompactExpansionZone)
+        {
+            return;
+        }
+
+        _isPointerOverCompactExpansionZone = false;
+        CompactExpansionPointerExited?.Invoke(this, EventArgs.Empty);
     }
 
     private void TitleBarReorderHandle_PointerEntered(object sender, PointerRoutedEventArgs e)
