@@ -28,9 +28,14 @@ public static class WidgetLayerService
 
     public static void MoveToDesktopBottom(IntPtr windowHandle)
     {
-        if (!TryAttachToDesktopIconLayer(windowHandle))
+        bool attached = TryAttachToDesktopIconLayer(windowHandle);
+        if (!attached)
         {
             FallbackToDesktopBottom(windowHandle);
+            App.Log(
+                $"[WidgetVis] MoveToDesktopBottom hwnd=0x{windowHandle.ToInt64():X} " +
+                $"attached=False fallback=True vis={Win32Helper.IsWindowVisible(windowHandle)}");
+            LogPeersSnapshotIfAnomalous("MoveToDesktopBottom-fallback", windowHandle);
             return;
         }
 
@@ -39,6 +44,9 @@ public static class WidgetLayerService
         // and drop sibling widgets below Progman (invisible behind desktop).
         // Always restack the whole peer group into the desktop band afterward.
         BringAbovePeerWidgets(windowHandle);
+        App.Log(
+            $"[WidgetVis] MoveToDesktopBottom hwnd=0x{windowHandle.ToInt64():X} attached=True");
+        LogPeersSnapshotIfAnomalous("MoveToDesktopBottom", windowHandle);
     }
 
     public static IntPtr ClearTopMostPreservingForeground(IntPtr windowHandle)
@@ -159,11 +167,13 @@ public static class WidgetLayerService
     {
         if (!TryResolveDesktopIconView(out IntPtr defView))
         {
+            App.Log($"[WidgetVis] RaiseAbovePeers skipped hwnd=0x{windowHandle.ToInt64():X} reason=no-defview");
             return;
         }
 
         if (!ApplyDesktopOwner(windowHandle, defView))
         {
+            App.Log($"[WidgetVis] RaiseAbovePeers skipped hwnd=0x{windowHandle.ToInt64():X} reason=owner-attach-failed");
             return;
         }
 
@@ -194,6 +204,14 @@ public static class WidgetLayerService
             return;
         }
 
+        App.Log(
+            $"[WidgetVis] RaiseAbovePeers reshuffle hwnd=0x{windowHandle.ToInt64():X} " +
+            $"peers={peers.Length} needsSink={needsSink} isFront={isFront} orphaned={peersOrphaned}");
+        if (peersOrphaned)
+        {
+            LogPeersSnapshot("RaiseAbovePeers-before-rescue", windowHandle);
+        }
+
         // Always sink-front + stack peers atomically. StackPeersUnder alone loses to
         // Guard clamps that pin every peer to the same foreign HWND (last writer wins).
         SinkBelowAppsAndStackPeers(windowHandle, peers);
@@ -202,8 +220,11 @@ public static class WidgetLayerService
         // Guard / WinUI can race the batch; one retry usually settles peer order.
         if (!IsFrontAmongPeers(windowHandle, peers))
         {
+            App.Log($"[WidgetVis] RaiseAbovePeers retry stack hwnd=0x{windowHandle.ToInt64():X}");
             SinkBelowAppsAndStackPeers(windowHandle, peers);
         }
+
+        LogPeersSnapshotIfAnomalous("RaiseAbovePeers-after", windowHandle);
     }
 
     /// <summary>
@@ -962,6 +983,161 @@ public static class WidgetLayerService
         }
 
         return Win32Helper.FindWindowEx(defView, IntPtr.Zero, "SysListView32", null);
+    }
+
+    // ── Visibility / z-order diagnostics ───────────────────────
+
+    /// <summary>
+    /// Full peer snapshot for diagnosing boxes that vanish behind the desktop
+    /// (below Progman) or lose visibility / owner after interaction.
+    /// </summary>
+    public static void LogPeersSnapshot(string reason, IntPtr focusHwnd = default)
+    {
+        IntPtr[] attached;
+        lock (s_desktopLayerLock)
+        {
+            attached = s_desktopLayerAttachments.Keys.ToArray();
+        }
+
+        IntPtr progman = Win32Helper.FindWindow("Progman", null);
+        IntPtr defView = FindExistingDesktopIconView();
+        IntPtr frontPeer;
+        long generation;
+        lock (s_desktopLayerLock)
+        {
+            frontPeer = s_frontPeerHwnd;
+            generation = s_frontPeerGeneration;
+        }
+
+        App.Log(
+            $"[WidgetVis] snapshot reason={reason} count={attached.Length} " +
+            $"focus=0x{focusHwnd.ToInt64():X} front=0x{frontPeer.ToInt64():X} gen={generation} " +
+            $"progman=0x{progman.ToInt64():X} defView=0x{defView.ToInt64():X}");
+
+        foreach (IntPtr hwnd in attached.OrderBy(h => h.ToInt64()))
+        {
+            string marker = hwnd == focusHwnd ? "*" : " ";
+            App.Log($"[WidgetVis] {marker}{FormatPeerSnapshotLine(hwnd, progman, defView)}");
+        }
+    }
+
+    public static void LogPeersSnapshotIfAnomalous(string reason, IntPtr focusHwnd = default)
+    {
+        IntPtr[] attached;
+        lock (s_desktopLayerLock)
+        {
+            attached = s_desktopLayerAttachments.Keys.ToArray();
+        }
+
+        IntPtr progman = Win32Helper.FindWindow("Progman", null);
+        IntPtr defView = FindExistingDesktopIconView();
+        foreach (IntPtr hwnd in attached)
+        {
+            if (IsPeerAnomalous(hwnd, progman, defView))
+            {
+                LogPeersSnapshot($"anomaly:{reason}", focusHwnd);
+                return;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Delayed anomaly checks after async WinUI / DWM z-order settles.
+    /// </summary>
+    public static void SchedulePeersSettleSnapshot(string reason, IntPtr focusHwnd)
+    {
+        Microsoft.UI.Dispatching.DispatcherQueue? dispatcher = App.UiDispatcherQueue;
+        if (dispatcher is null)
+        {
+            return;
+        }
+
+        _ = dispatcher.TryEnqueue(async () =>
+        {
+            await Task.Delay(120);
+            LogPeersSnapshotIfAnomalous($"{reason}-settle-120ms", focusHwnd);
+            await Task.Delay(380);
+            LogPeersSnapshotIfAnomalous($"{reason}-settle-500ms", focusHwnd);
+        });
+    }
+
+    private static bool IsPeerAnomalous(IntPtr hwnd, IntPtr progman, IntPtr defView)
+    {
+        if (hwnd == IntPtr.Zero || !Win32Helper.IsWindow(hwnd))
+        {
+            return true;
+        }
+
+        if (!Win32Helper.IsWindowVisible(hwnd))
+        {
+            return true;
+        }
+
+        if (IsBelowProgman(hwnd, progman))
+        {
+            return true;
+        }
+
+        if (defView != IntPtr.Zero)
+        {
+            IntPtr owner = Win32Helper.GetWindowLongPtr(hwnd, Win32Helper.GWLP_HWNDPARENT);
+            if (owner != defView)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string FormatPeerSnapshotLine(IntPtr hwnd, IntPtr progman, IntPtr defView)
+    {
+        bool visible = Win32Helper.IsWindowVisible(hwnd);
+        bool belowProgman = IsBelowProgman(hwnd, progman);
+        int hops = CountHopsTowardProgman(hwnd, progman);
+        IntPtr owner = Win32Helper.GetWindowLongPtr(hwnd, Win32Helper.GWLP_HWNDPARENT);
+        bool ownerOk = defView != IntPtr.Zero && owner == defView;
+        bool aboveBand = IsAboveDesktopBand(hwnd);
+        bool topMost = Win32Helper.IsWindowTopMost(hwnd);
+        int exStyle = Win32Helper.GetWindowLong(hwnd, Win32Helper.GWL_EXSTYLE);
+        bool layered = (exStyle & Win32Helper.WS_EX_LAYERED) != 0;
+        string alphaText = "?";
+        if (layered &&
+            Win32Helper.GetLayeredWindowAttributes(hwnd, out _, out byte alpha, out uint flags) &&
+            (flags & Win32Helper.LWA_ALPHA) != 0)
+        {
+            alphaText = alpha.ToString();
+        }
+
+        return
+            $"hwnd=0x{hwnd.ToInt64():X} vis={visible} belowProgman={belowProgman} " +
+            $"hopsToProgman={hops} ownerOk={ownerOk} owner=0x{owner.ToInt64():X} " +
+            $"aboveBand={aboveBand} topMost={topMost} layered={layered} alpha={alphaText}";
+    }
+
+    private static int CountHopsTowardProgman(IntPtr windowHandle, IntPtr progman)
+    {
+        if (progman == IntPtr.Zero || windowHandle == IntPtr.Zero)
+        {
+            return -1;
+        }
+
+        IntPtr current = windowHandle;
+        for (int i = 1; i <= 128; i++)
+        {
+            current = Win32Helper.GetWindow(current, Win32Helper.GW_HWNDNEXT);
+            if (current == IntPtr.Zero)
+            {
+                return -1;
+            }
+
+            if (current == progman)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     private sealed record DesktopLayerAttachment(IntPtr OriginalOwner, IntPtr OriginalParent);

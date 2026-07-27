@@ -515,6 +515,10 @@ IsHideAnimationRunning = true;
         }
 
         LogTrayWindow($"PrepareHide gen={TrayAnimation.Generation}");
+        App.Log(
+            $"[WidgetVis] PrepareHide hwnd=0x{HWnd.ToInt64():X} persist={persistVisibility} " +
+            $"gen={TrayAnimation.Generation}");
+        WidgetLayerService.LogPeersSnapshot("PrepareHide", HWnd);
         TrayAnimation.PrepareVisualState(0, 0, WidgetTrayAnimationController.RestingOpacity, WidgetTrayAnimationController.RestingScale);
         return true;
     }

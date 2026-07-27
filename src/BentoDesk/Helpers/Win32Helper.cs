@@ -241,6 +241,14 @@ public static partial class Win32Helper
         byte bAlpha,
         uint dwFlags);
 
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool GetLayeredWindowAttributes(
+        IntPtr hwnd,
+        out uint crKey,
+        out byte bAlpha,
+        out uint dwFlags);
+
     public const uint MSGFLT_ALLOW = 1;
     public const uint WM_DROPFILES = 0x0233;
     public const uint WM_COPYDATA = 0x004A;
@@ -707,6 +715,10 @@ public static partial class Win32Helper
         }
 
         SetLayeredWindowAttributes(hWnd, 0, alpha, LWA_ALPHA);
+        if (alpha < 255)
+        {
+            App.Log($"[WidgetVis] SetTemporaryWindowAlpha hwnd=0x{hWnd.ToInt64():X} alpha={alpha}");
+        }
     }
 
     /// <summary>
@@ -736,6 +748,7 @@ public static partial class Win32Helper
             0,
             0,
             SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_FRAMECHANGED);
+        App.Log($"[WidgetVis] ClearTemporaryWindowAlpha hwnd=0x{hWnd.ToInt64():X}");
     }
 
     /// <summary>

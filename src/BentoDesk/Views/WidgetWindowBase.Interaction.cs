@@ -25,12 +25,15 @@ public abstract partial class WidgetWindowBase
     {
         if (App.Current.WidgetManager is { WidgetsRaisedFromTray: true })
         {
+            App.Log($"[WidgetVis] Elevate skipped hwnd=0x{HWnd.ToInt64():X} reason=raised-from-tray");
             return;
         }
 
         LastElevateForInteractionUtc = DateTime.UtcNow;
         HoldTemporaryTopMost();
         OnElevated();
+        App.Log($"[WidgetVis] Elevate hwnd=0x{HWnd.ToInt64():X}");
+        WidgetLayerService.LogPeersSnapshotIfAnomalous("Elevate", HWnd);
     }
 
     protected void HoldTemporaryTopMost()
@@ -107,6 +110,9 @@ public abstract partial class WidgetWindowBase
     {
         if (!force && !RestoreDesktopLayerWhenIdle && KeepRaisedUntilDeactivate)
         {
+            App.LogVerbose(
+                $"[WidgetVis] RestoreDesktopLayer skipped hwnd=0x{HWnd.ToInt64():X} " +
+                $"force={force} idle={RestoreDesktopLayerWhenIdle} keepRaised={KeepRaisedUntilDeactivate}");
             return;
         }
 
@@ -117,6 +123,9 @@ public abstract partial class WidgetWindowBase
                 RestoreDesktopLayerWhenIdle = true;
             }
 
+            App.Log(
+                $"[WidgetVis] RestoreDesktopLayer deferred hwnd=0x{HWnd.ToInt64():X} " +
+                $"force={force} drag={IsDragging} resize={IsResizing} flyout={HasBlockingFlyoutOpen()}");
             return;
         }
 
@@ -124,8 +133,11 @@ public abstract partial class WidgetWindowBase
         TopMostSafetyTimer = null;
         KeepRaisedUntilDeactivate = false;
         RestoreDesktopLayerWhenIdle = false;
+        App.Log($"[WidgetVis] RestoreDesktopLayer hwnd=0x{HWnd.ToInt64():X} force={force}");
         ClearTopMostOnly();
         ApplyBackdropPreference();
+        WidgetLayerService.LogPeersSnapshot("RestoreDesktopLayer", HWnd);
+        WidgetLayerService.SchedulePeersSettleSnapshot("RestoreDesktopLayer", HWnd);
     }
 
     protected void ClearTopMostOnly()
@@ -153,6 +165,7 @@ public abstract partial class WidgetWindowBase
         e.Handled = true;
 
         App.Current?.ResizeGuideOverlay.BeginDrag(HWnd, RootElement);
+        WidgetLayerService.LogPeersSnapshot("drag-begin", HWnd);
     }
 
     protected void ContinueWindowDragCore(PointerRoutedEventArgs e)
@@ -219,6 +232,9 @@ public abstract partial class WidgetWindowBase
         HasMovedTitleBarDrag = false;
         QueueBackdropRefresh();
         e.Handled = true;
+
+        WidgetLayerService.LogPeersSnapshot($"drag-end moved={hasMoved}", HWnd);
+        WidgetLayerService.SchedulePeersSettleSnapshot("drag-end", HWnd);
     }
 
     // ── Resize logic ───────────────────────────────────────────
@@ -485,8 +501,10 @@ public abstract partial class WidgetWindowBase
     {
         EndCompactInteraction();
         App.Current.WidgetManager?.EndWidgetInteraction(reason);
+        App.Log($"[WidgetVis] ReleaseInteractionLayer hwnd=0x{HWnd.ToInt64():X} reason={reason}");
         if (App.Current.WidgetManager?.RequestRestoreRaisedWidgetsToDesktopLayer(reason) == true)
         {
+            WidgetLayerService.LogPeersSnapshot($"ReleaseInteraction-manager-restore:{reason}", HWnd);
             return;
         }
 

@@ -127,7 +127,9 @@ public abstract partial class WidgetWindowBase
         }
 
         IsAtDesktopLayer = true;
+        App.Log($"[WidgetVis] ContentPointerPressed hwnd=0x{HWnd.ToInt64():X}");
         WidgetLayerService.ReassertDesktopLayer(HWnd);
+        WidgetLayerService.LogPeersSnapshotIfAnomalous("ContentPointerPressed", HWnd);
     }
 
     // ── Bounds management ──────────────────────────────────────

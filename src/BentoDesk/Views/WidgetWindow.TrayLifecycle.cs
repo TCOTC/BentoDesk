@@ -375,6 +375,10 @@ public sealed partial class WidgetWindow
         }
 
         LogTrayWindow($"PrepareHide gen={_trayAnimation.Generation}");
+        App.Log(
+            $"[WidgetVis] PrepareHide hwnd=0x{_hWnd.ToInt64():X} persist={persistVisibility} " +
+            $"gen={_trayAnimation.Generation}");
+        WidgetLayerService.LogPeersSnapshot("PrepareHide", _hWnd);
         _trayAnimation.PrepareVisualState(
             0,
             0,

@@ -668,6 +668,10 @@ public sealed partial class WidgetManager
     public async Task SetAllWidgetsVisibleAsync(bool visible)
     {
         using var perfScope = PerformanceLogger.Measure("WidgetManager.SetAllWidgetsVisible", $"visible={visible}");
+        App.Log(
+            $"[WidgetVis] SetAllVisible requested visible={visible} raised={_widgetsRaisedFromTray} " +
+            $"loadedFile={_widgets.Count} loadedContent={_contentWidgets.Count}");
+        WidgetLayerService.LogPeersSnapshot($"SetAllVisible-before visible={visible}");
         App.LogVerbose(
             $"[TrayBatch] SetAllVisible requested visible={visible} raised={_widgetsRaisedFromTray} " +
             $"loadedFile={_widgets.Count} loadedContent={_contentWidgets.Count}");
@@ -727,6 +731,8 @@ public sealed partial class WidgetManager
             PlayPreparedTrayShowAnimations(windowsToAnimate);
             SaveBatchVisibilityState();
             App.LogVerbose($"[TrayBatch] SetAllVisible completed visible=true prepared={windowsToShow.Count} shown={shownWindows.Count}");
+            App.Log($"[WidgetVis] SetAllVisible completed visible=true shown={shownWindows.Count}");
+            WidgetLayerService.LogPeersSnapshot("SetAllVisible-after-show");
             return;
         }
 
@@ -765,6 +771,8 @@ public sealed partial class WidgetManager
             StopTrayLayerRestoreMonitor();
             SaveBatchVisibilityState();
             App.LogVerbose($"[TrayBatch] SetAllVisible completed visible=false prepared={windowsToHide.Count}");
+            App.Log($"[WidgetVis] SetAllVisible completed visible=false prepared={windowsToHide.Count}");
+            WidgetLayerService.LogPeersSnapshot("SetAllVisible-after-hide");
         });
 
         return;
