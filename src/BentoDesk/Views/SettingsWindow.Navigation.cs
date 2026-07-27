@@ -44,11 +44,9 @@ public sealed partial class SettingsWindow
             ["FileDisplaySettings"] = FileDisplaySettingsSection,
             ["FileStorageSettings"] = FileStorageSettingsSection,
             ["FileStackSettings"] = FileStackSettingsSection,
-            ["FeatureWidgets"] = FeatureWidgetsSection,
             ["MusicSettings"] = MusicSettingsSection,
             ["Interaction"] = InteractionSection,
             ["InteractionHotkeySettings"] = InteractionHotkeySettingsSection,
-            ["InteractionWindowSettings"] = InteractionWindowSettingsSection,
             ["Maintenance"] = MaintenanceSection,
             ["BackupRestoreSettings"] = BackupRestoreSettingsSection,
             ["CompatibilityDiagnosticsSettings"] = CompatibilityDiagnosticsSettingsSection,
@@ -434,10 +432,6 @@ public sealed partial class SettingsWindow
         if (sectionTag == "FileStackSettings")
         {
             _ = ViewModel.RefreshFileStackRulePreviewFromDiskAsync();
-        }
-        if (sectionTag == "FeatureWidgets")
-        {
-            RefreshFeatureWidgetList();
         }
         if (sectionTag == "CompatibilityDiagnosticsSettings")
         {

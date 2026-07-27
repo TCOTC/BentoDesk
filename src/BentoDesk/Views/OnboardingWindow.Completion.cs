@@ -1,18 +1,5 @@
-using CommunityToolkit.WinUI.Animations;
-using BentoDesk.Helpers;
-using BentoDesk.Models;
 using BentoDesk.Services;
-using Microsoft.UI;
-using Microsoft.UI.Composition.SystemBackdrops;
-using Microsoft.UI.Dispatching;
-using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Animation;
-using Microsoft.UI.Xaml.Shapes;
-using Windows.UI;
-using WinRT.Interop;
 
 namespace BentoDesk.Views;
 
@@ -20,15 +7,8 @@ public sealed partial class OnboardingWindow
 {
     private void SetupStep5()
     {
-        // Widgets summary
-        var enabledWidgets = new List<string>();
-        if (FeatureWidgetSettings.IsEnabled(_settingsService.Settings, WidgetKind.Music))
-        {
-            enabledWidgets.Add(_localizationService.T("Onboarding.Step2.MusicTitle"));
-        }
-        Step5WidgetsSummary.Text = enabledWidgets.Count > 0
-            ? string.Join(" · ", enabledWidgets)
-            : _localizationService.T("Onboarding.Step5.NoWidgets");
+        // File boxes are always available; music is settings-gated and not part of onboarding.
+        Step5WidgetsSummary.Text = _localizationService.T("Onboarding.Step5.SummaryFileWidgets");
 
         // Appearance summary
         string themeLabel = _settingsService.Settings.Theme switch
@@ -55,10 +35,6 @@ public sealed partial class OnboardingWindow
         Step5DailySummary.Text = $"{hotkeySummary} · {startupSummary}";
     }
 
-    // ════════════════════════════════════════════════════════════
-    //  Localization
-    // ════════════════════════════════════════════════════════════
-
     private void OnLanguageChanged()
     {
         Title = _localizationService.T("Onboarding.WindowTitle");
@@ -67,8 +43,4 @@ public sealed partial class OnboardingWindow
         SetupStep(animate: false);
         UpdateFooterState();
     }
-
-    // ════════════════════════════════════════════════════════════
-    //  Intro Sequence (preserved from original)
-    // ════════════════════════════════════════════════════════════
 }

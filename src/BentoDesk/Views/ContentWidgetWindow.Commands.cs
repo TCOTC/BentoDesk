@@ -150,14 +150,15 @@ public sealed partial class ContentWidgetWindow
         flyout.Items.Add(new MenuFlyoutSeparator());
         var disableWidget = new MenuFlyoutItem
         {
-            Text = App.Current.LocalizationService.T("Widget.FeatureWidget.Disable"),
+            Text = App.Current.LocalizationService.T("Settings.Music.Disable"),
             Icon = new FontIcon { Glyph = "\uE7E8" }
         };
         disableWidget.Click += async (_, _) =>
         {
-            if (App.Current.WidgetManager is { } widgetManager)
+            if (App.Current.WidgetManager is { } widgetManager &&
+                _config.WidgetKind == WidgetKind.Music)
             {
-                await widgetManager.SetFeatureWidgetEnabledAsync(_config.WidgetKind, enabled: false, reveal: false);
+                await widgetManager.SetMusicWidgetEnabledAsync(enabled: false, reveal: false);
             }
         };
         flyout.Items.Add(disableWidget);
@@ -167,11 +168,13 @@ public sealed partial class ContentWidgetWindow
 
     private static string GetSettingsMenuTextKey(WidgetKind kind)
     {
-        return kind switch
+        if (Services.WidgetKinds.WidgetKindHandlerRegistry.Default.TryGet(kind, out var handler) &&
+            !string.IsNullOrWhiteSpace(handler.SettingsMenuTextKey))
         {
-            WidgetKind.Music => "Music.OpenSettings",
-            _ => "Common.Configure"
-        };
+            return handler.SettingsMenuTextKey;
+        }
+
+        return "Common.Configure";
     }
 
     private void SetPositionLocked(bool value)

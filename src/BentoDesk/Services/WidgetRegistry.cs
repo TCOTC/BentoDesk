@@ -1,4 +1,5 @@
 using BentoDesk.Models;
+using BentoDesk.Services.WidgetKinds;
 
 namespace BentoDesk.Services;
 
@@ -45,9 +46,9 @@ public sealed class WidgetRegistry
             return false;
         }
 
-        if (FeatureWidgetSettings.IsFeatureWidget(widget.WidgetKind))
+        if (WidgetKindHandlerRegistry.Default.TryGet(widget.WidgetKind, out var handler))
         {
-            return FeatureWidgetSettings.IsEnabled(settings, widget.WidgetKind);
+            return handler.IsAvailableForSession(settings);
         }
 
         return true;

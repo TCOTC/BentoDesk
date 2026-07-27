@@ -227,78 +227,37 @@ set => WidgetOpacity = Math.Clamp(1.0 - value / 100d, SettingsService.MinWidgetO
 
     public string GlobalHotkeyDescription => _localizationService.T("Settings.GlobalHotkey.Description");
     public bool CanShowGlobalHotkeyWarning => GlobalHotkeyEnabled && GlobalHotkeyService.IsRiskyGesture(GetCurrentGlobalHotkeyGesture());
-    public IEnumerable<FeatureWidgetEntry> FeatureWidgetEntries
+
+    public bool IsMusicWidgetEnabled()
     {
-        get
-        {
-            var factory = new FeatureWidgetEntryFactory(
-                _localizationService,
-                new WidgetContentFactory(_localizationService),
-                WidgetRegistry.Default,
-                IsWidgetEnabled);
-            return factory.CreateEntries();
-        }
+        return App.Current?.WidgetManager?.IsMusicWidgetEnabled() ??
+               _settingsService.Settings.MusicWidgetEnabled;
     }
 
-    public bool IsWidgetEnabled(WidgetKind kind)
+    public async Task ResetMusicWidgetPreferencesAsync()
     {
-        return App.Current?.WidgetManager?.IsFeatureWidgetEnabled(kind) ??
-               FeatureWidgetSettings.IsEnabled(_settingsService.Settings, kind);
-    }
-
-    public void SetWidgetEnabled(WidgetKind kind, bool enabled)
-    {
-        FeatureWidgetSettings.SetEnabled(_settingsService.Settings, kind, enabled);
-        _ = SyncFeatureWidgetAsync(kind, enabled);
-    }
-
-    public async Task ResetFeatureWidgetAsync(WidgetKind kind)
-    {
-        if (!FeatureWidgetSettings.IsFeatureWidget(kind))
-        {
-            return;
-        }
-
         try
         {
-            await ApplyFeatureWidgetDefaultSettingsAsync(kind);
-
-            if (App.Current?.WidgetManager is { } widgetManager)
-            {
-                await widgetManager.ResetFeatureWidgetAsync(kind);
-            }
-            else
-            {
-                await _settingsService.SaveAsync();
-            }
+            await ApplyMusicWidgetDefaultSettingsAsync();
         }
         catch (Exception ex)
         {
-            App.Log($"[SettingsViewModel] Failed to reset feature widget kind={kind}: {ex}");
-        }
-        finally
-        {
-            OnPropertyChanged(nameof(FeatureWidgetEntries));
+            App.Log($"[SettingsViewModel] Failed to reset music widget preferences: {ex}");
         }
     }
 
-    private async Task ApplyFeatureWidgetDefaultSettingsAsync(WidgetKind kind)
+    private async Task ApplyMusicWidgetDefaultSettingsAsync()
     {
         bool wasApplyingSnapshot = _isApplyingSettingsSnapshot;
         _isApplyingSettingsSnapshot = true;
         try
         {
-            switch (kind)
-            {
-                case WidgetKind.Music:
-                    MusicUseArtworkBackdrop = true;
-                    MusicEnableCoverHoverMotion = true;
-                    SelectedMusicDisplayMode = SettingsService.MusicDisplayModeAuto;
-                    _settingsService.Settings.MusicUseArtworkBackdrop = true;
-                    _settingsService.Settings.MusicEnableCoverHoverMotion = true;
-                    _settingsService.Settings.MusicDisplayMode = SettingsService.MusicDisplayModeAuto;
-                    break;
-            }
+            MusicUseArtworkBackdrop = true;
+            MusicEnableCoverHoverMotion = true;
+            SelectedMusicDisplayMode = SettingsService.MusicDisplayModeAuto;
+            _settingsService.Settings.MusicUseArtworkBackdrop = true;
+            _settingsService.Settings.MusicEnableCoverHoverMotion = true;
+            _settingsService.Settings.MusicDisplayMode = SettingsService.MusicDisplayModeAuto;
         }
         finally
         {
@@ -308,25 +267,24 @@ set => WidgetOpacity = Math.Clamp(1.0 - value / 100d, SettingsService.MinWidgetO
         await _settingsService.SaveAsync();
     }
 
-    private async Task SyncFeatureWidgetAsync(WidgetKind kind, bool enabled)
+    private async Task SyncMusicWidgetEnabledAsync(bool enabled)
     {
         try
         {
             if (App.Current?.WidgetManager is not { } widgetManager)
             {
+                _settingsService.Settings.MusicWidgetEnabled = enabled;
                 await _settingsService.SaveAsync();
                 return;
             }
 
-            await widgetManager.SetFeatureWidgetEnabledAsync(kind, enabled, reveal: enabled);
+            await widgetManager.SetMusicWidgetEnabledAsync(enabled, reveal: enabled);
+            MusicWidgetEnabled = widgetManager.IsMusicWidgetEnabled();
         }
         catch (Exception ex)
         {
-            App.Log($"[SettingsViewModel] Failed to sync feature widget enabled state kind={kind}: {ex}");
-        }
-        finally
-        {
-            OnPropertyChanged(nameof(FeatureWidgetEntries));
+            App.Log($"[SettingsViewModel] Failed to sync music widget enabled state: {ex}");
+            MusicWidgetEnabled = _settingsService.Settings.MusicWidgetEnabled;
         }
     }
 

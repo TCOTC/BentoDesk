@@ -179,7 +179,7 @@ public sealed class SettingsService
             new Dictionary<string, DefaultPreferencePreservationReason>(StringComparer.Ordinal)
             {
                 [nameof(AppSettings.AutoStart)] = DefaultPreferencePreservationReason.SystemIntegration,
-                [nameof(AppSettings.FeatureWidgetEnabledStates)] = DefaultPreferencePreservationReason.UserChoice,
+                [nameof(AppSettings.MusicWidgetEnabled)] = DefaultPreferencePreservationReason.UserChoice,
                 [nameof(AppSettings.Widgets)] = DefaultPreferencePreservationReason.UserData,
                 [nameof(AppSettings.DeletedWidgetIds)] = DefaultPreferencePreservationReason.UserData,
                 [nameof(AppSettings.RecentOrganizationHistory)] = DefaultPreferencePreservationReason.UserData,
@@ -252,6 +252,7 @@ public sealed class SettingsService
         settings.MusicUseArtworkBackdrop = true;
         settings.MusicEnableCoverHoverMotion = true;
         settings.MusicDisplayMode = MusicDisplayModeAuto;
+        settings.FeatureWidgetEnabledStates = [];
         settings.ManagedDropAction = ManagedDropActionMove;
         settings.GlobalHotkeyEnabled = DefaultGlobalHotkeyEnabled;
         settings.GlobalHotkeyModifiers = DefaultGlobalHotkeyModifiers;
@@ -319,7 +320,7 @@ settings.FocusClickedWidgetOnRaise = false;
 
                 changed |= NormalizePresentationSettings(_settings);
                 changed |= NormalizeAppearanceSettings(_settings);
-                changed |= NormalizeFeatureWidgetSettings(_settings);
+                changed |= NormalizeMusicWidgetSettings(_settings);
                 changed |= NormalizeWidgetContentSettings(_settings);
                 changed |= NormalizeOrganizerSettings(_settings);
                 changed |= NormalizeHotkeySettings(_settings);
@@ -360,7 +361,7 @@ settings.FocusClickedWidgetOnRaise = false;
             {
                 NormalizePresentationSettings(_settings);
                 NormalizeAppearanceSettings(_settings);
-                NormalizeFeatureWidgetSettings(_settings);
+                NormalizeMusicWidgetSettings(_settings);
                 NormalizeWidgetContentSettings(_settings);
                 NormalizeOrganizerSettings(_settings);
                 NormalizeHotkeySettings(_settings);
@@ -1114,9 +1115,53 @@ settings.FocusClickedWidgetOnRaise = false;
         return changed;
     }
 
-    internal static bool NormalizeFeatureWidgetSettings(AppSettings settings)
+    /// <summary>
+    /// Migrates legacy <see cref="AppSettings.FeatureWidgetEnabledStates"/> into
+    /// <see cref="AppSettings.MusicWidgetEnabled"/> and clears the dictionary.
+    /// </summary>
+    internal static bool NormalizeMusicWidgetSettings(AppSettings settings)
     {
-        return FeatureWidgetSettings.Normalize(settings);
+        bool changed = false;
+        settings.FeatureWidgetEnabledStates ??= [];
+
+        if (settings.FeatureWidgetEnabledStates.Count > 0)
+        {
+            if (TryReadLegacyMusicEnabled(settings.FeatureWidgetEnabledStates, out bool legacyEnabled) &&
+                settings.MusicWidgetEnabled != legacyEnabled)
+            {
+                settings.MusicWidgetEnabled = legacyEnabled;
+                changed = true;
+            }
+
+            settings.FeatureWidgetEnabledStates.Clear();
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    private static bool TryReadLegacyMusicEnabled(
+        Dictionary<string, bool> states,
+        out bool enabled)
+    {
+        string musicKey = WidgetKind.Music.ToString();
+        if (states.TryGetValue(musicKey, out enabled))
+        {
+            return true;
+        }
+
+        foreach (var (key, value) in states)
+        {
+            if (Enum.TryParse(key, ignoreCase: true, out WidgetKind kind) &&
+                kind == WidgetKind.Music)
+            {
+                enabled = value;
+                return true;
+            }
+        }
+
+        enabled = false;
+        return false;
     }
 
     private static bool NormalizeOrganizerSettings(AppSettings settings)

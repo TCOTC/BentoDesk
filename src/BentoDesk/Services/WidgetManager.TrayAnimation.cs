@@ -56,11 +56,12 @@ public sealed partial class WidgetManager
 
         if (config.WidgetKind != WidgetKind.File)
         {
-            if (IsContentFeatureWidgetKind(config.WidgetKind))
+            App.LogVerbose($"[TrayBatch] Prepare skipped reason=non-file widget={FormatWidget(config)}");
+            if (IsDetachedContentHost(config.WidgetKind))
             {
-                if (!GetFeatureWidgetEnabledState(config.WidgetKind))
+                if (config.WidgetKind == WidgetKind.Music && !IsMusicWidgetEnabled())
                 {
-                    App.LogVerbose($"[TrayBatch] Prepare skipped reason=feature-disabled widget={FormatWidget(config)}");
+                    App.LogVerbose($"[TrayBatch] Prepare skipped reason=music-disabled widget={FormatWidget(config)}");
                     return null;
                 }
 

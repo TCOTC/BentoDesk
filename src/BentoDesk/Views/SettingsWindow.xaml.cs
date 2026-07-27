@@ -20,19 +20,6 @@ namespace BentoDesk.Views;
 
 public sealed partial class SettingsWindow : Window
 {
-    private sealed record FeatureWidgetRowElements(
-        Border Container,
-        FontIcon Icon,
-        TextBlock Title,
-        TextBlock Description,
-        Button? SettingsButton,
-        Button? ResetButton,
-        ToggleSwitch? Toggle,
-        FontIcon? Arrow,
-        bool HasSettingsPage,
-        bool HasReset,
-        bool HasToggle);
-
     private const int DefaultWindowWidth = 920;
     private const int DefaultWindowHeight = 760;
     private const int MinWindowWidth = 800;
@@ -60,7 +47,6 @@ public sealed partial class SettingsWindow : Window
     private readonly List<Grid> _settingRows = [];
     private readonly List<Grid> _metricRows = [];
     private readonly HashSet<Slider> _pressedAppearanceSliders = [];
-    private readonly Dictionary<WidgetKind, FeatureWidgetRowElements> _featureWidgetRows = [];
     private readonly DispatcherTimer _resizeSettleTimer = new() { Interval = ResizeSettleDelay };
     private readonly DispatcherTimer _sectionLayoutSettleTimer = new() { Interval = SectionLayoutSettleDelay };
     private readonly PointerEventHandler _settingsRootPointerPressedHandler;
@@ -70,7 +56,6 @@ public sealed partial class SettingsWindow : Window
     private bool _allowClose;
     private bool _isAppearanceSliderDragging;
     private bool _isRecordingHotkey;
-    private bool _isRefreshingFeatureWidgetList;
     private bool _isSyncingNavigationSelection;
     private bool _isSettingsRootLoaded;
     private bool _isRefreshingBackupSnapshots;
@@ -85,17 +70,15 @@ public sealed partial class SettingsWindow : Window
             ["Appearance"] = new("Appearance", "Settings.Section.Appearance", null, "Appearance"),
             ["CapsuleMode"] = new("CapsuleMode", "Settings.Section.CapsuleMode", null, "CapsuleMode"),
             ["AppearanceDetail"] = new("AppearanceDetail", "Settings.Appearance.DetailTitle", null, "AppearanceDetail"),
-            ["FeatureWidgets"] = new("FeatureWidgets", "Settings.Section.FeatureWidgets", null, "FeatureWidgets"),
             ["Interaction"] = new("Interaction", "Settings.Section.Interaction", null, "Interaction"),
             ["InteractionHotkeySettings"] = new("InteractionHotkeySettings", "Settings.Interaction.Hotkeys.Title", "Interaction", "Interaction"),
-            ["InteractionWindowSettings"] = new("InteractionWindowSettings", "Settings.Interaction.Window.Title", "Interaction", "Interaction"),
             ["Advanced"] = new("Advanced", "Settings.Section.Advanced", null, "Interaction"),
             ["Maintenance"] = new("Maintenance", "Settings.Section.Maintenance", null, "Maintenance"),
             ["About"] = new("About", "Settings.Nav.About", null, "About"),
             ["FileDisplaySettings"] = new("FileDisplaySettings", "Settings.Group.FileLayout.Title", "AppearanceDetail", "AppearanceDetail"),
             ["FileStorageSettings"] = new("FileStorageSettings", "Settings.Group.FileStorage.Title", "AppearanceDetail", "AppearanceDetail"),
             ["FileStackSettings"] = new("FileStackSettings", "Settings.FileStacks.PageTitle", "AppearanceDetail", "AppearanceDetail"),
-            ["MusicSettings"] = new("MusicSettings", "Settings.Music.Title", "FeatureWidgets", "FeatureWidgets"),
+            ["MusicSettings"] = new("MusicSettings", "Settings.Nav.MusicWidget", null, "MusicSettings"),
             ["AppearanceMaterialSettings"] = new("AppearanceMaterialSettings", "Settings.Material.Title", "Appearance", "Appearance"),
             ["AppearanceDensitySettings"] = new("AppearanceDensitySettings", "Settings.Density.Title", "Appearance", "Appearance"),
             ["AppearanceWindowSettings"] = new("AppearanceWindowSettings", "Settings.Group.AppVisual.Title", "Appearance", "Appearance"),
@@ -215,7 +198,6 @@ public sealed partial class SettingsWindow : Window
     private void SettingsRoot_Loaded(object sender, RoutedEventArgs e)
     {
         CollectResponsiveRows(SettingsRoot);
-        RefreshFeatureWidgetList();
         ViewModel.RefreshGlobalHotkeyState();
         RefreshGlobalHotkeyControls();
         UpdateResponsiveLayout(GetWindowWidth());
@@ -263,7 +245,6 @@ public sealed partial class SettingsWindow : Window
         Bindings.StopTracking();
         Localized.UntrackTree(SettingsRoot);
         SettingsRoot.DataContext = null;
-        ClearFeatureWidgetRows();
         ViewModel.Dispose();
         _settingRows.Clear();
         _metricRows.Clear();
@@ -303,7 +284,6 @@ public sealed partial class SettingsWindow : Window
         void Apply()
         {
             ApplyTitleBarButtonColors();
-            RefreshFeatureWidgetList();
         }
 
         if (DispatcherQueue.HasThreadAccess)
@@ -313,11 +293,6 @@ public sealed partial class SettingsWindow : Window
         }
 
         DispatcherQueue.TryEnqueue(Apply);
-    }
-
-    private Brush CreateFeatureWidgetIconBrush()
-    {
-        return new SolidColorBrush(IsEffectiveSettingsThemeDark() ? Colors.White : Colors.Black);
     }
 
     private bool IsEffectiveSettingsThemeDark()

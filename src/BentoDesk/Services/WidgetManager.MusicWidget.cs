@@ -1,8 +1,9 @@
-﻿// Copyright (c) BentoDesk. All rights reserved.
+// Copyright (c) BentoDesk. All rights reserved.
 
 using BentoDesk.Models;
 using BentoDesk.Helpers;
 using BentoDesk.Controls.WidgetContents;
+using BentoDesk.Services.WidgetKinds;
 using BentoDesk.ViewModels;
 using BentoDesk.Views;
 using Microsoft.UI.Dispatching;
@@ -12,60 +13,46 @@ using Microsoft.UI.Xaml;
 namespace BentoDesk.Services;
 
 /// <summary>
-/// Partial class containing FeatureWidgets logic for WidgetManager.
+/// Music widget enable/disable and singleton lifecycle for WidgetManager.
 /// </summary>
 public sealed partial class WidgetManager
 {
-
-    private readonly Dictionary<WidgetKind, bool> _lastFeatureWidgetEnabledStates = new();
-    private readonly Dictionary<WidgetKind, FeatureWidgetHandler> _featureWidgetHandlers;
+    private bool _lastMusicWidgetEnabled;
     private readonly Dictionary<WidgetKind, WidgetWindowProvider> _windowProviders;
+    private readonly WidgetKindHandlerRegistry _kindHandlers;
     private bool _isApplyingAppearancePreview;
 
-    private void ApplyFeatureWidgetEnabledState(WidgetKind kind, bool enabled)
+    private void ApplyMusicWidgetEnabledState(bool enabled)
     {
         if (App.UiDispatcherQueue is { } dispatcherQueue && !dispatcherQueue.HasThreadAccess)
         {
-            dispatcherQueue.TryEnqueue(() => ApplyFeatureWidgetEnabledState(kind, enabled));
+            dispatcherQueue.TryEnqueue(() => ApplyMusicWidgetEnabledState(enabled));
             return;
         }
 
         if (!enabled)
         {
-            if (_featureWidgetHandlers.TryGetValue(kind, out var handler))
-            {
-                handler.HideLoaded();
-            }
-            else
-            {
-                HideAndCloseFeatureWidgetAsync(kind);
-            }
-
+            HideAndCloseMusicWidget();
             return;
         }
 
-        CreateOrShowFeatureWidgetAsync(kind).ContinueWith(
+        CreateOrShowMusicWidgetAsync().ContinueWith(
             task =>
             {
                 if (task.Exception is not null)
                 {
-                    App.Log($"[WidgetManager] Failed to show feature widget after enabling kind={kind}: {task.Exception}");
+                    App.Log($"[WidgetManager] Failed to show music widget after enabling: {task.Exception}");
                 }
             },
             TaskContinuationOptions.OnlyOnFaulted);
     }
 
-    private string GetDefaultFeatureWidgetTitle(WidgetKind kind, WidgetContentDescriptor descriptor)
+    private string GetDefaultWidgetTitle(WidgetKind kind, WidgetContentDescriptor descriptor)
     {
-        string key = kind switch
+        if (_kindHandlers.TryGet(kind, out var handler) &&
+            !string.IsNullOrWhiteSpace(handler.DefaultTitleLocalizationKey))
         {
-            WidgetKind.Music => "Music.Title",
-            _ => string.Empty
-        };
-
-        if (!string.IsNullOrWhiteSpace(key))
-        {
-            string localized = _localizationService.T(key);
+            string localized = _localizationService.T(handler.DefaultTitleLocalizationKey);
             if (!string.IsNullOrWhiteSpace(localized))
             {
                 return localized;
@@ -75,17 +62,12 @@ public sealed partial class WidgetManager
         return descriptor.DefaultTitle;
     }
 
-    private async Task<ContentWidgetWindow> CreateSingletonContentFeatureWidgetAsync(WidgetKind kind)
+    private async Task<ContentWidgetWindow> CreateOrShowMusicWidgetCoreAsync()
     {
-        if (!IsContentFeatureWidgetKind(kind))
-        {
-            throw new NotSupportedException($"Widget kind '{kind}' is not a content feature widget.");
-        }
-
-        SetFeatureWidgetEnabledState(kind, true);
+        SetMusicWidgetEnabledState(true);
 
         var existingConfig = _settingsService.Settings.Widgets
-            .FirstOrDefault(w => w.WidgetKind == kind && !IsDeleted(w.Id));
+            .FirstOrDefault(w => w.WidgetKind == WidgetKind.Music && !IsDeleted(w.Id));
         if (existingConfig is not null)
         {
             await ShowWidgetAsync(existingConfig.Id, reveal: true, autoRestoreOnReveal: false);
@@ -95,22 +77,16 @@ public sealed partial class WidgetManager
             }
         }
 
-        var descriptor = new WidgetContentFactory(_localizationService).GetDescriptor(kind);
+        var descriptor = new WidgetContentFactory(_localizationService).GetDescriptor(WidgetKind.Music);
+        var handler = _kindHandlers.Get(WidgetKind.Music);
+        (double width, double height) = handler.GetDefaultSize(_settingsService.Settings);
         var config = new WidgetConfig
         {
-            Name = GetDefaultFeatureWidgetTitle(kind, descriptor),
-            WidgetKind = kind,
+            Name = GetDefaultWidgetTitle(WidgetKind.Music, descriptor),
+            WidgetKind = WidgetKind.Music,
             BoundsCoordinateVersion = WidgetConfig.CurrentBoundsCoordinateVersion,
-            Width = kind switch
-            {
-                WidgetKind.Music => 380,
-                _ => Math.Max(_settingsService.Settings.DefaultWidgetWidth, 320)
-            },
-            Height = kind switch
-            {
-                WidgetKind.Music => 190,
-                _ => Math.Max(_settingsService.Settings.DefaultWidgetHeight, 360)
-            }
+            Width = width,
+            Height = height
         };
 
         _settingsService.Settings.Widgets.Add(config);
@@ -119,15 +95,23 @@ public sealed partial class WidgetManager
         return await CreateContentWidgetFromConfigAsync(config, revealAfterCreate: true);
     }
 
-    private void DeduplicateFeatureWidgets()
+    private void DeduplicateSingletonWidgets()
     {
         var seen = new HashSet<WidgetKind>();
         var toRemove = new List<string>();
 
         foreach (var config in _settingsService.Settings.Widgets.ToList())
         {
-            if (config.WidgetKind == WidgetKind.File) continue;
-            if (IsDeleted(config.Id)) continue;
+            if (IsDeleted(config.Id))
+            {
+                continue;
+            }
+
+            if (!_kindHandlers.TryGet(config.WidgetKind, out var handler) ||
+                handler.SupportsMultiInstance)
+            {
+                continue;
+            }
 
             if (!seen.Add(config.WidgetKind))
             {
@@ -143,72 +127,72 @@ public sealed partial class WidgetManager
                 _settingsService.Settings.Widgets.RemoveAll(w => w.Id == id);
                 _settingsService.Settings.DeletedWidgetIds.Add(id);
             }
+
             _settingsService.SaveDebounced();
         }
     }
 
-    internal IDesktopWidgetWindow? GetFeatureWidget(WidgetKind kind)
+    internal IDesktopWidgetWindow? GetMusicWidget()
     {
         return _contentWidgets.Values
-            .FirstOrDefault(w => w.Config.WidgetKind == kind);
+            .FirstOrDefault(w => w.Config.WidgetKind == WidgetKind.Music);
+    }
+
+    internal bool IsMusicWidgetEnabled()
+    {
+        return _settingsService.Settings.MusicWidgetEnabled;
+    }
+
+    internal async Task<IDesktopWidgetWindow?> CreateOrShowMusicWidgetAsync()
+    {
+        if (!HasUiThreadAccess())
+        {
+            return await RunOnUiThreadAsync(CreateOrShowMusicWidgetAsync);
+        }
+
+        return await CreateOrShowMusicWidgetCoreAsync();
+    }
+
+    public async Task SetMusicWidgetEnabledAsync(bool enabled, bool reveal = true)
+    {
+        if (!HasUiThreadAccess())
+        {
+            await RunOnUiThreadAsync(() => SetMusicWidgetEnabledAsync(enabled, reveal));
+            return;
+        }
+
+        await SetMusicWidgetEnabledCoreAsync(enabled, reveal);
+    }
+
+    /// <summary>
+    /// Compatibility shim for callers still using the FeatureWidget naming.
+    /// </summary>
+    public Task SetFeatureWidgetEnabledAsync(WidgetKind kind, bool enabled, bool reveal = true)
+    {
+        if (kind != WidgetKind.Music)
+        {
+            App.Log($"[WidgetManager] SetFeatureWidgetEnabled: unsupported kind={kind}");
+            return Task.CompletedTask;
+        }
+
+        return SetMusicWidgetEnabledAsync(enabled, reveal);
     }
 
     internal bool IsFeatureWidgetEnabled(WidgetKind kind)
     {
-        return FeatureWidgetSettings.IsFeatureWidget(kind)
-            ? GetFeatureWidgetEnabledState(kind)
-            : GetFeatureWidget(kind)?.Visible == true;
+        return kind == WidgetKind.Music && IsMusicWidgetEnabled();
     }
 
-    internal async Task<IDesktopWidgetWindow?> CreateOrShowFeatureWidgetAsync(WidgetKind kind)
+    public async Task ResetMusicWidgetAsync()
     {
         if (!HasUiThreadAccess())
         {
-            return await RunOnUiThreadAsync(() => CreateOrShowFeatureWidgetAsync(kind));
-        }
-
-        if (_featureWidgetHandlers.TryGetValue(kind, out var handler))
-        {
-            return await handler.CreateOrShowAsync(true);
-        }
-
-        App.Log($"[WidgetManager] CreateOrShowFeatureWidget: unsupported kind={kind}");
-        return null;
-    }
-
-    public async Task SetFeatureWidgetEnabledAsync(WidgetKind kind, bool enabled, bool reveal = true)
-    {
-        if (!HasUiThreadAccess())
-        {
-            await RunOnUiThreadAsync(() => SetFeatureWidgetEnabledAsync(kind, enabled, reveal));
-            return;
-        }
-
-        if (_featureWidgetHandlers.TryGetValue(kind, out var handler))
-        {
-            await handler.SetEnabledAsync(enabled, reveal);
-            return;
-        }
-
-        App.Log($"[WidgetManager] SetFeatureWidgetEnabled: unsupported kind={kind}");
-    }
-
-    public async Task ResetFeatureWidgetAsync(WidgetKind kind)
-    {
-        if (!HasUiThreadAccess())
-        {
-            await RunOnUiThreadAsync(() => ResetFeatureWidgetAsync(kind));
-            return;
-        }
-
-        if (!FeatureWidgetSettings.IsFeatureWidget(kind))
-        {
-            App.Log($"[WidgetManager] ResetFeatureWidget: unsupported kind={kind}");
+            await RunOnUiThreadAsync(ResetMusicWidgetAsync);
             return;
         }
 
         var suppressedClosedIds = _settingsService.Settings.Widgets
-            .Where(widget => widget.WidgetKind == kind)
+            .Where(widget => widget.WidgetKind == WidgetKind.Music)
             .Select(widget => widget.Id)
             .ToList();
         foreach (string id in suppressedClosedIds)
@@ -218,13 +202,13 @@ public sealed partial class WidgetManager
 
         try
         {
-            CloseLoadedFeatureWidgetWindows(kind);
+            CloseLoadedMusicWidgetWindows();
 
             var configs = _settingsService.Settings.Widgets
-                .Where(widget => widget.WidgetKind == kind)
+                .Where(widget => widget.WidgetKind == WidgetKind.Music)
                 .ToList();
 
-            SetFeatureWidgetEnabledState(kind, false);
+            SetMusicWidgetEnabledState(false);
             var config = configs.FirstOrDefault(widget => !IsDeleted(widget.Id)) ??
                          configs.FirstOrDefault();
 
@@ -237,17 +221,17 @@ public sealed partial class WidgetManager
                 }
 
                 _deletedWidgetIds.Remove(duplicate.Id);
-                App.Log($"[WidgetManager] ResetFeatureWidget removed duplicate kind={kind} id={duplicate.Id}");
+                App.Log($"[WidgetManager] ResetMusicWidget removed duplicate id={duplicate.Id}");
             }
 
             if (config is null)
             {
-                config = CreateDefaultFeatureWidgetConfig(kind, isEnabled: false);
+                config = CreateDefaultMusicWidgetConfig(isEnabled: false);
                 _settingsService.Settings.Widgets.Add(config);
             }
             else
             {
-                ResetFeatureWidgetConfig(config, kind, isEnabled: false);
+                ResetMusicWidgetConfig(config, isEnabled: false);
             }
 
             _settingsService.Settings.DeletedWidgetIds.RemoveAll(id =>
@@ -255,7 +239,7 @@ public sealed partial class WidgetManager
             _deletedWidgetIds.Remove(config.Id);
 
             await _settingsService.SaveAsync();
-            App.Log($"[WidgetManager] ResetFeatureWidget kind={kind} enabled=false id={config.Id}");
+            App.Log($"[WidgetManager] ResetMusicWidget enabled=false id={config.Id}");
         }
         finally
         {
@@ -266,18 +250,19 @@ public sealed partial class WidgetManager
         }
     }
 
-    private WidgetConfig CreateDefaultFeatureWidgetConfig(WidgetKind kind, bool isEnabled)
+    private WidgetConfig CreateDefaultMusicWidgetConfig(bool isEnabled)
     {
         var config = new WidgetConfig();
-        ResetFeatureWidgetConfig(config, kind, isEnabled);
+        ResetMusicWidgetConfig(config, isEnabled);
         return config;
     }
 
-    private void ResetFeatureWidgetConfig(WidgetConfig config, WidgetKind kind, bool isEnabled)
+    private void ResetMusicWidgetConfig(WidgetConfig config, bool isEnabled)
     {
-        var descriptor = new WidgetContentFactory(_localizationService).GetDescriptor(kind);
-        config.WidgetKind = kind;
-        config.Name = GetDefaultFeatureWidgetTitle(kind, descriptor);
+        var descriptor = new WidgetContentFactory(_localizationService).GetDescriptor(WidgetKind.Music);
+        var handler = _kindHandlers.Get(WidgetKind.Music);
+        config.WidgetKind = WidgetKind.Music;
+        config.Name = GetDefaultWidgetTitle(WidgetKind.Music, descriptor);
         config.IsDefaultTitle = true;
         config.X = 100;
         config.Y = 100;
@@ -288,7 +273,7 @@ public sealed partial class WidgetManager
         config.PositionMonitorDeviceName = null;
         config.PositionMonitorWasPrimary = null;
         config.BoundsCoordinateVersion = WidgetConfig.CurrentBoundsCoordinateVersion;
-        (config.Width, config.Height) = GetDefaultFeatureWidgetSize(kind);
+        (config.Width, config.Height) = handler.GetDefaultSize(_settingsService.Settings);
         config.ViewMode = ViewMode.Icon;
         config.IsVisible = isEnabled;
         config.IsDisabled = false;
@@ -305,30 +290,30 @@ public sealed partial class WidgetManager
         config.Items.Clear();
     }
 
-    private void CloseLoadedFeatureWidgetWindows(WidgetKind kind)
+    private void CloseLoadedMusicWidgetWindows()
     {
         foreach (var window in _contentWidgets.Values
-                     .Where(window => window.Config.WidgetKind == kind)
+                     .Where(window => window.Config.WidgetKind == WidgetKind.Music)
                      .ToList())
         {
-            CloseFeatureWidgetInstance(window);
+            CloseContentWidgetInstance(window);
         }
     }
 
-    private async Task SetContentFeatureWidgetEnabledAsync(WidgetKind kind, bool enabled, bool reveal = true)
+    private async Task SetMusicWidgetEnabledCoreAsync(bool enabled, bool reveal = true)
     {
-        SetFeatureWidgetEnabledState(kind, enabled);
+        SetMusicWidgetEnabledState(enabled);
 
         if (enabled)
         {
             if (reveal)
             {
-                await CreateSingletonContentFeatureWidgetAsync(kind);
+                await CreateOrShowMusicWidgetCoreAsync();
             }
             else
             {
                 var config = _settingsService.Settings.Widgets
-                    .FirstOrDefault(w => w.WidgetKind == kind && !IsDeleted(w.Id));
+                    .FirstOrDefault(w => w.WidgetKind == WidgetKind.Music && !IsDeleted(w.Id));
                 if (config is not null)
                 {
                     config.IsDisabled = false;
@@ -342,51 +327,39 @@ public sealed partial class WidgetManager
         }
 
         foreach (var config in _settingsService.Settings.Widgets.Where(widget =>
-                     widget.WidgetKind == kind &&
+                     widget.WidgetKind == WidgetKind.Music &&
                      !IsDeleted(widget.Id)))
         {
             config.IsVisible = false;
             config.IsDisabled = false;
         }
 
-        HideAndCloseFeatureWidgetAsync(kind);
+        HideAndCloseMusicWidget();
         await _settingsService.SaveAsync();
     }
 
-    private bool GetFeatureWidgetEnabledState(WidgetKind? kind)
+    private void SetMusicWidgetEnabledState(bool enabled)
     {
-        return kind is { } featureKind &&
-               FeatureWidgetSettings.IsFeatureWidget(featureKind) &&
-               FeatureWidgetSettings.IsEnabled(_settingsService.Settings, featureKind);
+        _settingsService.Settings.MusicWidgetEnabled = enabled;
+        _lastMusicWidgetEnabled = enabled;
     }
 
-    private static bool IsContentFeatureWidgetKind(WidgetKind kind)
+    public void HideAndCloseMusicWidget()
     {
-        return FeatureWidgetSettings.IsFeatureWidget(kind);
-    }
-
-    private void SetFeatureWidgetEnabledState(WidgetKind kind, bool enabled)
-    {
-        FeatureWidgetSettings.SetEnabled(_settingsService.Settings, kind, enabled);
-        _lastFeatureWidgetEnabledStates[kind] = enabled;
-    }
-
-    public void HideAndCloseFeatureWidgetAsync(WidgetKind kind)
-    {
-        var existing = GetFeatureWidget(kind);
+        var existing = GetMusicWidget();
         if (existing is not null)
         {
-            CloseFeatureWidgetInstance(existing);
+            CloseContentWidgetInstance(existing);
         }
     }
 
-    private void CloseFeatureWidgetInstance(IDesktopWidgetWindow window)
+    private void CloseContentWidgetInstance(IDesktopWidgetWindow window)
     {
         if (!HasUiThreadAccess())
         {
             _ = RunOnUiThreadAsync(() =>
             {
-                CloseFeatureWidgetInstance(window);
+                CloseContentWidgetInstance(window);
                 return Task.CompletedTask;
             });
             return;
@@ -395,8 +368,8 @@ public sealed partial class WidgetManager
         window.Config.IsVisible = false;
 
         if (window.Config.WidgetKind == WidgetKind.File &&
-                 _widgets.TryGetValue(window.Config.Id, out var fileEntry) &&
-                 ReferenceEquals(fileEntry.Window, window))
+            _widgets.TryGetValue(window.Config.Id, out var fileEntry) &&
+            ReferenceEquals(fileEntry.Window, window))
         {
             _widgets.Remove(window.Config.Id);
             _widgetWindowHandles.Remove(window.WindowHandle);
@@ -420,4 +393,21 @@ public sealed partial class WidgetManager
         _settingsService.SaveDebounced();
     }
 
+    private bool IsDetachedContentHost(WidgetKind kind)
+    {
+        return _kindHandlers.TryGet(kind, out var handler) &&
+               handler.HostKind == WidgetWindowHostKind.DetachedContentWindow;
+    }
+
+    private (double Width, double Height) GetDefaultWidgetSize(WidgetKind kind)
+    {
+        if (_kindHandlers.TryGet(kind, out var handler))
+        {
+            return handler.GetDefaultSize(_settingsService.Settings);
+        }
+
+        return (
+            Math.Max(_settingsService.Settings.DefaultWidgetWidth, 320),
+            Math.Max(_settingsService.Settings.DefaultWidgetHeight, 360));
+    }
 }

@@ -41,9 +41,15 @@ public class AppSettings
     public DateTimeOffset? LastUpdateCheckAt { get; set; }
 
     /// <summary>
-    /// Enabled state for singleton feature widgets, keyed by <see cref="WidgetKind"/> name.
+    /// Legacy enabled states for singleton feature widgets.
+    /// Migrated into <see cref="MusicWidgetEnabled"/> on load; kept for deserialization only.
     /// </summary>
     public Dictionary<string, bool> FeatureWidgetEnabledStates { get; set; } = [];
+
+    /// <summary>
+    /// Whether the Music widget is enabled. Default off; toggled from Music settings only.
+    /// </summary>
+    public bool MusicWidgetEnabled { get; set; }
 
     /// <summary>Whether the Music widget uses album artwork color as a soft backdrop.</summary>
     public bool MusicUseArtworkBackdrop { get; set; } = true;

@@ -108,6 +108,7 @@ public partial class SettingsViewModel
                 ? SettingsService.ManagedDropActionMove
                 : SettingsService.ManagedDropActionCopy;
 
+            MusicWidgetEnabled = settings.MusicWidgetEnabled;
             MusicUseArtworkBackdrop = settings.MusicUseArtworkBackdrop;
             MusicEnableCoverHoverMotion = settings.MusicEnableCoverHoverMotion;
             SelectedMusicDisplayMode = SettingsService.NormalizeMusicDisplayMode(settings.MusicDisplayMode);
@@ -125,7 +126,6 @@ public partial class SettingsViewModel
         RefreshGlobalHotkeyState();
         OnPropertyChanged(nameof(CanEditCustomAccent));
         OnPropertyChanged(nameof(AccentColorDescription));
-        OnPropertyChanged(nameof(FeatureWidgetEntries));
         NotifyCapsuleOverridePropertiesChanged();
     }
 
@@ -155,7 +155,6 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(GlobalHotkeyStatusKind));
         OnPropertyChanged(nameof(CanShowGlobalHotkeyWarning));
         NotifyDragDropPermissionPropertiesChanged();
-        OnPropertyChanged(nameof(FeatureWidgetEntries));
         NotifyCapsuleOverridePropertiesChanged();
     }
 

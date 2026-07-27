@@ -349,9 +349,9 @@ Text="BentoDesk" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem
-                    x:Name="FeatureWidgetsNavItem"
-                    Tag="FeatureWidgets"
-                    svc:Localized.Key="Settings.Nav.FeatureWidgets">
+                    x:Name="MusicWidgetNavItem"
+                    Tag="MusicSettings"
+                    svc:Localized.Key="Settings.Nav.MusicWidget">
                     <NavigationViewItem.Icon>
                         <ImageIcon Style="{StaticResource SettingsNavImageIconStyle}">
                             <ImageIcon.Source>
@@ -1007,18 +1007,14 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                                 </Grid>
                             </Button>
                         </Border>
-                        <Border Style="{StaticResource SettingsGroupStyle}">
-                            <Button Click="NestedSettingsButton_Click" Style="{StaticResource DrillDownRowStyle}" Tag="InteractionWindowSettings">
-                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                                    <FontIcon Grid.Column="0" FontSize="18" Glyph="&#xE7C9;" IsHitTestVisible="False" VerticalAlignment="Center" />
-                                    <StackPanel Grid.Column="1" IsHitTestVisible="False" Spacing="3" VerticalAlignment="Center">
-                                        <TextBlock Style="{StaticResource SettingTitleTextStyle}" svc:Localized.Key="Settings.Interaction.Window.Title" />
-                                        <TextBlock Style="{StaticResource SettingDescriptionTextStyle}" svc:Localized.Key="Settings.Interaction.Window.Description" />
-                                    </StackPanel>
-                                    <FontIcon Grid.Column="2" FontSize="12" Glyph="&#xE76C;" IsHitTestVisible="False" VerticalAlignment="Center" />
-                                </Grid>
-                            </Button>
-                        </Border>
+                        <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.DescriptionKey="Settings.DoubleClickDesktop.Description" svc:Localized.HeaderKey="Settings.DoubleClickDesktop.Title">
+                            <toolkit:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE7C9;" /></toolkit:SettingsCard.HeaderIcon>
+                            <ToggleSwitch OnContent="" OffContent="" MinWidth="0" IsOn="{Binding DoubleClickDesktopToHideAll, Mode=TwoWay}" />
+                        </toolkit:SettingsCard>
+                        <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.DescriptionKey="Settings.ResizeSnap.Description" svc:Localized.HeaderKey="Settings.ResizeSnap.Title">
+                            <toolkit:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE742;" /></toolkit:SettingsCard.HeaderIcon>
+                            <ToggleSwitch OnContent="" OffContent="" MinWidth="0" IsOn="{Binding ResizeSnapEnabled, Mode=TwoWay}" />
+                        </toolkit:SettingsCard>
                     </StackPanel>
                 </StackPanel>
 
@@ -1045,36 +1041,26 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel x:Name="InteractionWindowSettingsSection" Visibility="Collapsed" Style="{StaticResource SectionPanelStyle}">
-                    <StackPanel Margin="0,8,0,0" Spacing="4">
-                        <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.DescriptionKey="Settings.DoubleClickDesktop.Description" svc:Localized.HeaderKey="Settings.DoubleClickDesktop.Title">
-                            <toolkit:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE7C9;" /></toolkit:SettingsCard.HeaderIcon>
-                            <ToggleSwitch OnContent="" OffContent="" MinWidth="0" IsOn="{Binding DoubleClickDesktopToHideAll, Mode=TwoWay}" />
-                        </toolkit:SettingsCard>
-                        <toolkit:SettingsCard HorizontalContentAlignment="Right" svc:Localized.DescriptionKey="Settings.ResizeSnap.Description" svc:Localized.HeaderKey="Settings.ResizeSnap.Title">
-                            <toolkit:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE742;" /></toolkit:SettingsCard.HeaderIcon>
-                            <ToggleSwitch OnContent="" OffContent="" MinWidth="0" IsOn="{Binding ResizeSnapEnabled, Mode=TwoWay}" />
-                        </toolkit:SettingsCard>
-                    </StackPanel>
-                </StackPanel>
-
-                <StackPanel
-                    x:Name="FeatureWidgetsSection"
-                    Visibility="Collapsed"
-                    Style="{StaticResource SectionPanelStyle}">
-                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" svc:Localized.Key="Settings.Section.FeatureWidgets" />
-                    <StackPanel Margin="0,8,0,0" Spacing="4">
-                        <StackPanel
-                            x:Name="FeatureWidgetList"
-                            Spacing="4" />
-                    </StackPanel>
-                </StackPanel>
-
                 <StackPanel
                     x:Name="MusicSettingsSection"
                     Visibility="Collapsed"
                     Style="{StaticResource SectionPanelStyle}">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" svc:Localized.Key="Settings.Nav.MusicWidget" />
                     <StackPanel Margin="0,8,0,0" Spacing="4">
+                        <toolkit:SettingsCard
+                            HorizontalContentAlignment="Right"
+                            svc:Localized.DescriptionKey="Settings.Music.Enabled.Description"
+                            svc:Localized.HeaderKey="Settings.Music.Enabled.Title">
+                            <toolkit:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE8D6;" />
+                            </toolkit:SettingsCard.HeaderIcon>
+                            <ToggleSwitch
+                                OnContent=""
+                                OffContent=""
+                                MinWidth="0"
+                                IsOn="{Binding MusicWidgetEnabled, Mode=TwoWay}" />
+                        </toolkit:SettingsCard>
+
                         <toolkit:SettingsCard
                             HorizontalContentAlignment="Right"
                             svc:Localized.DescriptionKey="Settings.Music.DisplayMode.Description"

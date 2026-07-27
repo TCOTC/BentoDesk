@@ -210,15 +210,14 @@ public sealed partial class OnboardingWindow : Window
     //  Step Navigation
     // ════════════════════════════════════════════════════════════
 
-    private static readonly int StepCount = 5;
+    private static readonly int StepCount = 4;
 
     private FrameworkElement GetStepPanel(int index) => index switch
     {
         0 => Step1Panel,
-        1 => Step2Panel,
-        2 => Step3Panel,
-        3 => Step4Panel,
-        4 => Step5Panel,
+        1 => Step3Panel,
+        2 => Step4Panel,
+        3 => Step5Panel,
         _ => Step1Panel
     };
 
@@ -391,15 +390,12 @@ public sealed partial class OnboardingWindow : Window
                 if (animate) StartStep1CardAnimation();
                 break;
             case 1:
-                SetupStep2Features();
-                break;
-            case 2:
                 SetupStep3();
                 break;
-            case 3:
+            case 2:
                 SetupStep4();
                 break;
-            case 4:
+            case 3:
                 SetupStep5();
                 break;
         }
@@ -470,8 +466,8 @@ public sealed partial class OnboardingWindow : Window
             case 0:
                 StartStep1CardAnimation();
                 break;
-            case 3:
-                // Step 4: Start keycap pulse if hotkey is enabled
+            case 2:
+                // Step 4 (daily use): Start keycap pulse if hotkey is enabled
                 if (Step4HotkeyToggle.IsOn)
                 {
                     StartKeycapPulse();

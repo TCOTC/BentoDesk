@@ -14,6 +14,16 @@ namespace BentoDesk.ViewModels;
 
 public partial class SettingsViewModel
 {
+    partial void OnMusicWidgetEnabledChanged(bool value)
+    {
+        if (_isRestoringDefaults || _isApplyingSettingsSnapshot)
+        {
+            return;
+        }
+
+        _ = SyncMusicWidgetEnabledAsync(value);
+    }
+
     partial void OnMusicUseArtworkBackdropChanged(bool value)
     {
         if (_isRestoringDefaults || _isApplyingSettingsSnapshot)

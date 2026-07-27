@@ -256,10 +256,7 @@ public sealed class SettingsServiceTests : IDisposable
             WidgetMaterialIntensity = 0.1,
             LayoutDensity = "Compact",
             AutoStart = false,
-            FeatureWidgetEnabledStates = new Dictionary<string, bool>
-            {
-                [WidgetKind.Music.ToString()] = true
-            },
+            MusicWidgetEnabled = true,
             ResizeSnapEnabled = false,
             ManagedDropAction = SettingsService.ManagedDropActionCopy,
             GlobalHotkeyEnabled = false,
@@ -298,7 +295,7 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal(SettingsService.LayoutDensityStandard, restoredDefaults.LayoutDensity);
         Assert.True(restoredDefaults.ResizeSnapEnabled);
         Assert.False(restoredDefaults.AutoStart);
-        Assert.True(restoredDefaults.FeatureWidgetEnabledStates[WidgetKind.Music.ToString()]);
+        Assert.True(restoredDefaults.MusicWidgetEnabled);
         Assert.Equal(newUserDefaults.ManagedDropAction, restoredDefaults.ManagedDropAction);
         Assert.Equal(newUserDefaults.GlobalHotkeyEnabled, restoredDefaults.GlobalHotkeyEnabled);
         Assert.Equal(newUserDefaults.GlobalHotkeyModifiers, restoredDefaults.GlobalHotkeyModifiers);

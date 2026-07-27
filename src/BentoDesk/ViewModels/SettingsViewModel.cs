@@ -162,6 +162,9 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     public partial bool MusicUseArtworkBackdrop { get; set; } = true;
 
     [ObservableProperty]
+    public partial bool MusicWidgetEnabled { get; set; }
+
+    [ObservableProperty]
     public partial bool MusicEnableCoverHoverMotion { get; set; } = true;
 
     [ObservableProperty]
@@ -262,6 +265,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
             _selectedManagedDropAction = settings.ManagedDropAction == SettingsService.ManagedDropActionMove
                 ? SettingsService.ManagedDropActionMove
                 : SettingsService.ManagedDropActionCopy;
+            MusicWidgetEnabled = settings.MusicWidgetEnabled;
             MusicUseArtworkBackdrop = settings.MusicUseArtworkBackdrop;
             MusicEnableCoverHoverMotion = settings.MusicEnableCoverHoverMotion;
             _selectedMusicDisplayMode = SettingsService.NormalizeMusicDisplayMode(settings.MusicDisplayMode);

@@ -58,7 +58,7 @@ public sealed class WidgetContentFactoryTests
     }
 
     [Fact]
-    public void GetCreateEntryDescriptors_OnlyReturnsCurrentlyCreatableContentEntries()
+    public void GetCreateEntryDescriptors_OnlyReturnsFileWidget()
     {
         var factory = TestServices.CreateWidgetContentFactory();
 
@@ -68,22 +68,7 @@ public sealed class WidgetContentFactoryTests
         Assert.All(descriptors, descriptor => Assert.True(WidgetRegistry.Default.CanCreateWindow(descriptor.WidgetKind)));
         Assert.All(descriptors, descriptor => Assert.False(string.IsNullOrWhiteSpace(descriptor.CreateEntryTextKey)));
         Assert.Equal("Common.NewWidget", descriptors.Single(descriptor => descriptor.WidgetKind == WidgetKind.File).CreateEntryTextKey);
-    }
-
-    [Fact]
-    public void GetFeatureWidgetEntryDescriptors_OnlyReturnsAvailableImplementedWidgets()
-    {
-        var factory = TestServices.CreateWidgetContentFactory();
-
-        var descriptors = factory.GetFeatureWidgetEntryDescriptors();
-
-        Assert.Equal(
-        [
-            WidgetKind.Music
-        ], descriptors.Select(descriptor => descriptor.WidgetKind));
-        Assert.DoesNotContain(descriptors, descriptor => descriptor.WidgetKind == WidgetKind.File);
-        Assert.DoesNotContain(descriptors, descriptor => descriptor.IsPlanned);
-        Assert.Contains(descriptors, descriptor => descriptor.WidgetKind == WidgetKind.Music && descriptor.HasImplementedContent);
+        Assert.DoesNotContain(descriptors, descriptor => descriptor.WidgetKind == WidgetKind.Music);
     }
 
     [Theory]

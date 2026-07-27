@@ -1,4 +1,5 @@
 using BentoDesk.Models;
+using BentoDesk.Services.WidgetKinds;
 using Microsoft.UI.Windowing;
 using Windows.Graphics;
 
@@ -150,8 +151,10 @@ public static class WidgetCompactBoundsCalculator
             return ClampLogicalWidth(customWidth);
         }
 
+        var policy = ResolveCompactPolicy(widgetKind);
+
         // File widgets collapse to the title bar; use a compact default width.
-        if (widgetKind == WidgetKind.File)
+        if (policy.CollapseToTitleBarWidth)
         {
             return MinimalWidth;
         }
@@ -169,7 +172,7 @@ public static class WidgetCompactBoundsCalculator
                 SettingsService.WidgetCompactContentModeSmart,
                 StringComparison.Ordinal))
         {
-            return widgetKind == WidgetKind.Music ? SmartMediaWidth : SmartWidth;
+            return policy.SmartModeWidth ?? SmartWidth;
         }
 
         return SummaryWidth;
@@ -187,12 +190,23 @@ public static class WidgetCompactBoundsCalculator
             return titleHeight;
         }
 
+        var policy = ResolveCompactPolicy(widgetKind);
         bool usesSmartDetailLayout = string.Equals(
                 contentMode,
                 SettingsService.WidgetCompactContentModeSmart,
                 StringComparison.Ordinal) &&
-            widgetKind is WidgetKind.Music;
+            policy.UsesSmartDetailHeight;
         return usesSmartDetailLayout ? SmartDetailHeight : Height;
+    }
+
+    private static WidgetCompactKindPolicy ResolveCompactPolicy(WidgetKind widgetKind)
+    {
+        if (WidgetKindHandlerRegistry.Default.TryGet(widgetKind, out var handler))
+        {
+            return handler.CompactPolicy;
+        }
+
+        return FileWidgetKindHandler.Instance.CompactPolicy;
     }
 
     public static double ClampLogicalWidth(double width)

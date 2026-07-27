@@ -102,16 +102,6 @@ public sealed class WidgetContentFactory
             .ToArray();
     }
 
-    public IReadOnlyList<WidgetContentDescriptor> GetFeatureWidgetEntryDescriptors()
-    {
-        return DescriptorList
-            .Where(descriptor =>
-                descriptor.WidgetKind != WidgetKind.File &&
-                descriptor.HasImplementedContent &&
-                descriptor.IsAvailable)
-            .ToArray();
-    }
-
     public bool HasImplementedContent(WidgetKind widgetKind)
     {
         return Descriptors.TryGetValue(widgetKind, out var descriptor) &&

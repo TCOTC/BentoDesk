@@ -15,7 +15,7 @@ public sealed class WidgetRegistryTests
     }
 
     [Fact]
-    public void IsAvailableForSession_RespectsMusicFeatureWidgetState()
+    public void IsAvailableForSession_RespectsMusicWidgetEnabled()
     {
         var registry = WidgetRegistry.Default;
         var musicWidget = new WidgetConfig
@@ -26,7 +26,7 @@ public sealed class WidgetRegistryTests
 
         Assert.False(registry.IsAvailableForSession(musicWidget, settings));
 
-        FeatureWidgetSettings.SetEnabled(settings, WidgetKind.Music, true);
+        settings.MusicWidgetEnabled = true;
 
         Assert.True(registry.IsAvailableForSession(musicWidget, settings));
     }
