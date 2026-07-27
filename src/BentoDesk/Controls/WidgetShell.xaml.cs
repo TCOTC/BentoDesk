@@ -2760,7 +2760,7 @@ public sealed partial class WidgetShell : UserControl
                 !pressedReorderHandle;
             bool pressedMoveHandle = e.OriginalSource is DependencyObject moveSource &&
                 IsWithin(moveSource, CompactMoveHandleElement);
-            // 折叠态仅图标区拖动；中间标题区留给悬停展开，避免与拖动抢命中。
+            // 折叠态标题栏可拖动；在中间区按下时取消待触发的悬停展开，避免拖动中途弹出。
             _isCompactMoveHandlePress = pressedMoveHandle;
             if (pressedReorderHandle || (!pressedMoveHandle && !pressedActionButton))
             {

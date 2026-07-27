@@ -548,14 +548,8 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
             return true;
         }
 
-        // 折叠态只允许从图标拖动区起拖，中间标题留给悬停展开。
-        if (FileWidgetShell.IsCollapsed &&
-            !IsWithin(source, FileWidgetShell.CompactMoveHandleElement) &&
-            !IsWithin(source, FileWidgetShell.CompactReorderHandleElement))
-        {
-            return false;
-        }
-
+        // 折叠态标题栏仍可拖动：悬停展开靠停留触发，与按住拖动不抢命中。
+        // 按钮与重命名输入框除外。
         return !IsWithin(source, LockButton) &&
                !IsWithin(source, CollapseWidgetButton) &&
                !IsWithin(source, FileWidgetShell.LockActionButton) &&
