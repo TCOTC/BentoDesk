@@ -534,12 +534,27 @@ public abstract partial class WidgetWindowBase
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
             WidgetShellControl.CompactMoveHandleElement,
             localization.T("Widget.Compact.Move"));
-        Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(
-            WidgetShellControl.CompactBodyElement,
-            localization.T("Widget.Compact.Expand"));
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
-            WidgetShellControl.CompactBodyElement,
-            localization.T("Widget.Compact.Expand"));
+        // 中间标题区仅在悬停展开时是可展开命中区；点击展开只靠按钮，勿挂「展开盒子」提示。
+        bool hoverExpand = EffectiveCollapseBehavior == WidgetCollapseBehavior.Smart;
+        if (hoverExpand)
+        {
+            Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(
+                WidgetShellControl.CompactBodyElement,
+                localization.T("Widget.Compact.Expand"));
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+                WidgetShellControl.CompactBodyElement,
+                localization.T("Widget.Compact.Expand"));
+        }
+        else
+        {
+            Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(
+                WidgetShellControl.CompactBodyElement,
+                null);
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+                WidgetShellControl.CompactBodyElement,
+                string.Empty);
+        }
+
         Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(
             WidgetShellControl.CompactExpandActionButton,
             localization.T("Widget.Compact.Expand"));
@@ -639,6 +654,7 @@ public abstract partial class WidgetWindowBase
         WidgetShellControl.SetCompactInteractionMode(behavior == WidgetCollapseBehavior.Smart);
         WidgetShellControl.SetCompactReorderEnabled(false);
         OnCollapseBehaviorChanged(behavior);
+        ApplyCompactTooltips();
     }
 
     private void WidgetShellControl_CollapseRequested(object? sender, RoutedEventArgs e)

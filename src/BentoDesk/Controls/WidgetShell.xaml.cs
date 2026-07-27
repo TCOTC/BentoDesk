@@ -402,6 +402,16 @@ public sealed partial class WidgetShell : UserControl
     public void SetCompactInteractionMode(bool usesSmartBehavior)
     {
         _usesSmartCompactBehavior = usesSmartBehavior;
+        if (!usesSmartBehavior)
+        {
+            AnimateTextHoverBackground(false);
+            if (_isPointerOverCompactExpansionZone)
+            {
+                _isPointerOverCompactExpansionZone = false;
+                CompactExpansionPointerExited?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
         ApplyCompactAdaptiveLayout();
         ApplyCompactActionVisibility(animate: false);
     }
@@ -2493,10 +2503,16 @@ public sealed partial class WidgetShell : UserControl
             UpdateCompactActionRegionState();
         }
 
-        _isPointerOverCompactExpansionZone = true;
         UpdateCompactInteractionRegionHighlights();
-        AnimateTextHoverBackground(true);
         ApplyCompactActionVisibility();
+        // 点击展开模式下中间区不可悬停展开，勿显示展开区悬停底与提示语义。
+        if (!_usesSmartCompactBehavior)
+        {
+            return;
+        }
+
+        _isPointerOverCompactExpansionZone = true;
+        AnimateTextHoverBackground(true);
         CompactExpansionPointerEntered?.Invoke(this, EventArgs.Empty);
     }
 
