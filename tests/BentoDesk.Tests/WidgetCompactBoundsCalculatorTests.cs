@@ -9,9 +9,9 @@ public sealed class WidgetCompactBoundsCalculatorTests
 {
     [Theory]
     [InlineData(WidgetPositionAnchors.LeftTop, 100, 200)]
-    [InlineData(WidgetPositionAnchors.RightTop, 452, 200)]
+    [InlineData(WidgetPositionAnchors.RightTop, 528, 200)]
     [InlineData(WidgetPositionAnchors.LeftBottom, 100, 558)]
-    [InlineData(WidgetPositionAnchors.RightBottom, 452, 558)]
+    [InlineData(WidgetPositionAnchors.RightBottom, 528, 558)]
     public void Calculate_PreservesConfiguredAnchor(string anchor, int expectedX, int expectedY)
     {
         var result = WidgetCompactBoundsCalculator.Calculate(
@@ -22,7 +22,7 @@ public sealed class WidgetCompactBoundsCalculatorTests
 
         Assert.Equal(expectedX, result.X);
         Assert.Equal(expectedY, result.Y);
-        Assert.Equal(248, result.Width);
+        Assert.Equal(172, result.Width);
         Assert.Equal(42, result.Height);
     }
 
@@ -55,8 +55,23 @@ public sealed class WidgetCompactBoundsCalculatorTests
         Assert.Equal(expectedHeight, result.Height);
     }
 
+    [Fact]
+    public void Calculate_FileUsesTitleBarHeightWhenProvided()
+    {
+        RectInt32 result = WidgetCompactBoundsCalculator.Calculate(
+            new RectInt32(0, 0, 600, 400),
+            WidgetPositionAnchors.LeftTop,
+            1,
+            SettingsService.WidgetCompactContentModeSmart,
+            WidgetKind.File,
+            titleBarLogicalHeight: 46);
+
+        Assert.Equal(46, result.Height);
+        Assert.Equal(172, result.Width);
+    }
+
     [Theory]
-    [InlineData(WidgetKind.File, 272)]
+    [InlineData(WidgetKind.File, 172)]
     [InlineData(WidgetKind.Music, 320)]
     public void Calculate_SmartStyleUsesWidgetAppropriateWidth(WidgetKind kind, int expectedWidth)
     {

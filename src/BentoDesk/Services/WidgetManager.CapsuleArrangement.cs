@@ -473,8 +473,6 @@ public sealed partial class WidgetManager
         }));
         return string.Join(
             '|',
-            settings.WidgetCompactContentMode,
-            settings.WidgetCompactHideSensitiveContent,
             widthMode,
             candidateWidths);
     }
@@ -655,18 +653,20 @@ public sealed partial class WidgetManager
         RectInt32 workArea = DisplayArea.GetFromRect(
             expandedBounds,
             DisplayAreaFallback.Nearest).WorkArea;
+        // File widgets collapse to the title bar; arrangement uses the default
+        // title-bar row height until the live window reports its metrics.
+        double? titleBarLogicalHeight = config.WidgetKind == WidgetKind.File ? 46d : null;
+
         return WidgetCompactBoundsCalculator.Resolve(
             config,
             expandedBounds,
             WidgetPositioningService.GetDpiScale(workArea),
-            WidgetCompactPrivacyPolicy.ResolveContentMode(
-                _settingsService.Settings.WidgetCompactContentMode,
-                _settingsService.Settings.WidgetCompactHideSensitiveContent,
-                config.WidgetKind),
+            SettingsService.WidgetCompactContentModeSmart,
             alignToExpandedWidth:
                 SettingsService.NormalizeWidgetCompactWidthMode(
                     _settingsService.Settings.WidgetCompactWidthMode) ==
-                SettingsService.WidgetCompactWidthModeAligned);
+                SettingsService.WidgetCompactWidthModeAligned,
+            titleBarLogicalHeight: titleBarLogicalHeight);
     }
 
     private static string ResolveBarDirection(

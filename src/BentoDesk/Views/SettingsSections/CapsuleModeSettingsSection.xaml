@@ -68,20 +68,6 @@
 
             <toolkit:SettingsCard
                 HorizontalContentAlignment="Right"
-                svc:Localized.DescriptionKey="Settings.CompactContent.Description"
-                svc:Localized.HeaderKey="Settings.CompactContent.Title">
-                <toolkit:SettingsCard.HeaderIcon>
-                    <FontIcon Glyph="&#xE8A5;" />
-                </toolkit:SettingsCard.HeaderIcon>
-                <ComboBox
-                    MinWidth="{StaticResource SettingsControlMinWidth}"
-                    IsEnabled="{Binding WidgetCapsuleModeEnabled}"
-                    ItemsSource="{Binding AvailableWidgetCompactContentModeOptions}"
-                    controls:SettingsComboBox.Value="{Binding SelectedWidgetCompactContentMode, Mode=TwoWay}" />
-            </toolkit:SettingsCard>
-
-            <toolkit:SettingsCard
-                HorizontalContentAlignment="Right"
                 svc:Localized.DescriptionKey="Settings.Capsule.Arrangement.Description"
                 svc:Localized.HeaderKey="Settings.Capsule.Arrangement.Title">
                 <toolkit:SettingsCard.HeaderIcon>
@@ -92,21 +78,6 @@
                     IsEnabled="{Binding WidgetCapsuleModeEnabled}"
                     ItemsSource="{Binding AvailableWidgetCapsuleArrangementOptions}"
                     controls:SettingsComboBox.Value="{Binding SelectedWidgetCapsuleArrangementMode, Mode=TwoWay}" />
-            </toolkit:SettingsCard>
-
-            <toolkit:SettingsCard
-                HorizontalContentAlignment="Right"
-                svc:Localized.DescriptionKey="Settings.CompactPrivacy.Description"
-                svc:Localized.HeaderKey="Settings.CompactPrivacy.Title">
-                <toolkit:SettingsCard.HeaderIcon>
-                    <FontIcon Glyph="&#xE72E;" />
-                </toolkit:SettingsCard.HeaderIcon>
-                <ToggleSwitch
-                    MinWidth="0"
-                    OffContent=""
-                    OnContent=""
-                    IsEnabled="{Binding WidgetCapsuleModeEnabled}"
-                    IsOn="{Binding WidgetCompactHideSensitiveContent, Mode=TwoWay}" />
             </toolkit:SettingsCard>
 
             <TextBlock Style="{StaticResource CapsuleGroupTitleStyle}" svc:Localized.Key="Settings.Capsule.Group.Details" />

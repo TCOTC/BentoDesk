@@ -532,7 +532,11 @@
                             x:Name="CollapseWidgetButton"
                             Style="{StaticResource WidgetTitleActionButtonStyle}"
                             Click="CollapseWidgetButton_Click">
-                            <FontIcon x:Name="CollapseWidgetButtonIcon" FontSize="12" Glyph="&#xE70E;" />
+                            <FontIcon x:Name="CollapseWidgetButtonIcon" FontSize="12" Glyph="&#xE70E;" RenderTransformOrigin="0.5,0.5">
+                                <FontIcon.RenderTransform>
+                                    <RotateTransform x:Name="CollapseWidgetButtonIconRotate" Angle="0" />
+                                </FontIcon.RenderTransform>
+                            </FontIcon>
                         </Button>
                     </StackPanel>
                 </Grid>

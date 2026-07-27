@@ -163,6 +163,11 @@ public abstract partial class WidgetWindowBase : Window
     /// <summary>Allows hosts with custom title bars to update collapse actions.</summary>
     protected virtual void OnCollapseBehaviorChanged(WidgetCollapseBehavior behavior) { }
 
+    /// <summary>
+    /// Called when compact chrome tooltips / collapsed visuals should refresh.
+    /// </summary>
+    protected virtual void OnCompactInteractionChromeUpdated() { }
+
     /// <summary>Called after elevation for interaction (e.g. set focus).</summary>
     protected virtual void OnElevated() { }
 

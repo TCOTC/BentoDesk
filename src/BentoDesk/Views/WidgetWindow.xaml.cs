@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using BentoDesk.Controls;
 using BentoDesk.Helpers;
 using BentoDesk.Models;
 using BentoDesk.Services;
@@ -108,77 +109,13 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
     protected override bool IsPositionLocked => ViewModel.IsPositionLocked;
     protected override BentoDesk.Controls.WidgetCompactPresentation CreateCompactPresentation()
     {
-        string contentMode = ResolveEffectiveCompactContentMode();
-        bool hidesSensitiveContent = WidgetCompactPrivacyPolicy.HidesSensitiveContent(
-            _settingsService.Settings.WidgetCompactHideSensitiveContent,
-            Config.WidgetKind);
-        string itemCount = _localizationService.Format("Widget.Compact.FileCount", ViewModel.Items.Count);
-        string summary = contentMode switch
-        {
-            SettingsService.WidgetCompactContentModeMinimal => string.Empty,
-            SettingsService.WidgetCompactContentModeSmart => BuildSmartFileCompactSummary(itemCount),
-            _ => itemCount
-        };
-
-        WidgetItem? recentItem = hidesSensitiveContent
-            ? null
-            : GetMostRecentCompactFileItem();
+        // Unused for file widgets (TitleBarOnly). Music builds its own presentation.
         return new BentoDesk.Controls.WidgetCompactPresentation(
             ViewModel.Name,
-            summary,
+            string.Empty,
             ViewModel.IconGlyph,
-            _localizationService.T("Widget.Compact.FileDropHint"),
-            LiveStateKey: hidesSensitiveContent
-                ? ViewModel.Items.Count.ToString()
-                : $"{ViewModel.Items.Count}|{recentItem?.Path ?? string.Empty}",
-            IconColor: recentItem is not null ? GetFileTypeColor(recentItem.Path) : null);
+            string.Empty);
     }
-
-    private static Windows.UI.Color? GetFileTypeColor(string path)
-    {
-        string ext = System.IO.Path.GetExtension(path).ToLowerInvariant();
-        return ext switch
-        {
-            // Documents - blue
-            ".doc" or ".docx" or ".pdf" or ".txt" or ".rtf" or ".odt"
-                => Windows.UI.Color.FromArgb(0xFF, 0x3B, 0x82, 0xF6),
-            // Spreadsheets - green
-            ".xls" or ".xlsx" or ".csv" or ".ods"
-                => Windows.UI.Color.FromArgb(0xFF, 0x22, 0xC5, 0x5E),
-            // Presentations - orange
-            ".ppt" or ".pptx" or ".odp"
-                => Windows.UI.Color.FromArgb(0xFF, 0xF9, 0x73, 0x16),
-            // Images - purple
-            ".png" or ".jpg" or ".jpeg" or ".gif" or ".bmp" or ".svg" or ".webp" or ".ico"
-                => Windows.UI.Color.FromArgb(0xFF, 0xA8, 0x55, 0xF7),
-            // Audio/Video - pink
-            ".mp3" or ".wav" or ".flac" or ".mp4" or ".mkv" or ".avi" or ".mov"
-                => Windows.UI.Color.FromArgb(0xFF, 0xEC, 0x48, 0x99),
-            // Archives - yellow
-            ".zip" or ".rar" or ".7z" or ".tar" or ".gz"
-                => Windows.UI.Color.FromArgb(0xFF, 0xEA, 0xB3, 0x08),
-            // Code - cyan
-            ".cs" or ".js" or ".ts" or ".py" or ".java" or ".cpp" or ".html" or ".json" or ".xml"
-                => Windows.UI.Color.FromArgb(0xFF, 0x06, 0xB6, 0xD4),
-            // Executables - gray
-            ".exe" or ".msi" or ".bat" or ".cmd" or ".ps1"
-                => Windows.UI.Color.FromArgb(0xFF, 0x6B, 0x72, 0x80),
-            _ => null
-        };
-    }
-
-    private string BuildSmartFileCompactSummary(string itemCount)
-    {
-        WidgetItem? recentItem = GetMostRecentCompactFileItem();
-        return recentItem is null
-            ? itemCount
-            : $"{recentItem.Name} · {itemCount}";
-    }
-
-    private WidgetItem? GetMostRecentCompactFileItem() =>
-        ViewModel.Items
-            .Where(item => item.LastModified != default)
-            .MaxBy(item => item.LastModified) ?? ViewModel.Items.LastOrDefault();
 
     protected override void OnElevated()
     {
@@ -262,6 +199,7 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
 
         ApplyLocalizedText();
         FileWidgetShell.SetDividerMargin(new Thickness(12, 0, 12, 0));
+        FileWidgetShell.SetCollapseChromeMode(WidgetCollapseChromeMode.TitleBarOnly);
 
         HWnd = WindowNative.GetWindowHandle(this);
         Diagnostics = new WidgetWindowDiagnostics("File", ViewModel.Config, () => HWnd);
@@ -371,7 +309,7 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
         ToolTipService.SetToolTip(AddButton, _localizationService.T("Widget.Tooltip.Add"));
         ToolTipService.SetToolTip(MoreButton, _localizationService.T("Widget.Tooltip.More"));
         ToolTipService.SetToolTip(CloseButton, _localizationService.T("Widget.Tooltip.DeleteWidget"));
-        ToolTipService.SetToolTip(CollapseWidgetButton, _localizationService.T("Widget.Compact.Collapse"));
+        UpdateCollapseWidgetButtonVisual();
         MigrationTitleText.Text = _localizationService.T("Widget.Migration.Title");
         MigrationDescriptionText.Text = _localizationService.T("Widget.Migration.Description");
     }
@@ -381,10 +319,34 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
         CollapseWidgetButton.Visibility = behavior == WidgetCollapseBehavior.Expanded
             ? Visibility.Collapsed
             : Visibility.Visible;
+        UpdateCollapseWidgetButtonVisual();
+    }
+
+    protected override void OnCompactInteractionChromeUpdated()
+    {
+        UpdateCollapseWidgetButtonVisual();
+    }
+
+    private void UpdateCollapseWidgetButtonVisual()
+    {
+        // Use the intended collapse target, not bounds-animation flags —
+        // IsWidgetCollapsedBoundsActive stays true through expand animation and
+        // would leave the chevron stuck at 180°.
+        bool collapsed = IsWidgetCollapsed;
+        CollapseWidgetButtonIconRotate.Angle = collapsed ? 180 : 0;
+        ToolTipService.SetToolTip(
+            CollapseWidgetButton,
+            _localizationService.T(collapsed ? "Widget.Compact.Expand" : "Widget.Compact.Collapse"));
     }
 
     private void CollapseWidgetButton_Click(object sender, RoutedEventArgs e)
     {
+        if (IsWidgetCollapsed)
+        {
+            ExpandWidgetFromHost();
+            return;
+        }
+
         CollapseWidgetFromHost();
     }
 
@@ -591,6 +553,7 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
                !IsWithin(source, AddButton) &&
                !IsWithin(source, MoreButton) &&
                !IsWithin(source, CloseButton) &&
+               !IsWithin(source, CollapseWidgetButton) &&
                !IsWithin(source, TitleEditBox);
     }
 
@@ -646,6 +609,7 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
                !IsWithin(source, AddButton) &&
                !IsWithin(source, MoreButton) &&
                !IsWithin(source, CloseButton) &&
+               !IsWithin(source, CollapseWidgetButton) &&
                !IsWithin(source, TitleEditBox) &&
                !HasAncestorOfType<TextBox>(source);
     }

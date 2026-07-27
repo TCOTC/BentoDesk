@@ -813,11 +813,16 @@ settings.FocusClickedWidgetOnRaise = false;
             }
         }
 
-        string normalizedCompactContentMode = NormalizeWidgetCompactContentMode(
-            settings.WidgetCompactContentMode);
+        string normalizedCompactContentMode = WidgetCompactContentModeSmart;
         if (!string.Equals(settings.WidgetCompactContentMode, normalizedCompactContentMode, StringComparison.Ordinal))
         {
             settings.WidgetCompactContentMode = normalizedCompactContentMode;
+            changed = true;
+        }
+
+        if (settings.WidgetCompactHideSensitiveContent)
+        {
+            settings.WidgetCompactHideSensitiveContent = false;
             changed = true;
         }
 

@@ -45,9 +45,6 @@ public partial class SettingsViewModel
             AvailableWidgetCapsuleBarDirections,
             AvailableWidgetCapsuleBarDirectionDisplayNames);
 
-    public IReadOnlyList<SettingsOption> AvailableWidgetCompactContentModeOptions =>
-        CreateSelectionOptions(AvailableWidgetCompactContentModes, AvailableWidgetCompactContentModeDisplayNames);
-
     public IReadOnlyList<SettingsOption> AvailableWidgetCompactAnimationEffectOptions =>
         CreateSelectionOptions(AvailableWidgetCompactAnimationEffects, AvailableWidgetCompactAnimationEffectDisplayNames);
 
@@ -121,7 +118,6 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(AvailableWidgetCapsuleArrangementOptions));
         OnPropertyChanged(nameof(AvailableWidgetCapsuleBarPlacementOptions));
         OnPropertyChanged(nameof(AvailableWidgetCapsuleBarDirectionOptions));
-        OnPropertyChanged(nameof(AvailableWidgetCompactContentModeOptions));
         OnPropertyChanged(nameof(AvailableWidgetCompactAnimationEffectOptions));
         OnPropertyChanged(nameof(AvailableWidgetCompactHoverResponseOptions));
         OnPropertyChanged(nameof(AvailableWidgetCompactMediaCornerOptions));

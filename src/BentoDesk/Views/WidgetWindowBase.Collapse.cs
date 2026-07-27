@@ -193,10 +193,9 @@ public abstract partial class WidgetWindowBase
 
     protected string ResolveEffectiveCompactContentMode()
     {
-        return WidgetCompactPrivacyPolicy.ResolveContentMode(
-            SettingsService.Settings.WidgetCompactContentMode,
-            SettingsService.Settings.WidgetCompactHideSensitiveContent,
-            Config.WidgetKind);
+        // Content-mode settings were removed for file title-bar collapse.
+        // Music / capsule chrome still uses Smart presentation.
+        return SettingsService.WidgetCompactContentModeSmart;
     }
 
     protected virtual WidgetCompactPresentation CreateCompactPresentation()
@@ -275,7 +274,13 @@ public abstract partial class WidgetWindowBase
             return;
         }
 
-        WidgetShellControl.SetCompactPresentation(CreateCompactPresentation());
+        // File widgets keep the original title bar; only music / capsule chrome
+        // needs a compact presentation payload.
+        if (!WidgetShellControl.UsesTitleBarOnlyCollapse)
+        {
+            WidgetShellControl.SetCompactPresentation(CreateCompactPresentation());
+        }
+
         if (_targetCollapsed)
         {
             ApplyCompactSurfaceState();
@@ -297,6 +302,28 @@ public abstract partial class WidgetWindowBase
             persistManualState: EffectiveCollapseBehavior == WidgetCollapseBehavior.Click,
             animate: true,
             allowDuringInteraction: true);
+    }
+
+    protected void ExpandWidgetFromHost()
+    {
+        CancelTimer(ref _collapseHoverTimer);
+        CancelTimer(ref _collapseLeaveTimer);
+        _suppressSmartExpansionUntilPointerExit = false;
+        WidgetCollapseBehavior behavior = EffectiveCollapseBehavior;
+        if (behavior == WidgetCollapseBehavior.Expanded)
+        {
+            return;
+        }
+
+        if (behavior == WidgetCollapseBehavior.Smart)
+        {
+            _isSmartPinnedOpen = true;
+        }
+
+        SetCollapsedState(
+            false,
+            persistManualState: behavior == WidgetCollapseBehavior.Click,
+            animate: true);
     }
 
     protected void SetCollapseBehaviorOverride(WidgetCollapseBehavior behavior)
@@ -428,7 +455,6 @@ public abstract partial class WidgetWindowBase
         App.Current.LocalizationService.LanguageChanged += CollapseLanguageChanged;
 
         RefreshCompactPresentation();
-        ApplyCompactTooltips();
         ApplyCollapseBehaviorVisuals();
         bool initiallyCollapsed = EffectiveCollapseBehavior switch
         {
@@ -438,6 +464,7 @@ public abstract partial class WidgetWindowBase
         };
         ApplyCollapsedStateImmediately(initiallyCollapsed);
         ObserveCompactOverrides();
+        ApplyCompactTooltips();
     }
 
     protected void CleanupWidgetCollapse()
@@ -500,7 +527,9 @@ public abstract partial class WidgetWindowBase
             SettingsService.WidgetCapsuleArrangementBar;
         Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(
             WidgetShellControl.CollapseActionButton,
-            localization.T("Widget.Compact.Collapse"));
+            localization.T(_targetCollapsed && WidgetShellControl.UsesTitleBarOnlyCollapse
+                ? "Widget.Compact.Expand"
+                : "Widget.Compact.Collapse"));
         Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(
             WidgetShellControl.OverlayDragHandleElement,
             localization.T(EffectiveCollapseBehavior == WidgetCollapseBehavior.Expanded
@@ -532,6 +561,7 @@ public abstract partial class WidgetWindowBase
         Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(
             WidgetShellControl.CompactExpandActionButton,
             localization.T("Widget.Compact.Expand"));
+        OnCompactInteractionChromeUpdated();
     }
 
     private void CollapseSettingsChanged()
@@ -616,18 +646,7 @@ public abstract partial class WidgetWindowBase
 
     private void WidgetShellControl_ExpandRequested(object? sender, RoutedEventArgs e)
     {
-        CancelTimer(ref _collapseHoverTimer);
-        CancelTimer(ref _collapseLeaveTimer);
-        _suppressSmartExpansionUntilPointerExit = false;
-        WidgetCollapseBehavior behavior = EffectiveCollapseBehavior;
-        if (behavior == WidgetCollapseBehavior.Smart)
-        {
-            _isSmartPinnedOpen = true;
-        }
-        SetCollapsedState(
-            false,
-            persistManualState: behavior == WidgetCollapseBehavior.Click,
-            animate: true);
+        ExpandWidgetFromHost();
     }
 
     private void WidgetShellControl_CompactBodyExpandRequested(object? sender, RoutedEventArgs e)
@@ -985,7 +1004,7 @@ public abstract partial class WidgetWindowBase
         IsWidgetCollapsedBoundsActive = collapsed;
         _compactState = collapsed ? WidgetCompactState.Collapsed : WidgetCompactState.Expanded;
         UpdateCompactViewState();
-        WidgetShellControl.SetCollapsed(collapsed, SettingsService.Settings.WidgetCompactContentMode);
+        WidgetShellControl.SetCollapsed(collapsed, ResolveEffectiveCompactContentMode());
         RefreshCompactPresentation();
 
         if (!collapsed)
@@ -999,6 +1018,8 @@ public abstract partial class WidgetWindowBase
                 _compactExpansionAnchor = layout.Anchor;
                 MoveWindowWithoutPersisting(layout.ExpandedBounds);
             }
+
+            OnCompactInteractionChromeUpdated();
             return;
         }
 
@@ -1010,6 +1031,7 @@ public abstract partial class WidgetWindowBase
         MoveWindowWithoutPersisting(target);
         ApplyCompactSurfaceState();
         StartCompactBoundsSettlement();
+        OnCompactInteractionChromeUpdated();
     }
 
     protected void SettleCompactBoundsAfterHostShown()
@@ -1092,7 +1114,7 @@ public abstract partial class WidgetWindowBase
             SettingsService.SaveDebounced(notifySubscribers: false);
         }
 
-        string contentMode = SettingsService.Settings.WidgetCompactContentMode;
+        string contentMode = ResolveEffectiveCompactContentMode();
         RefreshCompactPresentation();
 
         if (collapsed == _targetCollapsed && !_isCollapseAnimationRendering)
@@ -1102,6 +1124,7 @@ public abstract partial class WidgetWindowBase
                 _compactState = WidgetCompactState.Collapsed;
             }
             WidgetShellControl.SetCollapsed(collapsed, contentMode);
+            ApplyCompactTooltips();
             UpdateCompactViewState();
             if (collapsed)
             {
@@ -1125,6 +1148,7 @@ public abstract partial class WidgetWindowBase
         _targetCollapsed = collapsed;
         _compactState = collapsed ? WidgetCompactState.Collapsing : WidgetCompactState.Expanding;
         UpdateCompactViewState();
+        OnCompactInteractionChromeUpdated();
         if (!collapsed)
         {
             CancelTimer(ref _compactBoundsSettleTimer);
@@ -1323,10 +1347,11 @@ public abstract partial class WidgetWindowBase
 
         WidgetShellControl.CompleteCompactTransition(
             collapsed,
-            SettingsService.Settings.WidgetCompactContentMode);
+            ResolveEffectiveCompactContentMode());
         WidgetShellControl.CompleteResponsiveLayoutTransition();
         _isShellTransitionActive = false;
         IsWidgetCollapsedBoundsActive = collapsed;
+        ApplyCompactTooltips();
         _compactState = collapsed
             ? WidgetCompactState.Collapsed
             : _dragExpandedFromCollapsed
@@ -1696,13 +1721,17 @@ public abstract partial class WidgetWindowBase
     {
         double scale = Win32Helper.GetDpiScaleForWindow(HWnd, RootElement.XamlRoot);
         string contentMode = ResolveEffectiveCompactContentMode();
+        double? titleBarLogicalHeight = WidgetShellControl.UsesTitleBarOnlyCollapse
+            ? WidgetShellControl.GetTitleBarLogicalHeight()
+            : null;
 
         RectInt32 resolved = WidgetCompactBoundsCalculator.Resolve(
             Config,
             expandedOrCurrent,
             scale,
             contentMode,
-            alignToExpandedWidth: UsesAlignedCompactWidth());
+            alignToExpandedWidth: UsesAlignedCompactWidth(),
+            titleBarLogicalHeight: titleBarLogicalHeight);
         if (_compactArrangementSizeOverride is { } arrangedSize)
         {
             resolved = new RectInt32(

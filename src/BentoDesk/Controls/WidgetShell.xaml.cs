@@ -138,6 +138,7 @@ public sealed partial class WidgetShell : UserControl
     private bool _isPointerOverShell;
     private bool _isCollapsed;
     private bool _isCollapseActionAvailable;
+    private WidgetCollapseChromeMode _collapseChromeMode = WidgetCollapseChromeMode.CapsulePresentation;
     private bool _isMinimalCompactStyle;
     private bool _usesStackedCompactText;
     private bool _isCompactKeyboardFocused;
@@ -214,6 +215,7 @@ public sealed partial class WidgetShell : UserControl
         CompactTitleIcon.SetCompactPresentationMode(true);
         SetProtectedCursor(CompactIdentityHost, InputSystemCursorShape.SizeAll);
         SetProtectedCursor(CompactReorderHandle, InputSystemCursorShape.SizeAll);
+        SetProtectedCursor(TitleBarReorderHandle, InputSystemCursorShape.SizeAll);
         ShellRoot.AddHandler(UIElement.DragEnterEvent, new DragEventHandler(ShellRoot_DragEnter), true);
         ShellRoot.AddHandler(UIElement.DragLeaveEvent, new DragEventHandler(ShellRoot_DragLeave), true);
         ShellRoot.AddHandler(UIElement.DropEvent, new DragEventHandler(ShellRoot_Drop), true);
@@ -330,9 +332,18 @@ public sealed partial class WidgetShell : UserControl
     public Button CompactExpandActionButton => CompactExpandButton;
     public FrameworkElement OverlayDragHandleElement => OverlayDragHandle;
 
-    public FrameworkElement CompactMoveHandleElement => CompactIdentityHost;
-    public FrameworkElement CompactBodyElement => CompactTextContainer;
-    public FrameworkElement CompactReorderHandleElement => CompactReorderHandle;
+    public FrameworkElement CompactMoveHandleElement =>
+        UsesTitleBarOnlyCollapse ? TitleIdentityHost : CompactIdentityHost;
+    public FrameworkElement CompactBodyElement =>
+        UsesTitleBarOnlyCollapse ? TitleIdentityHost : CompactTextContainer;
+    public FrameworkElement CompactReorderHandleElement =>
+        UsesTitleBarOnlyCollapse ? TitleBarReorderHandle : CompactReorderHandle;
+
+    public bool UsesTitleBarOnlyCollapse =>
+        _collapseChromeMode == WidgetCollapseChromeMode.TitleBarOnly;
+
+    public bool UsesCapsuleCollapseChrome =>
+        _collapseChromeMode == WidgetCollapseChromeMode.CapsulePresentation;
     public Button MoreActionButton => MoreButton;
     public Button CloseActionButton => CloseButton;
     public FrameworkElement PositionLockActionIcon => PositionLockButtonIcon;
@@ -342,7 +353,10 @@ public sealed partial class WidgetShell : UserControl
     public FrameworkElement AddActionIcon => AddButtonIcon;
     public FrameworkElement MoreActionIcon => MoreButtonIcon;
     public FrameworkElement CloseActionIcon => CloseButtonIcon;
-    public FrameworkElement DragHandleElement => _isCollapsed ? CollapsedChromeLayer : OverlayDragHandle;
+    public FrameworkElement DragHandleElement =>
+        _isCollapsed
+            ? (UsesTitleBarOnlyCollapse ? TitleBarGrid : CollapsedChromeLayer)
+            : OverlayDragHandle;
 
     public bool IsOverlayChromeMode => ChromeMode is WidgetChromeMode.Overlay or WidgetChromeMode.Hidden;
 
@@ -350,11 +364,44 @@ public sealed partial class WidgetShell : UserControl
 
     public bool IsCompactMoveHandlePress => _isCompactMoveHandlePress;
 
+    public WidgetCollapseChromeMode CollapseChromeMode => _collapseChromeMode;
+
+    public void SetCollapseChromeMode(WidgetCollapseChromeMode mode)
+    {
+        if (_collapseChromeMode == mode)
+        {
+            return;
+        }
+
+        _collapseChromeMode = mode;
+        ApplyChromeMode();
+        UpdateCollapseToggleVisual();
+        UpdateCompactReorderHandleVisual(animate: false);
+    }
+
+    /// <summary>
+    /// Logical pixel height of the title bar row used when collapsing to title-bar-only chrome.
+    /// </summary>
+    public double GetTitleBarLogicalHeight()
+    {
+        if (_titleBarRowHeight.GridUnitType == GridUnitType.Pixel &&
+            _titleBarRowHeight.Value > 0)
+        {
+            return _titleBarRowHeight.Value;
+        }
+
+        return TitleBarGrid.ActualHeight > 0 ? TitleBarGrid.ActualHeight : 46;
+    }
+
     public void SetCompactReorderEnabled(bool enabled)
     {
         _isCompactReorderEnabled = enabled;
-        CompactReorderHandle.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
-        CompactReorderHandle.IsHitTestVisible = enabled && _isCollapsed;
+        bool showCapsuleHandle = enabled && UsesCapsuleCollapseChrome;
+        bool showTitleHandle = enabled && UsesTitleBarOnlyCollapse;
+        CompactReorderHandle.Visibility = showCapsuleHandle ? Visibility.Visible : Visibility.Collapsed;
+        CompactReorderHandle.IsHitTestVisible = showCapsuleHandle && _isCollapsed;
+        TitleBarReorderHandle.Visibility = showTitleHandle ? Visibility.Visible : Visibility.Collapsed;
+        TitleBarReorderHandle.IsHitTestVisible = showTitleHandle && _isCollapsed;
         UpdateCompactActionRegionWidth();
         UpdateCompactReorderHandleVisual(animate: false);
     }
@@ -441,10 +488,11 @@ public sealed partial class WidgetShell : UserControl
             StringComparison.Ordinal);
         ApplyCompactAdaptiveLayout();
         ApplyChromeMode();
+        UpdateCollapseToggleVisual();
         UpdateOverlayDragHandleVisual(animate: false);
         ApplyCompactActionVisibility(animate: false);
         UpdateCompactReorderHandleVisual(animate: false);
-        if (collapsed)
+        if (collapsed && UsesCapsuleCollapseChrome)
         {
             QueueCompactMarquee();
         }
@@ -485,6 +533,22 @@ public sealed partial class WidgetShell : UserControl
         {
             _isCollapsed = false;
             ApplyChromeMode();
+            UpdateCollapseToggleVisual();
+        }
+
+        if (UsesTitleBarOnlyCollapse)
+        {
+            CollapsedChromeLayer.Visibility = Visibility.Collapsed;
+            CollapsedChromeLayer.Opacity = 0;
+            TitleBarGrid.Visibility = Visibility.Visible;
+            TitleBarGrid.Opacity = 1;
+            ShellContentPresenter.Visibility = Visibility.Visible;
+            ShellContentPresenter.Opacity = collapsed ? 1 : 0;
+            HeaderDivider.Visibility = collapsed ? Visibility.Collapsed : Visibility.Visible;
+            HeaderDivider.Opacity = collapsed ? 0 : 1;
+            ApplyCompactInnerCornerRadii();
+            SetBackgroundCornerRadius(_transitionOuterCornerRadiusFrom);
+            return true;
         }
 
         CollapsedChromeLayer.Visibility = Visibility.Visible;
@@ -505,6 +569,32 @@ public sealed partial class WidgetShell : UserControl
         }
 
         double value = Math.Clamp(progress, 0, 1);
+        if (UsesTitleBarOnlyCollapse)
+        {
+            double contentOpacity;
+            if (collapsed)
+            {
+                contentOpacity = 1 - SmoothStep(Math.Clamp(value / 0.55, 0, 1));
+            }
+            else
+            {
+                double revealStart = _isResponsiveLayoutTransitionActive ? 0.42 : 0.28;
+                contentOpacity = SmoothStep(Math.Clamp(
+                    (value - revealStart) / (1 - revealStart),
+                    0,
+                    1));
+            }
+
+            TitleBarGrid.Opacity = 1;
+            ShellContentPresenter.Opacity = contentOpacity;
+            HeaderDivider.Opacity = contentOpacity;
+            SetBackgroundCornerRadius(Lerp(
+                _transitionOuterCornerRadiusFrom,
+                _transitionOuterCornerRadiusTo,
+                value));
+            return;
+        }
+
         double compactOpacity;
         double expandedOpacity;
         if (collapsed)
@@ -586,6 +676,7 @@ public sealed partial class WidgetShell : UserControl
     {
         TitleBarGrid.Opacity = 1;
         ShellContentPresenter.Opacity = 1;
+        HeaderDivider.Opacity = 1;
         CollapsedChromeLayer.Opacity = 1;
         CollapsedChromeLayer.IsHitTestVisible = true;
         FullBleedScaleTransform.ScaleX = 1;
@@ -1845,6 +1936,7 @@ public sealed partial class WidgetShell : UserControl
     {
         _isCollapseActionAvailable = available;
         CollapseButton.Visibility = available ? Visibility.Visible : Visibility.Collapsed;
+        UpdateCollapseToggleVisual();
         UpdateOverlayDragHandleVisual(animate: false);
         ApplyChromeMode();
     }
@@ -1878,6 +1970,13 @@ public sealed partial class WidgetShell : UserControl
         CompactPointerEntered?.Invoke(this, EventArgs.Empty);
         if (_isCollapsed)
         {
+            if (UsesTitleBarOnlyCollapse)
+            {
+                ApplyActionButtonVisibility();
+                UpdateCompactReorderHandleVisual();
+                return;
+            }
+
             ApplyCompactActionVisibility();
             UpdateCompactReorderHandleVisual();
             QueueCompactMarquee(500);
@@ -1900,6 +1999,14 @@ public sealed partial class WidgetShell : UserControl
         CompactPointerExited?.Invoke(this, EventArgs.Empty);
         if (_isCollapsed)
         {
+            if (UsesTitleBarOnlyCollapse)
+            {
+                ResetCompactInteractionRegions();
+                UpdateCompactReorderHandleVisual();
+                ApplyActionButtonVisibility();
+                return;
+            }
+
             ResetCompactInteractionRegions();
             UpdateCompactInteractionRegionHighlights();
             ApplyCompactActionVisibility();
@@ -2044,6 +2151,28 @@ public sealed partial class WidgetShell : UserControl
 
         if (_isCollapsed)
         {
+            if (UsesTitleBarOnlyCollapse)
+            {
+                ShellRoot.RowDefinitions[0].Height = _titleBarRowHeight;
+                ShellRoot.RowDefinitions[1].Height = new GridLength(0);
+                TitleBarGrid.Visibility = Visibility.Visible;
+                TitleBarGrid.HorizontalAlignment = HorizontalAlignment.Stretch;
+                TitleBarGrid.VerticalAlignment = VerticalAlignment.Stretch;
+                TitleBarGrid.Margin = new Thickness(0);
+                TitleBarGrid.Padding = _titleBarPadding;
+                Grid.SetRow(TitleBarGrid, 0);
+                Canvas.SetZIndex(TitleBarGrid, 2);
+                HeaderDivider.Visibility = Visibility.Collapsed;
+                ShellContentPresenter.Visibility = Visibility.Collapsed;
+                OverlayChromeLayer.Visibility = Visibility.Collapsed;
+                CollapsedChromeLayer.Visibility = Visibility.Collapsed;
+                TitleIdentityHost.Visibility = Visibility.Visible;
+                RightActionButtons.VerticalAlignment = VerticalAlignment.Center;
+                ApplyActionButtonVisibility();
+                UpdateCollapseToggleVisual();
+                return;
+            }
+
             ShellRoot.RowDefinitions[0].Height = new GridLength(1, GridUnitType.Star);
             ShellRoot.RowDefinitions[1].Height = new GridLength(0);
             TitleBarGrid.Visibility = Visibility.Collapsed;
@@ -2095,6 +2224,14 @@ public sealed partial class WidgetShell : UserControl
 
         SetOverlayChromeVisible(_isPointerOverShell, animateButtons: false);
         ApplyActionButtonSurface(false);
+        UpdateCollapseToggleVisual();
+    }
+
+    private void UpdateCollapseToggleVisual()
+    {
+        bool showAsExpand = _isCollapsed && UsesTitleBarOnlyCollapse && _isCollapseActionAvailable;
+        CollapseButtonIconRotate.Angle = showAsExpand ? 180 : 0;
+        CollapseButton.Visibility = _isCollapseActionAvailable ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void ApplyActionButtonVisibility()
@@ -2188,14 +2325,23 @@ public sealed partial class WidgetShell : UserControl
     {
         bool visible = _isCompactReorderEnabled &&
             _isCollapsed &&
-            (_isPointerOverShell || _isDragHandlePressed || _isCompactKeyboardFocused);
-        CompactReorderHandle.IsHitTestVisible = _isCompactReorderEnabled && _isCollapsed;
+            (_isPointerOverShell || _isDragHandlePressed || _isCompactKeyboardFocused ||
+             _isPointerOverCompactReorderHandle);
+        FrameworkElement activeHandle = UsesTitleBarOnlyCollapse
+            ? TitleBarReorderHandle
+            : CompactReorderHandle;
+        FrameworkElement inactiveHandle = UsesTitleBarOnlyCollapse
+            ? CompactReorderHandle
+            : TitleBarReorderHandle;
+        activeHandle.IsHitTestVisible = _isCompactReorderEnabled && _isCollapsed;
+        inactiveHandle.IsHitTestVisible = false;
+        inactiveHandle.Opacity = 0;
         double targetOpacity = visible ? 1 : 0;
 
         _compactReorderHandleStoryboard?.Stop();
         if (!animate || !SystemAnimationsEnabled())
         {
-            CompactReorderHandle.Opacity = targetOpacity;
+            activeHandle.Opacity = targetOpacity;
             return;
         }
 
@@ -2209,7 +2355,7 @@ public sealed partial class WidgetShell : UserControl
             }
         };
         var storyboard = new Storyboard();
-        Storyboard.SetTarget(animation, CompactReorderHandle);
+        Storyboard.SetTarget(animation, activeHandle);
         Storyboard.SetTargetProperty(animation, "Opacity");
         storyboard.Children.Add(animation);
         _compactReorderHandleStoryboard = storyboard;
@@ -2228,7 +2374,16 @@ public sealed partial class WidgetShell : UserControl
         }
     }
 
-    private void CollapseButton_Click(object sender, RoutedEventArgs e) => CollapseRequested?.Invoke(this, e);
+    private void CollapseButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isCollapsed && UsesTitleBarOnlyCollapse)
+        {
+            ExpandRequested?.Invoke(this, e);
+            return;
+        }
+
+        CollapseRequested?.Invoke(this, e);
+    }
 
     private void CompactExpandButton_Click(object sender, RoutedEventArgs e) => ExpandRequested?.Invoke(this, e);
 
@@ -2613,6 +2768,25 @@ public sealed partial class WidgetShell : UserControl
 
     private void TitleBarGrid_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
+        if (_isCollapsed && UsesTitleBarOnlyCollapse)
+        {
+            bool pressedReorderHandle = _isCompactReorderEnabled &&
+                e.OriginalSource is DependencyObject reorderSource &&
+                IsWithin(reorderSource, TitleBarReorderHandle);
+            bool pressedActionButton = e.OriginalSource is DependencyObject actionSource &&
+                IsWithin(actionSource, RightActionButtons) &&
+                !pressedReorderHandle;
+            _isCompactMoveHandlePress = !pressedReorderHandle && !pressedActionButton;
+            if (pressedReorderHandle)
+            {
+                CompactPointerPressed?.Invoke(this, EventArgs.Empty);
+            }
+        }
+        else
+        {
+            _isCompactMoveHandlePress = false;
+        }
+
         TitlePointerPressed?.Invoke(this, e);
     }
 
@@ -2624,6 +2798,7 @@ public sealed partial class WidgetShell : UserControl
     private void TitleBarGrid_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
         TitlePointerReleased?.Invoke(this, e);
+        _isCompactMoveHandlePress = false;
     }
 
     private void TitleBarGrid_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
@@ -2631,6 +2806,63 @@ public sealed partial class WidgetShell : UserControl
         // When pointer capture is lost mid-drag (e.g., alt-tab, UAC),
         // notify the parent window so it can call EndWindowDragCore.
         TitlePointerReleased?.Invoke(this, e);
+        _isCompactMoveHandlePress = false;
+    }
+
+    private void TitleIdentityHost_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (!_isCollapsed || !UsesTitleBarOnlyCollapse)
+        {
+            return;
+        }
+
+        _isPointerOverCompactIdentity = true;
+        CompactMoveHandlePointerEntered?.Invoke(this, EventArgs.Empty);
+        if (_usesSmartCompactBehavior)
+        {
+            _isPointerOverCompactExpansionZone = true;
+            CompactExpansionPointerEntered?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private void TitleIdentityHost_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (!UsesTitleBarOnlyCollapse)
+        {
+            return;
+        }
+
+        _isPointerOverCompactIdentity = false;
+        CompactMoveHandlePointerExited?.Invoke(this, EventArgs.Empty);
+        if (_usesSmartCompactBehavior)
+        {
+            _isPointerOverCompactExpansionZone = false;
+            CompactExpansionPointerExited?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private void TitleBarReorderHandle_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (!_isCollapsed || !UsesTitleBarOnlyCollapse || !_isCompactReorderEnabled)
+        {
+            return;
+        }
+
+        _isPointerOverCompactReorderHandle = true;
+        UpdateCompactReorderHandleVisual();
+        CompactActionPointerEntered?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void TitleBarReorderHandle_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (!UsesTitleBarOnlyCollapse)
+        {
+            return;
+        }
+
+        _isPointerOverCompactReorderHandle = false;
+        UpdateCompactReorderHandleVisual();
+        CompactActionPointerExited?.Invoke(this, EventArgs.Empty);
     }
 
     private void OverlayDragHandle_PointerPressed(object sender, PointerRoutedEventArgs e)
@@ -2657,7 +2889,8 @@ public sealed partial class WidgetShell : UserControl
                 IsWithin(moveSource, CompactIdentityHost);
             bool pressedReorderHandle = _isCompactReorderEnabled &&
                 e.OriginalSource is DependencyObject reorderSource &&
-                IsWithin(reorderSource, CompactReorderHandle);
+                (IsWithin(reorderSource, CompactReorderHandle) ||
+                 IsWithin(reorderSource, TitleBarReorderHandle));
             _isCompactMoveHandlePress = pressedMoveHandle;
             startsWindowDrag = pressedMoveHandle || pressedReorderHandle;
             _pendingDragHandleClickAction = startsWindowDrag

@@ -270,32 +270,6 @@ public partial class SettingsViewModel
         GetWidgetCollapseBehaviorDisplayName(SelectedWidgetCollapseBehavior);
 
 
-    public string SelectedWidgetCompactContentMode
-    {
-        get => _selectedWidgetCompactContentMode;
-        set
-        {
-            string normalized = SettingsService.NormalizeWidgetCompactContentMode(value);
-            if (!SetProperty(ref _selectedWidgetCompactContentMode, normalized))
-            {
-                return;
-            }
-
-            if (_isRestoringDefaults || _isApplyingSettingsSnapshot)
-            {
-                return;
-            }
-
-            _settingsService.Settings.WidgetCompactContentMode = normalized;
-            _settingsService.SaveDebounced();
-            OnPropertyChanged(nameof(SelectedWidgetCompactContentModeText));
-        }
-    }
-
-    public string SelectedWidgetCompactContentModeText =>
-        GetWidgetCompactContentModeDisplayName(SelectedWidgetCompactContentMode);
-
-
     public string SelectedLayoutDensity
     {
         get => _selectedLayoutDensity;

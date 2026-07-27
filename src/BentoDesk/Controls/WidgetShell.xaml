@@ -59,7 +59,9 @@
                     IsDoubleTapEnabled="{x:Bind IsTitleEditable, Mode=OneWay}"
                     Orientation="Horizontal"
                     Spacing="8"
-                    DoubleTapped="TitleText_DoubleTapped">
+                    DoubleTapped="TitleText_DoubleTapped"
+                    PointerEntered="TitleIdentityHost_PointerEntered"
+                    PointerExited="TitleIdentityHost_PointerExited">
                     <controls:WidgetTitleIcon
                         x:Name="TitleIcon"
                         AccentColor="{x:Bind TitleIconAccentColor, Mode=OneWay}"
@@ -129,12 +131,50 @@
                             <Path x:Name="CloseButtonIcon" Data="M8.5 4h3a1.5 1.5 0 0 0-3 0Zm-1 0a2.5 2.5 0 0 1 5 0h5a.5.5 0 0 1 0 1h-1.05l-1.2 10.34A3 3 0 0 1 12.27 18H7.73a3 3 0 0 1-2.98-2.66L3.55 5H2.5a.5.5 0 0 1 0-1h5ZM5.74 15.23A2 2 0 0 0 7.73 17h4.54a2 2 0 0 0 1.99-1.77L15.44 5H4.56l1.18 10.23ZM8.5 7.5c.28 0 .5.22.5.5v6a.5.5 0 0 1-1 0V8c0-.28.22-.5.5-.5ZM12 8a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V8Z" Fill="{Binding Foreground, ElementName=CloseButton}" Stretch="Uniform" />
                         </Button>
                     </StackPanel>
-                    <Button
-                        x:Name="CollapseButton"
-                        Click="CollapseButton_Click"
-                        Style="{StaticResource WidgetTitleActionButtonStyle}">
-                        <FontIcon FontSize="12" Glyph="&#xE70E;" />
-                    </Button>
+                        <Button
+                            x:Name="CollapseButton"
+                            Click="CollapseButton_Click"
+                            Style="{StaticResource WidgetTitleActionButtonStyle}">
+                            <FontIcon x:Name="CollapseButtonIcon" FontSize="12" Glyph="&#xE70E;" RenderTransformOrigin="0.5,0.5">
+                                <FontIcon.RenderTransform>
+                                    <RotateTransform x:Name="CollapseButtonIconRotate" Angle="0" />
+                                </FontIcon.RenderTransform>
+                            </FontIcon>
+                        </Button>
+                    <Border
+                        x:Name="TitleBarReorderHandle"
+                        Width="18"
+                        Height="28"
+                        Margin="2,0,0,0"
+                        VerticalAlignment="Center"
+                        Background="#01000000"
+                        Opacity="0"
+                        PointerEntered="TitleBarReorderHandle_PointerEntered"
+                        PointerExited="TitleBarReorderHandle_PointerExited"
+                        Visibility="Collapsed">
+                        <Grid
+                            Width="7"
+                            Height="12"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Opacity="0.58">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Ellipse Width="2" Height="2" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <Ellipse Grid.Column="1" Width="2" Height="2" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <Ellipse Grid.Row="1" Width="2" Height="2" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <Ellipse Grid.Row="1" Grid.Column="1" Width="2" Height="2" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <Ellipse Grid.Row="2" Width="2" Height="2" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <Ellipse Grid.Row="2" Grid.Column="1" Width="2" Height="2" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </Grid>
+                    </Border>
                 </StackPanel>
             </Grid>
         </Grid>

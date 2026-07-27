@@ -360,15 +360,6 @@ set => WidgetOpacity = Math.Clamp(1.0 - value / 100d, SettingsService.MinWidgetO
         _cachedWidgetCollapseBehaviorDisplayNames ??=
             AvailableWidgetCollapseBehaviors.Select(GetWidgetCollapseBehaviorDisplayName).ToArray();
 
-    public string[] AvailableWidgetCompactContentModes { get; } =
-    [
-        SettingsService.WidgetCompactContentModeSmart,
-        SettingsService.WidgetCompactContentModeSummary,
-        SettingsService.WidgetCompactContentModeMinimal
-    ];
-    public string[] AvailableWidgetCompactContentModeDisplayNames =>
-        _cachedWidgetCompactContentModeDisplayNames ??=
-            AvailableWidgetCompactContentModes.Select(GetWidgetCompactContentModeDisplayName).ToArray();
     public string[] AvailableLayoutDensities { get; } =
     [
         SettingsService.LayoutDensityCompact,

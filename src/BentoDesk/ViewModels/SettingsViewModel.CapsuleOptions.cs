@@ -13,7 +13,6 @@ public partial class SettingsViewModel
     private double _widgetCapsuleBarSpacing = SettingsService.DefaultWidgetCapsuleBarSpacing;
     private string _selectedWidgetCapsuleBarPlacement = SettingsService.WidgetCapsuleBarPlacementFloating;
     private string _selectedWidgetCapsuleBarDirection = SettingsService.WidgetCapsuleBarDirectionAuto;
-    private bool _widgetCompactHideSensitiveContent;
     private string _selectedWidgetCompactAnimationEffect = SettingsService.WidgetCompactAnimationSmooth;
     private string _selectedWidgetCompactMediaCornerMode = SettingsService.WidgetCompactMediaCornerFollowWidget;
     private double _widgetCompactAnimationDurationMs = SettingsService.DefaultWidgetCompactAnimationDurationMs;
@@ -270,26 +269,6 @@ public partial class SettingsViewModel
         SelectedWidgetCapsuleBarPlacementText,
         SelectedWidgetCapsuleBarDirectionText,
         WidgetCapsuleBarSpacingText);
-
-    public bool WidgetCompactHideSensitiveContent
-    {
-        get => _widgetCompactHideSensitiveContent;
-        set
-        {
-            if (!SetProperty(ref _widgetCompactHideSensitiveContent, value))
-            {
-                return;
-            }
-
-            if (_isRestoringDefaults || _isApplyingSettingsSnapshot)
-            {
-                return;
-            }
-
-            _settingsService.Settings.WidgetCompactHideSensitiveContent = value;
-            _settingsService.SaveDebounced();
-        }
-    }
 
     public string[] AvailableWidgetCompactAnimationEffects { get; } =
     [

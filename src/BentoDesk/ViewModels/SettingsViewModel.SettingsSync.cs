@@ -87,11 +87,9 @@ public partial class SettingsViewModel
                 settings.WidgetCapsuleBarPlacement);
             SelectedWidgetCapsuleBarDirection = SettingsService.NormalizeWidgetCapsuleBarDirection(
                 settings.WidgetCapsuleBarDirection);
-            WidgetCompactHideSensitiveContent = settings.WidgetCompactHideSensitiveContent;
             SelectedWidgetCollapseBehavior = SettingsService.NormalizeWidgetCollapseBehavior(settings.WidgetCollapseBehavior) == SettingsService.WidgetCollapseBehaviorSmart
                 ? SettingsService.WidgetCollapseBehaviorSmart
                 : SettingsService.WidgetCollapseBehaviorClick;
-            SelectedWidgetCompactContentMode = SettingsService.NormalizeWidgetCompactContentMode(settings.WidgetCompactContentMode);
             SelectedWidgetCompactAnimationEffect = SettingsService.NormalizeWidgetCompactAnimationEffect(settings.WidgetCompactAnimationEffect);
             WidgetCompactAnimationDurationMs = SettingsService.NormalizeWidgetCompactAnimationDurationMs(settings.WidgetCompactAnimationDurationMs);
             WidgetCompactExpandDelayMs = SettingsService.NormalizeWidgetCompactExpandDelayMs(settings.WidgetCompactExpandDelayMs);
@@ -200,7 +198,6 @@ public partial class SettingsViewModel
             _cachedWidgetBorderColorModeDisplayNames = null;
             _cachedWidgetBorderStyleDisplayNames = null;
             _cachedWidgetCollapseBehaviorDisplayNames = null;
-            _cachedWidgetCompactContentModeDisplayNames = null;
             _cachedWidgetCompactWidthModeDisplayNames = null;
             _cachedWidgetCapsuleArrangementDisplayNames = null;
             _cachedWidgetCapsuleBarPlacementDisplayNames = null;
@@ -223,7 +220,6 @@ public partial class SettingsViewModel
             OnPropertyChanged(nameof(AvailableWidgetBorderStyleDisplayNames));
             OnPropertyChanged(nameof(AvailableWidgetCollapseBehaviorDisplayNames));
             OnPropertyChanged(nameof(AvailableWidgetCompactWidthModeDisplayNames));
-            OnPropertyChanged(nameof(AvailableWidgetCompactContentModeDisplayNames));
             OnPropertyChanged(nameof(AvailableWidgetCapsuleArrangementDisplayNames));
             OnPropertyChanged(nameof(AvailableWidgetCapsuleBarPlacementDisplayNames));
             OnPropertyChanged(nameof(AvailableWidgetCapsuleBarDirectionDisplayNames));
@@ -267,7 +263,6 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(SelectedWidgetCapsuleBarPlacementText));
         OnPropertyChanged(nameof(SelectedWidgetCapsuleBarDirectionText));
         OnPropertyChanged(nameof(CapsuleArrangementDetailsSummaryText));
-        OnPropertyChanged(nameof(SelectedWidgetCompactContentModeText));
         OnPropertyChanged(nameof(SelectedWidgetCompactAnimationEffectText));
         OnPropertyChanged(nameof(IsWidgetCompactAnimationCustom));
         OnPropertyChanged(nameof(WidgetCompactAnimationCustomVisibility));

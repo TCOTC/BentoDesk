@@ -82,6 +82,7 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
         ContentWidgetShell.TitleIconKind = WidgetTitleIconKindNames.FromWidgetKind(_config.WidgetKind);
         ContentWidgetShell.ShowHoverButtons = settingsService.Settings.ShowHoverButtons;
         ContentWidgetShell.IsTitleEditable = true;
+        ContentWidgetShell.SetCollapseChromeMode(WidgetCollapseChromeMode.CapsulePresentation);
         ApplyLocalizedTitleActionTooltips();
 
         ConfigureWindowCore();
@@ -109,11 +110,10 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
     protected override WidgetCompactPresentation CreateCompactPresentation()
     {
         var localization = App.Current.LocalizationService;
-        string contentMode = ResolveEffectiveCompactContentMode();
         return CurrentContent switch
         {
             MusicWidgetContentAdapter music =>
-                CreateMusicCompactPresentation(music, contentMode),
+                CreateMusicCompactPresentation(music),
             _ => new WidgetCompactPresentation(
                 _titleViewModel.DisplayName,
                 string.Empty,
@@ -125,20 +125,12 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
     }
 
     private WidgetCompactPresentation CreateMusicCompactPresentation(
-        MusicWidgetContentAdapter music,
-        string contentMode)
+        MusicWidgetContentAdapter music)
     {
-        bool hidesSensitiveContent = WidgetCompactPrivacyPolicy.HidesSensitiveContent(
-            SettingsService.Settings.WidgetCompactHideSensitiveContent,
-            Config.WidgetKind);
-        string title = hidesSensitiveContent
-            ? _titleViewModel.DisplayName
-            : music.ViewModel.Title;
-        string summary = contentMode == SettingsService.WidgetCompactContentModeMinimal
-            ? string.Empty
-            : hidesSensitiveContent
-                ? music.ViewModel.StatusText
-                : music.ViewModel.Artist;
+        // Capsule content-mode / privacy settings were removed; music always
+        // uses Smart presentation with full media details.
+        string title = music.ViewModel.Title;
+        string summary = music.ViewModel.Artist;
 
         // Plain, determinate progress shown below the artist name inside the
         // capsule. Mirrors the EXPANDED music view: the track is always
@@ -162,29 +154,24 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
             summary,
             _descriptor.DefaultGlyph,
             string.Empty,
-            hidesSensitiveContent ? null : music.ViewModel.ThumbnailImage,
-            ShowMediaControls: contentMode == SettingsService.WidgetCompactContentModeSmart,
+            music.ViewModel.ThumbnailImage,
+            ShowMediaControls: true,
             IsPlaying: music.ViewModel.IsPlaying,
             CanGoPrevious: music.ViewModel.CanGoPrevious,
             CanGoNext: music.ViewModel.CanGoNext,
-            UseStackedText: contentMode == SettingsService.WidgetCompactContentModeSmart,
-            EnableMarquee: !hidesSensitiveContent,
+            UseStackedText: true,
+            EnableMarquee: true,
             Progress: null,
             IsProgressIndeterminate: false,
-            UseFullBleedBackground: !hidesSensitiveContent,
-            ShowSpectrum: !hidesSensitiveContent,
-            LiveStateKey: hidesSensitiveContent
-                ? string.Join(
-                    "|",
-                    music.ViewModel.PlaybackState,
-                    music.ViewModel.Duration.Ticks)
-                : string.Join(
-                    "|",
-                    music.ViewModel.Title,
-                    music.ViewModel.Artist,
-                    music.ViewModel.PlaybackState,
-                    music.ViewModel.Duration.Ticks),
-            ShowVinyl: !hidesSensitiveContent,
+            UseFullBleedBackground: true,
+            ShowSpectrum: true,
+            LiveStateKey: string.Join(
+                "|",
+                music.ViewModel.Title,
+                music.ViewModel.Artist,
+                music.ViewModel.PlaybackState,
+                music.ViewModel.Duration.Ticks),
+            ShowVinyl: true,
             MusicProgress: musicProgress);
     }
 
