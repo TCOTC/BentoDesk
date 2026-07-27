@@ -1482,60 +1482,81 @@ public abstract partial class WidgetWindowBase
 
     private void RecaptureCompactPlacementAfterExpandedResize(RectInt32 expandedBounds)
     {
-        if (Config.CompactPlacement is null)
+        if (Config.CompactPlacement is null && _stableCompactBounds is null)
         {
             return;
         }
 
+        string? cornerAnchor = ToPositionAnchor(_compactExpansionAnchor) ??
+            Config.CompactPlacement?.PositionAnchor ??
+            Config.PositionAnchor;
         double scale = Win32Helper.GetDpiScaleForWindow(HWnd, RootElement.XamlRoot);
+        double? titleBarLogicalHeight = WidgetShellControl.UsesTitleBarOnlyCollapse
+            ? WidgetShellControl.GetTitleBarLogicalHeight()
+            : null;
         RectInt32 compactBounds = WidgetCompactBoundsCalculator.Calculate(
             expandedBounds,
-            Config.PositionAnchor,
+            cornerAnchor,
             scale,
             ResolveEffectiveCompactContentMode(),
             Config.WidgetKind,
-            Config.CompactWidth);
+            Config.CompactWidth,
+            titleBarLogicalHeight: titleBarLogicalHeight);
         CaptureCompactPlacement(compactBounds, persist: false);
         _compactExpansionAnchor =
-            WidgetCompactExpansionCalculator.FromPositionAnchor(Config.PositionAnchor) ??
+            WidgetCompactExpansionCalculator.FromPositionAnchor(cornerAnchor) ??
             _compactExpansionAnchor;
     }
 
+    private static string? ToPositionAnchor(WidgetCompactExpansionAnchor? anchor) =>
+        anchor switch
+        {
+            WidgetCompactExpansionAnchor.LeftTop => WidgetPositionAnchors.LeftTop,
+            WidgetCompactExpansionAnchor.RightTop => WidgetPositionAnchors.RightTop,
+            WidgetCompactExpansionAnchor.LeftBottom => WidgetPositionAnchors.LeftBottom,
+            WidgetCompactExpansionAnchor.RightBottom => WidgetPositionAnchors.RightBottom,
+            _ => null
+        };
+
     protected RectInt32 CompleteExpandedWidgetDrag(RectInt32 finalBounds)
     {
-        if (!UsesCompactExpansionGeometry() ||
-            IsCompactBoundsStateActive ||
-            _expandedInteractionStartBounds is not { } expandedStart ||
-            _compactInteractionStartBounds is not { } compactStart)
+        if (IsCompactBoundsStateActive)
+        {
+            // Collapsed chrome can be dragged freely during the gesture; clamp
+            // back into the work area on release so it cannot stay off-screen.
+            return ClampAndCommitDragBounds(finalBounds, captureCompactPlacement: true);
+        }
+
+        if (!UsesCompactExpansionGeometry())
         {
             return finalBounds;
         }
 
-        int deltaX = finalBounds.X - expandedStart.X;
-        int deltaY = finalBounds.Y - expandedStart.Y;
-        if (deltaX == 0 && deltaY == 0)
+        // A completed drag is the source of truth for the expanded panel — same
+        // rationale as PersistCompletedWidgetResize. Re-resolving from a
+        // (possibly stale) compact placement used to snap the panel away from
+        // the screen edge the user just chose.
+        finalBounds = ClampAndCommitDragBounds(finalBounds, captureCompactPlacement: false);
+        RecaptureCompactPlacementAfterExpandedResize(finalBounds);
+        return finalBounds;
+    }
+
+    private RectInt32 ClampAndCommitDragBounds(RectInt32 finalBounds, bool captureCompactPlacement)
+    {
+        RectInt32 workArea = ResolveCompactWorkArea(finalBounds);
+        finalBounds = ClampBoundsIntoWorkArea(finalBounds, workArea);
+        RectInt32 current = GetCurrentWindowBounds();
+        if (!BoundsEqual(current, finalBounds))
         {
-            return finalBounds;
+            MoveWindowWithoutPersisting(finalBounds);
         }
 
-        var shiftedCompact = new RectInt32(
-            compactStart.X + deltaX,
-            compactStart.Y + deltaY,
-            compactStart.Width,
-            compactStart.Height);
-        RectInt32 workArea = ResolveCompactWorkArea(shiftedCompact);
-        shiftedCompact = ClampBoundsIntoWorkArea(shiftedCompact, workArea);
-        CaptureCompactPlacement(shiftedCompact, persist: false);
-        WidgetCompactExpansionLayout layout = ResolveCompactExpansionLayout(
-            shiftedCompact,
-            new SizeInt32(finalBounds.Width, finalBounds.Height),
-            freezeResolvedAnchor: _compactExpansionAnchor is not null);
-        _compactExpansionAnchor = layout.Anchor;
-        if (!BoundsEqual(finalBounds, layout.ExpandedBounds))
+        if (captureCompactPlacement)
         {
-            MoveWindowWithoutPersisting(layout.ExpandedBounds);
+            CaptureCompactPlacement(finalBounds, persist: false);
         }
-        return layout.ExpandedBounds;
+
+        return finalBounds;
     }
 
     private void ReanchorExpandedToCompact(RectInt32 compactBounds, bool preserveAnchor)
@@ -1571,7 +1592,23 @@ public abstract partial class WidgetWindowBase
         }
 
         RectInt32 expanded = GetCurrentWindowBounds();
-        RectInt32 compact = GetStableCompactBounds(expanded);
+        // Pair against the live expanded window. GetStableCompactBounds can still
+        // resolve a stale CompactPlacement from a previous collapsed session.
+        string? cornerAnchor = ToPositionAnchor(_compactExpansionAnchor) ??
+            Config.CompactPlacement?.PositionAnchor ??
+            Config.PositionAnchor;
+        double scale = Win32Helper.GetDpiScaleForWindow(HWnd, RootElement.XamlRoot);
+        double? titleBarLogicalHeight = WidgetShellControl.UsesTitleBarOnlyCollapse
+            ? WidgetShellControl.GetTitleBarLogicalHeight()
+            : null;
+        RectInt32 compact = WidgetCompactBoundsCalculator.Calculate(
+            expanded,
+            cornerAnchor,
+            scale,
+            ResolveEffectiveCompactContentMode(),
+            Config.WidgetKind,
+            Config.CompactWidth,
+            titleBarLogicalHeight: titleBarLogicalHeight);
         WidgetCompactExpansionLayout layout = ResolveCompactExpansionLayout(
             compact,
             new SizeInt32(expanded.Width, expanded.Height),
