@@ -339,25 +339,63 @@ public sealed partial class ContentWidgetWindow
     private TextBox CreateTitleRenameEditor()
     {
         var localization = App.Current.LocalizationService;
-        double titleWidth = ContentWidgetShell.TitleTextElement.ActualWidth > 0
-            ? ContentWidgetShell.TitleTextElement.ActualWidth + 36
-            : (_titleViewModel.DisplayName.Length * 9.5) + 36;
+        var titleText = ContentWidgetShell.TitleTextElement;
+        double maxWidth = ResolveTitleRenameMaxWidth(titleText);
 
         var editor = new TextBox
         {
             Text = _titleViewModel.DisplayName,
             PlaceholderText = localization.T("Widget.TitlePlaceholder"),
-            Width = Math.Clamp(titleWidth, 120, 220),
-            MaxWidth = 220,
-            FontSize = Math.Max(ContentWidgetShell.TitleTextElement.FontSize - 1, 11),
+            MaxWidth = maxWidth,
+            FontSize = titleText.FontSize,
+            FontFamily = titleText.FontFamily,
+            FontWeight = titleText.FontWeight,
+            Margin = titleText.Margin,
+            Padding = new Thickness(0),
             Style = GetTextBoxStyleResource("WidgetTitleRenameTextBoxStyle"),
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Center
         };
 
+        if (titleText.ActualHeight > 0)
+        {
+            editor.Height = titleText.ActualHeight;
+        }
+
+        if (titleText.Foreground is SolidColorBrush titleBrush)
+        {
+            editor.Foreground = titleBrush;
+        }
+
+        WidgetTitleRenameEditorHelper.ApplyAutoWidth(editor, maxWidth);
+        editor.TextChanged += TitleRenameEditor_TextChanged;
         editor.KeyDown += TitleRenameEditor_KeyDown;
         editor.LostFocus += TitleRenameEditor_LostFocus;
         return editor;
+    }
+
+    private double ResolveTitleRenameMaxWidth(TextBlock titleText)
+    {
+        double fallback = 300;
+        double titleBarWidth = ContentWidgetShell.TitleBar.ActualWidth;
+        if (titleBarWidth > 0)
+        {
+            double reserved =
+                ContentWidgetShell.TitleIconElement.ActualWidth +
+                ContentWidgetShell.RightActionButtonHost.ActualWidth +
+                24;
+            fallback = Math.Max(120, titleBarWidth - reserved);
+        }
+
+        return WidgetTitleRenameEditorHelper.ResolveMaxWidth(titleText, fallback);
+    }
+
+    private void TitleRenameEditor_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (ContentWidgetShell.TitleEditorContent is TextBox editor)
+        {
+            WidgetTitleRenameEditorHelper.ApplyAutoWidth(editor, editor.MaxWidth);
+        }
     }
 
     private static Style? GetTextBoxStyleResource(string resourceKey)
@@ -434,6 +472,7 @@ public sealed partial class ContentWidgetWindow
     {
         if (ContentWidgetShell.TitleEditorContent is TextBox editor)
         {
+            editor.TextChanged -= TitleRenameEditor_TextChanged;
             editor.KeyDown -= TitleRenameEditor_KeyDown;
             editor.LostFocus -= TitleRenameEditor_LostFocus;
         }

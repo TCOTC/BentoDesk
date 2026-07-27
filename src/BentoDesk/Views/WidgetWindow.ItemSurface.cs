@@ -108,19 +108,6 @@ public sealed partial class WidgetWindow
             accentColor.G,
             accentColor.B);
 
-        var editorBackground = BuildAccentSurfaceColor(
-            isDark,
-            accentColor,
-            isDark
-                ? ColorHelper.FromArgb(0xFF, 0x1A, 0x1C, 0x21)
-                : ColorHelper.FromArgb(0xFF, 0xFF, 0xFF, 0xFF),
-            accentMix: isDark ? 0.14 : 0.08,
-            overlayMix: isDark ? 0.12 : 0.08);
-
-        var editorBorder = isDark
-            ? ColorHelper.FromArgb(0x20, 0xFF, 0xFF, 0xFF)
-            : ColorHelper.FromArgb(0x14, 0x00, 0x00, 0x00);
-
         var secondaryText = isDark
             ? ColorHelper.FromArgb(0xD8, 0xC0, 0xC3, 0xC8)
             : ColorHelper.FromArgb(0xD0, 0x62, 0x65, 0x6A);
@@ -133,9 +120,8 @@ public sealed partial class WidgetWindow
         FileTitleIcon.Mode = _settingsService.Settings.WidgetTitleIconMode;
         FileWidgetShell.TitleIconAccentColor = iconForeground;
         FileWidgetShell.TitleIconMode = _settingsService.Settings.WidgetTitleIconMode;
-        TitleEditBox.Background = GetOrUpdateSolidColorBrush(TitleEditBox.Background, editorBackground);
-        TitleEditBox.BorderBrush = GetOrUpdateSolidColorBrush(TitleEditBox.BorderBrush, editorBorder);
-        TitleEditBox.Foreground = GetOrUpdateSolidColorBrush(TitleEditBox.Foreground, isDark ? Colors.White : Colors.Black);
+        var titleForeground = isDark ? Colors.White : Colors.Black;
+        TitleEditBox.Foreground = GetOrUpdateSolidColorBrush(TitleEditBox.Foreground, titleForeground);
         EmptyStateTitleText.Foreground = GetOrUpdateSolidColorBrush(
             EmptyStateTitleText.Foreground,
             isDark ? Colors.White : ColorHelper.FromArgb(0xFF, 0x1A, 0x1A, 0x1A));

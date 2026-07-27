@@ -176,7 +176,7 @@ public sealed partial class WidgetWindow
         FileTitleIcon.LabelText = ViewModel.Name;
         FileTitleIcon.Mode = _settingsService.Settings.WidgetTitleIconMode;
         TitleText.FontSize = metrics.TitleTextSize;
-        TitleEditBox.FontSize = Math.Max(metrics.TitleTextSize - 1, 11);
+        TitleEditBox.FontSize = metrics.TitleTextSize;
 
         ApplyTitleActionButtonConfiguration(chromeMode);
 

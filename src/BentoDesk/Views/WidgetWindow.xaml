@@ -464,13 +464,14 @@
 
                             <TextBox
                                 x:Name="TitleEditBox"
-                                Width="168"
-                                MaxWidth="220"
-                                FontSize="13"
+                                MaxWidth="300"
+                                Margin="0,-1,0,0"
+                                Padding="0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Style="{StaticResource WidgetTitleRenameTextBoxStyle}"
                                 Visibility="Collapsed"
+                                TextChanged="TitleEditBox_TextChanged"
                                 KeyDown="TitleEditBox_KeyDown"
                                 LostFocus="TitleEditBox_LostFocus" />
                         </Grid>

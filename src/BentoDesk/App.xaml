@@ -21,6 +21,8 @@
                     <SolidColorBrush x:Key="WindowBackgroundBackgroundBrush" Color="Transparent" />
                     <SolidColorBrush x:Key="WidgetOverlaySurfaceBrush" Color="#FBFCFD" />
                     <SolidColorBrush x:Key="WidgetOverlayInputSurfaceBrush" Color="#FFFFFF" />
+                    <!-- 标题就地编辑需不透明底，否则 WinUI 光标 DestinationInvert 会看不见 -->
+                    <SolidColorBrush x:Key="WidgetTitleRenameEditorBackgroundBrush" Color="#FFF3F3F3" />
                     <SolidColorBrush x:Key="WidgetOverlayStrokeBrush" Color="#24000000" />
                     <CornerRadius x:Key="OverlayCornerRadius">8</CornerRadius>
                     <CornerRadius x:Key="ComboBoxItemCornerRadius">6</CornerRadius>
@@ -38,6 +40,8 @@
                     <SolidColorBrush x:Key="WindowBackgroundBackgroundBrush" Color="Transparent" />
                     <SolidColorBrush x:Key="WidgetOverlaySurfaceBrush" Color="#2A3038" />
                     <SolidColorBrush x:Key="WidgetOverlayInputSurfaceBrush" Color="#222830" />
+                    <!-- 标题就地编辑需不透明底，否则 WinUI 光标 DestinationInvert 会看不见 -->
+                    <SolidColorBrush x:Key="WidgetTitleRenameEditorBackgroundBrush" Color="#FF2A2C32" />
                     <SolidColorBrush x:Key="WidgetOverlayStrokeBrush" Color="#52FFFFFF" />
                     <CornerRadius x:Key="OverlayCornerRadius">8</CornerRadius>
                     <CornerRadius x:Key="ComboBoxItemCornerRadius">6</CornerRadius>
@@ -230,9 +234,64 @@
                 <Setter Property="CornerRadius" Value="2" />
             </Style>
 
-            <Style x:Key="WidgetTitleRenameTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource WidgetInlineRenameTextBoxStyle}">
-                <Setter Property="MinHeight" Value="28" />
-                <Setter Property="Padding" Value="8,2" />
+            <!-- 标题就地编辑：无边框；底色必须不透明，否则光标 DestinationInvert 看不见 -->
+            <Style x:Key="WidgetTitleRenameTextBoxStyle" TargetType="TextBox">
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="MinHeight" Value="0" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Background" Value="{ThemeResource WidgetTitleRenameEditorBackgroundBrush}" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+                <Setter Property="SelectionHighlightColor" Value="{ThemeResource TextControlSelectionHighlightColor}" />
+                <Setter Property="TextWrapping" Value="NoWrap" />
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="UseSystemFocusVisuals" Value="False" />
+                <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Enabled" />
+                <Setter Property="ScrollViewer.VerticalScrollMode" Value="Disabled" />
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Hidden" />
+                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+                <Setter Property="ScrollViewer.IsDeferredScrollingEnabled" Value="False" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="2">
+                                <Grid VerticalAlignment="Center">
+                                    <ScrollViewer
+                                        x:Name="ContentElement"
+                                        Margin="0"
+                                        Padding="0"
+                                        VerticalAlignment="Center"
+                                        AutomationProperties.AccessibilityView="Raw"
+                                        HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                        HorizontalScrollMode="{TemplateBinding ScrollViewer.HorizontalScrollMode}"
+                                        IsDeferredScrollingEnabled="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
+                                        IsHorizontalRailEnabled="{TemplateBinding ScrollViewer.IsHorizontalRailEnabled}"
+                                        IsTabStop="False"
+                                        IsVerticalRailEnabled="{TemplateBinding ScrollViewer.IsVerticalRailEnabled}"
+                                        VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
+                                        VerticalScrollMode="{TemplateBinding ScrollViewer.VerticalScrollMode}"
+                                        ZoomMode="Disabled" />
+                                    <TextBlock
+                                        x:Name="PlaceholderTextContentPresenter"
+                                        Margin="0"
+                                        Padding="0"
+                                        Foreground="{ThemeResource TextControlPlaceholderForeground}"
+                                        IsHitTestVisible="False"
+                                        Text="{TemplateBinding PlaceholderText}"
+                                        TextAlignment="{TemplateBinding TextAlignment}"
+                                        TextWrapping="{TemplateBinding TextWrapping}"
+                                        VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
             <Style x:Key="WidgetEditorTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource WidgetTextInputStyle}">

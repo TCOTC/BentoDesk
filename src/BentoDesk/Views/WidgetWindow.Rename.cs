@@ -37,12 +37,39 @@ public sealed partial class WidgetWindow
 
     private void PrepareRenameEditor()
     {
-        double titleWidth = TitleText.ActualWidth > 0
-            ? TitleText.ActualWidth + 36
-            : (ViewModel.Name.Length * 9.5) + 36;
-
-        TitleEditBox.Width = Math.Clamp(titleWidth, 120, 220);
         TitleEditBox.Text = ViewModel.Name;
+        TitleEditBox.FontSize = TitleText.FontSize;
+        TitleEditBox.FontFamily = TitleText.FontFamily;
+        TitleEditBox.FontWeight = TitleText.FontWeight;
+        TitleEditBox.Margin = TitleText.Margin;
+        TitleEditBox.Padding = new Thickness(0);
+        TitleEditBox.MaxWidth = WidgetTitleRenameEditorHelper.ResolveMaxWidth(TitleText);
+        if (TitleText.ActualHeight > 0)
+        {
+            TitleEditBox.Height = TitleText.ActualHeight;
+        }
+
+        if (TitleText.Foreground is SolidColorBrush titleBrush)
+        {
+            TitleEditBox.Foreground = titleBrush;
+        }
+
+        UpdateTitleEditBoxWidth();
+    }
+
+    private void UpdateTitleEditBoxWidth()
+    {
+        WidgetTitleRenameEditorHelper.ApplyAutoWidth(
+            TitleEditBox,
+            TitleEditBox.MaxWidth > 0 ? TitleEditBox.MaxWidth : 300);
+    }
+
+    private void TitleEditBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (TitleEditBox.Visibility == Visibility.Visible)
+        {
+            UpdateTitleEditBoxWidth();
+        }
     }
 
     private async Task CommitRenameAsync()
