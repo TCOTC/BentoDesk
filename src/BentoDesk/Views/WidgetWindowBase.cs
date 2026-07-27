@@ -184,13 +184,13 @@ public abstract partial class WidgetWindowBase : Window
     protected virtual void OnResizeStart() { }
 
     /// <summary>
-    /// Called when a capsule bounds transition begins (including zero-duration).
+    /// Called when a collapse bounds transition begins (including zero-duration).
     /// File widgets use this to freeze expensive item-surface layout work.
     /// </summary>
     protected virtual void OnBoundsTransitionStarted() { }
 
     /// <summary>
-    /// Called when a capsule bounds transition fully completes.
+    /// Called when a collapse bounds transition fully completes.
     /// </summary>
     protected virtual void OnBoundsTransitionCompleted() { }
 

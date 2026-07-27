@@ -30,7 +30,7 @@ public interface IWidgetContent
 
 /// <summary>
 /// Optional contract for content whose layout changes at size breakpoints.
-/// Capsule transitions can lock that content to its start or target layout
+/// Collapse transitions can lock that content to its start or target layout
 /// instead of letting intermediate animated window sizes trigger every layout.
 /// </summary>
 public interface IWidgetResponsiveLayoutContent

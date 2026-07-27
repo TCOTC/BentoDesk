@@ -24,7 +24,7 @@ public partial class SettingsViewModel
     public bool IsSmartWidgetCollapseBehaviorSelected =>
         SelectedWidgetCollapseBehavior == SettingsService.WidgetCollapseBehaviorSmart;
 
-    public Visibility CapsuleHoverResponseEntryVisibility =>
+    public Visibility CollapseHoverResponseEntryVisibility =>
         IsSmartWidgetCollapseBehaviorSelected ? Visibility.Visible : Visibility.Collapsed;
 
     public string[] AvailableWidgetCompactAnimationEffects { get; } =
@@ -322,54 +322,54 @@ public partial class SettingsViewModel
         GetWidgetCompactMediaCornerDisplayName(SelectedWidgetCompactMediaCornerMode);
 
 
-    public int CapsuleCustomRuleCount => _settingsService.Settings.Widgets.Count(widget =>
+    public int CollapseCustomRuleCount => _settingsService.Settings.Widgets.Count(widget =>
         widget.Metadata?.ContainsKey(WidgetCollapseBehaviorNames.MetadataKey) == true);
 
-    public int CapsuleCustomWidthCount =>
+    public int CollapseCustomWidthCount =>
         _settingsService.Settings.Widgets.Count(widget => widget.CompactWidth is not null);
 
-    public int CapsuleSavedPlacementCount =>
+    public int CollapseSavedPlacementCount =>
         _settingsService.Settings.Widgets.Count(widget => widget.CompactPlacement is not null);
 
-    public bool HasCapsuleBehaviorOverrides => CapsuleCustomRuleCount > 0;
+    public bool HasCollapseBehaviorOverrides => CollapseCustomRuleCount > 0;
 
-    public bool HasCapsuleGeometryOverrides =>
-        CapsuleCustomWidthCount > 0 || CapsuleSavedPlacementCount > 0;
+    public bool HasCollapseGeometryOverrides =>
+        CollapseCustomWidthCount > 0 || CollapseSavedPlacementCount > 0;
 
-    public int CapsuleOverrideWidgetCount => _settingsService.Settings.Widgets.Count(HasCapsuleOverride);
+    public int CollapseOverrideWidgetCount => _settingsService.Settings.Widgets.Count(HasCollapseOverride);
 
-    public bool HasCapsuleOverrides => CapsuleOverrideWidgetCount > 0;
+    public bool HasCollapseOverrides => CollapseOverrideWidgetCount > 0;
 
-    public Visibility CapsuleOverridesEntryVisibility =>
-        HasCapsuleOverrides ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility CollapseOverridesEntryVisibility =>
+        HasCollapseOverrides ? Visibility.Visible : Visibility.Collapsed;
 
-    public Visibility CapsuleOverridesListVisibility =>
-        HasCapsuleOverrides ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility CollapseOverridesListVisibility =>
+        HasCollapseOverrides ? Visibility.Visible : Visibility.Collapsed;
 
-    public Visibility CapsuleOverridesEmptyVisibility =>
-        HasCapsuleOverrides ? Visibility.Collapsed : Visibility.Visible;
+    public Visibility CollapseOverridesEmptyVisibility =>
+        HasCollapseOverrides ? Visibility.Collapsed : Visibility.Visible;
 
-    public IReadOnlyList<CapsuleOverrideSettingsItem> CapsuleOverrideItems =>
+    public IReadOnlyList<CollapseOverrideSettingsItem> CollapseOverrideItems =>
         _settingsService.Settings.Widgets
-            .Where(HasCapsuleOverride)
-            .Select(CreateCapsuleOverrideSettingsItem)
+            .Where(HasCollapseOverride)
+            .Select(CreateCollapseOverrideSettingsItem)
             .ToArray();
 
-    public string CapsuleOverrideSummaryText => _localizationService.Format(
-        "Settings.Capsule.Overrides.Summary",
-        CapsuleOverrideWidgetCount);
+    public string CollapseOverrideSummaryText => _localizationService.Format(
+        "Settings.Collapse.Overrides.Summary",
+        CollapseOverrideWidgetCount);
 
-    public string CapsuleBehaviorOverrideSummaryText => _localizationService.Format(
-        "Settings.Capsule.Overrides.Behavior.Summary",
-        CapsuleCustomRuleCount);
+    public string CollapseBehaviorOverrideSummaryText => _localizationService.Format(
+        "Settings.Collapse.Overrides.Behavior.Summary",
+        CollapseCustomRuleCount);
 
-    public string CapsuleGeometryOverrideSummaryText => _localizationService.Format(
-        "Settings.Capsule.Overrides.Geometry.Summary",
-        CapsuleCustomWidthCount,
-        CapsuleSavedPlacementCount);
+    public string CollapseGeometryOverrideSummaryText => _localizationService.Format(
+        "Settings.Collapse.Overrides.Geometry.Summary",
+        CollapseCustomWidthCount,
+        CollapseSavedPlacementCount);
 
     [RelayCommand]
-    private void ResetCapsuleBehaviorOverrides()
+    private void ResetCollapseBehaviorOverrides()
     {
         int changed = 0;
         foreach (var widget in _settingsService.Settings.Widgets)
@@ -383,12 +383,12 @@ public partial class SettingsViewModel
         if (changed > 0)
         {
             _settingsService.SaveDebounced();
-            NotifyCapsuleOverridePropertiesChanged();
+            NotifyCollapseOverridePropertiesChanged();
         }
     }
 
     [RelayCommand]
-    private void ResetCapsuleGeometryOverrides()
+    private void ResetCollapseGeometryOverrides()
     {
         int changed = 0;
         foreach (var widget in _settingsService.Settings.Widgets)
@@ -409,30 +409,30 @@ public partial class SettingsViewModel
         if (changed > 0)
         {
             _settingsService.SaveDebounced();
-            NotifyCapsuleOverridePropertiesChanged();
+            NotifyCollapseOverridePropertiesChanged();
         }
     }
 
-    public void ResetCapsuleOverridesForWidget(string widgetId)
+    public void ResetCollapseOverridesForWidget(string widgetId)
     {
         var widget = _settingsService.Settings.Widgets.FirstOrDefault(candidate =>
             string.Equals(candidate.Id, widgetId, StringComparison.Ordinal));
-        if (widget is null || !ClearCapsuleOverrides(widget))
+        if (widget is null || !ClearCollapseOverrides(widget))
         {
             return;
         }
 
         _settingsService.SaveDebounced();
-        NotifyCapsuleOverridePropertiesChanged();
+        NotifyCollapseOverridePropertiesChanged();
     }
 
     [RelayCommand]
-    private void ResetAllCapsuleOverrides()
+    private void ResetAllCollapseOverrides()
     {
         bool changed = false;
         foreach (var widget in _settingsService.Settings.Widgets)
         {
-            changed |= ClearCapsuleOverrides(widget);
+            changed |= ClearCollapseOverrides(widget);
         }
 
         if (!changed)
@@ -441,15 +441,15 @@ public partial class SettingsViewModel
         }
 
         _settingsService.SaveDebounced();
-        NotifyCapsuleOverridePropertiesChanged();
+        NotifyCollapseOverridePropertiesChanged();
     }
 
-    private static bool HasCapsuleOverride(WidgetConfig widget) =>
+    private static bool HasCollapseOverride(WidgetConfig widget) =>
         widget.Metadata?.ContainsKey(WidgetCollapseBehaviorNames.MetadataKey) == true ||
         widget.CompactWidth is not null ||
         widget.CompactPlacement is not null;
 
-    private static bool ClearCapsuleOverrides(WidgetConfig widget)
+    private static bool ClearCollapseOverrides(WidgetConfig widget)
     {
         bool changed = widget.Metadata?.Remove(WidgetCollapseBehaviorNames.MetadataKey) == true;
         if (widget.CompactWidth is not null)
@@ -467,33 +467,33 @@ public partial class SettingsViewModel
         return changed;
     }
 
-    private CapsuleOverrideSettingsItem CreateCapsuleOverrideSettingsItem(WidgetConfig widget)
+    private CollapseOverrideSettingsItem CreateCollapseOverrideSettingsItem(WidgetConfig widget)
     {
         var details = new List<string>(3);
         if (widget.Metadata is not null &&
             widget.Metadata.TryGetValue(WidgetCollapseBehaviorNames.MetadataKey, out string? behavior))
         {
             details.Add(_localizationService.Format(
-                "Settings.Capsule.Overrides.Item.Behavior",
+                "Settings.Collapse.Overrides.Item.Behavior",
                 GetWidgetCollapseBehaviorDisplayName(behavior)));
         }
 
         if (widget.CompactWidth is { } width)
         {
             details.Add(_localizationService.Format(
-                "Settings.Capsule.Overrides.Item.Width",
+                "Settings.Collapse.Overrides.Item.Width",
                 Math.Round(width)));
         }
 
         if (widget.CompactPlacement is not null)
         {
-            details.Add(_localizationService.T("Settings.Capsule.Overrides.Item.Position"));
+            details.Add(_localizationService.T("Settings.Collapse.Overrides.Item.Position"));
         }
 
         string displayName = string.IsNullOrWhiteSpace(widget.Name)
             ? GetWidgetKindDisplayName(widget.WidgetKind)
             : widget.Name.Trim();
-        return new CapsuleOverrideSettingsItem(
+        return new CollapseOverrideSettingsItem(
             widget.Id,
             displayName,
             string.Join(" · ", details),
@@ -512,60 +512,60 @@ public partial class SettingsViewModel
         _ => "\uE8A5"
     };
 
-    private void NotifyCapsuleOverridePropertiesChanged()
+    private void NotifyCollapseOverridePropertiesChanged()
     {
-        OnPropertyChanged(nameof(CapsuleCustomRuleCount));
-        OnPropertyChanged(nameof(CapsuleCustomWidthCount));
-        OnPropertyChanged(nameof(CapsuleSavedPlacementCount));
-        OnPropertyChanged(nameof(HasCapsuleBehaviorOverrides));
-        OnPropertyChanged(nameof(HasCapsuleGeometryOverrides));
-        OnPropertyChanged(nameof(CapsuleOverrideWidgetCount));
-        OnPropertyChanged(nameof(HasCapsuleOverrides));
-        OnPropertyChanged(nameof(CapsuleOverridesEntryVisibility));
-        OnPropertyChanged(nameof(CapsuleOverridesListVisibility));
-        OnPropertyChanged(nameof(CapsuleOverridesEmptyVisibility));
-        OnPropertyChanged(nameof(CapsuleOverrideItems));
-        OnPropertyChanged(nameof(CapsuleOverrideSummaryText));
-        OnPropertyChanged(nameof(CapsuleBehaviorOverrideSummaryText));
-        OnPropertyChanged(nameof(CapsuleGeometryOverrideSummaryText));
-        ResetCapsuleBehaviorOverridesCommand.NotifyCanExecuteChanged();
-        ResetCapsuleGeometryOverridesCommand.NotifyCanExecuteChanged();
-        ResetAllCapsuleOverridesCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(CollapseCustomRuleCount));
+        OnPropertyChanged(nameof(CollapseCustomWidthCount));
+        OnPropertyChanged(nameof(CollapseSavedPlacementCount));
+        OnPropertyChanged(nameof(HasCollapseBehaviorOverrides));
+        OnPropertyChanged(nameof(HasCollapseGeometryOverrides));
+        OnPropertyChanged(nameof(CollapseOverrideWidgetCount));
+        OnPropertyChanged(nameof(HasCollapseOverrides));
+        OnPropertyChanged(nameof(CollapseOverridesEntryVisibility));
+        OnPropertyChanged(nameof(CollapseOverridesListVisibility));
+        OnPropertyChanged(nameof(CollapseOverridesEmptyVisibility));
+        OnPropertyChanged(nameof(CollapseOverrideItems));
+        OnPropertyChanged(nameof(CollapseOverrideSummaryText));
+        OnPropertyChanged(nameof(CollapseBehaviorOverrideSummaryText));
+        OnPropertyChanged(nameof(CollapseGeometryOverrideSummaryText));
+        ResetCollapseBehaviorOverridesCommand.NotifyCanExecuteChanged();
+        ResetCollapseGeometryOverridesCommand.NotifyCanExecuteChanged();
+        ResetAllCollapseOverridesCommand.NotifyCanExecuteChanged();
     }
 
     private string GetWidgetCompactAnimationEffectDisplayName(string effect) =>
         SettingsService.NormalizeWidgetCompactAnimationEffect(effect) switch
         {
-            SettingsService.WidgetCompactAnimationSnappy => _localizationService.T("Settings.Capsule.Animation.Snappy"),
-            SettingsService.WidgetCompactAnimationSlow => _localizationService.T("Settings.Capsule.Animation.Slow"),
-            SettingsService.WidgetCompactAnimationCustom => _localizationService.T("Settings.Capsule.Animation.Custom"),
-            SettingsService.WidgetCompactAnimationNone => _localizationService.T("Settings.Capsule.Animation.None"),
-            _ => _localizationService.T("Settings.Capsule.Animation.Smooth")
+            SettingsService.WidgetCompactAnimationSnappy => _localizationService.T("Settings.Collapse.Animation.Snappy"),
+            SettingsService.WidgetCompactAnimationSlow => _localizationService.T("Settings.Collapse.Animation.Slow"),
+            SettingsService.WidgetCompactAnimationCustom => _localizationService.T("Settings.Collapse.Animation.Custom"),
+            SettingsService.WidgetCompactAnimationNone => _localizationService.T("Settings.Collapse.Animation.None"),
+            _ => _localizationService.T("Settings.Collapse.Animation.Smooth")
         };
 
     private string GetWidgetCompactHoverResponseDisplayName(string response) =>
         SettingsService.NormalizeWidgetCompactHoverResponse(response) switch
         {
             SettingsService.WidgetCompactHoverResponseSensitive =>
-                _localizationService.T("Settings.Capsule.HoverResponse.Sensitive"),
+                _localizationService.T("Settings.Collapse.HoverResponse.Sensitive"),
             SettingsService.WidgetCompactHoverResponsePreventAccidental =>
-                _localizationService.T("Settings.Capsule.HoverResponse.PreventAccidental"),
+                _localizationService.T("Settings.Collapse.HoverResponse.PreventAccidental"),
             SettingsService.WidgetCompactHoverResponseCustom =>
-                _localizationService.T("Settings.Capsule.HoverResponse.Custom"),
-            _ => _localizationService.T("Settings.Capsule.HoverResponse.Balanced")
+                _localizationService.T("Settings.Collapse.HoverResponse.Custom"),
+            _ => _localizationService.T("Settings.Collapse.HoverResponse.Balanced")
         };
 
     private string GetWidgetCompactMediaCornerDisplayName(string mode) =>
         SettingsService.NormalizeWidgetCompactMediaCornerMode(mode) switch
         {
-            SettingsService.WidgetCompactMediaCornerSquare => _localizationService.T("Settings.Capsule.MediaCorner.Square"),
-            SettingsService.WidgetCompactMediaCornerSmall => _localizationService.T("Settings.Capsule.MediaCorner.Small"),
-            SettingsService.WidgetCompactMediaCornerRound => _localizationService.T("Settings.Capsule.MediaCorner.Round"),
-            _ => _localizationService.T("Settings.Capsule.MediaCorner.FollowWidget")
+            SettingsService.WidgetCompactMediaCornerSquare => _localizationService.T("Settings.Collapse.MediaCorner.Square"),
+            SettingsService.WidgetCompactMediaCornerSmall => _localizationService.T("Settings.Collapse.MediaCorner.Small"),
+            SettingsService.WidgetCompactMediaCornerRound => _localizationService.T("Settings.Collapse.MediaCorner.Round"),
+            _ => _localizationService.T("Settings.Collapse.MediaCorner.FollowWidget")
         };
 }
 
-public sealed record CapsuleOverrideSettingsItem(
+public sealed record CollapseOverrideSettingsItem(
     string WidgetId,
     string DisplayName,
     string Summary,

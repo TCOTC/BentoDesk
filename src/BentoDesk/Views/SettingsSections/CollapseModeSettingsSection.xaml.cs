@@ -3,9 +3,9 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace BentoDesk.Views.SettingsSections;
 
-public sealed partial class CapsuleModeSettingsSection : UserControl
+public sealed partial class CollapseModeSettingsSection : UserControl
 {
-    public CapsuleModeSettingsSection()
+    public CollapseModeSettingsSection()
     {
         InitializeComponent();
     }

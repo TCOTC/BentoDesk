@@ -11,7 +11,7 @@ public enum WidgetCollapseChromeMode
     TitleBarOnly,
 
     /// <summary>
-    /// Replace the title bar with the dedicated capsule chrome (music / overlay widgets).
+    /// Replace the title bar with the dedicated compact chrome (music / overlay widgets).
     /// </summary>
-    CapsulePresentation
+    CompactChrome
 }

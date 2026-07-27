@@ -36,10 +36,10 @@ public sealed partial class SettingsWindow
             ["AppearanceDensitySettings"] = AppearanceDensitySettingsSection,
             ["AppearanceWindowSettings"] = AppearanceWindowSettingsSection,
             ["AppearanceAnimationSettings"] = AppearanceAnimationSettingsSection,
-            ["CapsuleMode"] = CapsuleModeSection,
-            ["CapsuleBehaviorSettings"] = CapsuleBehaviorSettingsSection,
-            ["CapsuleAnimationSettings"] = CapsuleAnimationSettingsSection,
-            ["CapsuleOverridesSettings"] = CapsuleOverridesSettingsSection,
+            ["CollapseMode"] = CollapseModeSection,
+            ["CollapseBehaviorSettings"] = CollapseBehaviorSettingsSection,
+            ["CollapseAnimationSettings"] = CollapseAnimationSettingsSection,
+            ["CollapseOverridesSettings"] = CollapseOverridesSettingsSection,
             ["AppearanceDetail"] = AppearanceDetailSection,
             ["FileDisplaySettings"] = FileDisplaySettingsSection,
             ["FileStorageSettings"] = FileStorageSettingsSection,
@@ -503,11 +503,11 @@ public sealed partial class SettingsWindow
         NavigateToSettingsSection(e.SectionTag);
     }
 
-    private void ResetCapsuleWidgetOverrideButton_Click(object sender, RoutedEventArgs e)
+    private void ResetCollapseWidgetOverrideButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button { Tag: string widgetId })
         {
-            ViewModel.ResetCapsuleOverridesForWidget(widgetId);
+            ViewModel.ResetCollapseOverridesForWidget(widgetId);
         }
     }
 

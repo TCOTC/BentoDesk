@@ -78,11 +78,11 @@ public class WidgetConfig
     /// <summary>Whether this widget was manually left in its compact state.</summary>
     public bool IsCollapsed { get; set; }
 
-    /// <summary>Independent persisted placement for the compact capsule.</summary>
+    /// <summary>Independent persisted placement for the compact collapsed state.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public WidgetCompactPlacement? CompactPlacement { get; set; }
 
-    /// <summary>Optional user-adjusted compact capsule width in logical pixels.</summary>
+    /// <summary>Optional user-adjusted compact collapsed width in logical pixels.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? CompactWidth { get; set; }
 

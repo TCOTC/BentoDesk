@@ -45,7 +45,7 @@ The project is intentionally built around native Windows behavior. I like the te
 - **Managed desktop widgets**: create file collection widgets backed by a real folder.
 - **Folder mapping**: display an existing folder as a desktop widget without moving its contents.
 - **Music widget**: control playback, switch playback mode, adjust system volume, and use responsive album-art layouts with optional album-color ambience.
-- **Capsule mode**: collapse widgets into compact smart summaries, place them independently or combine them into an ordered desktop bar.
+- **Expand & collapse**: collapse widgets into a compact state, place them independently, and expand on click or hover.
 - **Automatic file stacks**: group related file-widget items by type, date or prioritized custom extension rules without moving the actual files.
 - **Copy into managed storage**: dropped files are copied into the managed widget's real storage folder by default; move remains available in Settings.
 - **Tray controls**: create widgets, map folders, show or hide all widgets, temporarily raise widgets, open managed storage, open Settings, toggle startup launch, and exit.

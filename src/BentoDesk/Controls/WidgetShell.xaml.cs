@@ -124,7 +124,7 @@ public sealed partial class WidgetShell : UserControl
     private bool _isPointerOverShell;
     private bool _isCollapsed;
     private bool _isCollapseActionAvailable;
-    private WidgetCollapseChromeMode _collapseChromeMode = WidgetCollapseChromeMode.CapsulePresentation;
+    private WidgetCollapseChromeMode _collapseChromeMode = WidgetCollapseChromeMode.CompactChrome;
     private bool _isMinimalCompactStyle;
     private bool _usesStackedCompactText;
     private bool _isCompactKeyboardFocused;
@@ -315,8 +315,8 @@ public sealed partial class WidgetShell : UserControl
     public bool UsesTitleBarOnlyCollapse =>
         _collapseChromeMode == WidgetCollapseChromeMode.TitleBarOnly;
 
-    public bool UsesCapsuleCollapseChrome =>
-        _collapseChromeMode == WidgetCollapseChromeMode.CapsulePresentation;
+    public bool UsesCompactCollapseChrome =>
+        _collapseChromeMode == WidgetCollapseChromeMode.CompactChrome;
     public FrameworkElement LockActionIcon => LockButtonIcon;
     public FrameworkElement LockFilledActionIcon => LockButtonFilledIcon;
     public FrameworkElement DragHandleElement =>
@@ -389,10 +389,10 @@ public sealed partial class WidgetShell : UserControl
     public void SetCompactReorderEnabled(bool enabled)
     {
         _isCompactReorderEnabled = enabled;
-        bool showCapsuleHandle = enabled && UsesCapsuleCollapseChrome;
+        bool showCompactHandle = enabled && UsesCompactCollapseChrome;
         bool showTitleHandle = enabled && UsesTitleBarOnlyCollapse;
-        CompactReorderHandle.Visibility = showCapsuleHandle ? Visibility.Visible : Visibility.Collapsed;
-        CompactReorderHandle.IsHitTestVisible = showCapsuleHandle && _isCollapsed;
+        CompactReorderHandle.Visibility = showCompactHandle ? Visibility.Visible : Visibility.Collapsed;
+        CompactReorderHandle.IsHitTestVisible = showCompactHandle && _isCollapsed;
         TitleBarReorderHandle.Visibility = showTitleHandle ? Visibility.Visible : Visibility.Collapsed;
         TitleBarReorderHandle.IsHitTestVisible = showTitleHandle && _isCollapsed;
         UpdateCompactActionRegionWidth();
@@ -485,7 +485,7 @@ public sealed partial class WidgetShell : UserControl
         UpdateOverlayDragHandleVisual(animate: false);
         ApplyCompactActionVisibility(animate: false);
         UpdateCompactReorderHandleVisual(animate: false);
-        if (collapsed && UsesCapsuleCollapseChrome)
+        if (collapsed && UsesCompactCollapseChrome)
         {
             QueueCompactMarquee();
         }
@@ -727,7 +727,7 @@ public sealed partial class WidgetShell : UserControl
             CompactThumbnailHost.ClearValue(Border.BorderThicknessProperty);
         }
 
-        // Rotating vinyl disc (music capsule). Label reuses the album cover.
+        // Rotating vinyl disc (music compact chrome). Label reuses the album cover.
         bool showVinyl = presentation.ShowVinyl && presentation.Thumbnail is not null;
         CompactVinylHost.Visibility = showVinyl ? Visibility.Visible : Visibility.Collapsed;
         CompactVinylLabelBrush.ImageSource = showVinyl ? presentation.Thumbnail : null;
@@ -1190,7 +1190,7 @@ public sealed partial class WidgetShell : UserControl
         // Duration unknown but playing: many media apps (esp. streaming/live or
         // at the very start of a track) report EndTime only tens of seconds into
         // playback. Rather than hiding the bar entirely, show a sweeping
-        // indeterminate segment so the capsule still reflects live activity.
+        // indeterminate segment so the compact chrome still reflects live activity.
         if (_compactPresentation is { IsProgressIndeterminate: true })
         {
             CompactLiveTrack.Visibility = Visibility.Visible;
@@ -1232,9 +1232,9 @@ public sealed partial class WidgetShell : UserControl
     }
 
     /// <summary>
-    /// Shows a plain, determinate progress bar inside the music capsule, below the
+    /// Shows a plain, determinate progress bar inside the music compact chrome, below the
     /// artist name. Driven by the presentation's MusicProgress ratio (0–1). The
-    /// fill is the theme accent color (white when the capsule uses a full-bleed
+    /// fill is the theme accent color (white when the compact chrome uses a full-bleed
     /// cover background), so it matches the rest of the UI. No timestamps.
     /// </summary>
     private void ApplyCompactMusicProgress()
@@ -1389,7 +1389,7 @@ public sealed partial class WidgetShell : UserControl
     private static readonly Brush s_fullBleedSummaryBrush = new SolidColorBrush(
         Windows.UI.Color.FromArgb(0xCC, 0xFF, 0xFF, 0xFF));
 
-    // Full-bleed capsule text uses theme-adaptive foreground colors (dark text in
+    // Full-bleed compact chrome text uses theme-adaptive foreground colors (dark text in
     // light theme, light text in dark theme). Match the readability scrim to the
     // theme so the text always stays legible: dark scrim in dark theme, white
     // scrim in light theme.
@@ -1623,7 +1623,7 @@ public sealed partial class WidgetShell : UserControl
         // Quick capture: new record bounce
         if (p.EnableBounceOnUpdate && _lastCaptureLiveKey is not null && _lastCaptureLiveKey != p.LiveStateKey)
         {
-            TriggerCapsuleBounce();
+            TriggerCompactBounce();
         }
         if (p.EnableBounceOnUpdate)
         {
@@ -1635,7 +1635,7 @@ public sealed partial class WidgetShell : UserControl
         }
     }
 
-    private void TriggerCapsuleBounce()
+    private void TriggerCompactBounce()
     {
         if (!SystemAnimationsEnabled()) return;
         var sb = new Storyboard();
@@ -2744,7 +2744,7 @@ public sealed partial class WidgetShell : UserControl
                 !pressedReorderHandle;
             bool pressedMoveHandle = e.OriginalSource is DependencyObject moveSource &&
                 IsWithin(moveSource, CompactMoveHandleElement);
-            // 收起态仅图标区拖动；中间标题区留给悬停展开，避免与拖动抢命中。
+            // 折叠态仅图标区拖动；中间标题区留给悬停展开，避免与拖动抢命中。
             _isCompactMoveHandlePress = pressedMoveHandle;
             if (pressedReorderHandle || (!pressedMoveHandle && !pressedActionButton))
             {

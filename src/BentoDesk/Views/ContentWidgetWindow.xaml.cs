@@ -45,7 +45,7 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
     // 500 ms while the music widget is active. The music ViewModel only raises
     // PropertyChanged when Position / Duration / IsPlaying actually change, so
     // if a player keeps Position at 0 for tens of seconds (very common at
-    // song-start) and never reports a Duration change, the capsule can stay
+    // song-start) and never reports a Duration change, the compact chrome can stay
     // stuck on a stale Progress=0 / ScaleX=0 render and look completely empty.
     // A forced refresh on a timer guarantees IsProgressIndeterminate is
     // re-evaluated continuously so the sweeping+pulsing bar keeps showing
@@ -81,7 +81,7 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
         ContentWidgetShell.TitleGlyph = descriptor.DefaultGlyph;
         ContentWidgetShell.TitleIconKind = WidgetTitleIconKindNames.FromWidgetKind(_config.WidgetKind);
         ContentWidgetShell.IsTitleEditable = true;
-        ContentWidgetShell.SetCollapseChromeMode(WidgetCollapseChromeMode.CapsulePresentation);
+        ContentWidgetShell.SetCollapseChromeMode(WidgetCollapseChromeMode.CompactChrome);
         ApplyLocalizedTitleActionTooltips();
 
         ConfigureWindowCore();
@@ -126,13 +126,13 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
     private WidgetCompactPresentation CreateMusicCompactPresentation(
         MusicWidgetContentAdapter music)
     {
-        // Capsule content-mode / privacy settings were removed; music always
+        // Collapse content-mode / privacy settings were removed; music always
         // uses Smart presentation with full media details.
         string title = music.ViewModel.Title;
         string summary = music.ViewModel.Artist;
 
         // Plain, determinate progress shown below the artist name inside the
-        // capsule. Mirrors the EXPANDED music view: the track is always
+        // compact chrome. Mirrors the EXPANDED music view: the track is always
         // visible while a session exists, and the fill grows from 0. Uses
         // SeekValue/SeekMaximum (same source as the expanded view), so when
         // the player hasn't reported a duration yet (common for streaming in

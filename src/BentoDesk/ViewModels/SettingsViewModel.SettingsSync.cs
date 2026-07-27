@@ -126,7 +126,7 @@ public partial class SettingsViewModel
         RefreshGlobalHotkeyState();
         OnPropertyChanged(nameof(CanEditCustomAccent));
         OnPropertyChanged(nameof(AccentColorDescription));
-        NotifyCapsuleOverridePropertiesChanged();
+        NotifyCollapseOverridePropertiesChanged();
     }
 
     private void RefreshLocalizedProperties()
@@ -155,7 +155,7 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(GlobalHotkeyStatusKind));
         OnPropertyChanged(nameof(CanShowGlobalHotkeyWarning));
         NotifyDragDropPermissionPropertiesChanged();
-        NotifyCapsuleOverridePropertiesChanged();
+        NotifyCollapseOverridePropertiesChanged();
     }
 
     private void RefreshSelectionProperties(bool refreshLocalizedOptions)
@@ -212,7 +212,7 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(SelectedWidgetCollapseBehaviorText));
         OnPropertyChanged(nameof(IsSmartWidgetCollapseBehavior));
         OnPropertyChanged(nameof(IsSmartWidgetCollapseBehaviorSelected));
-        OnPropertyChanged(nameof(CapsuleHoverResponseEntryVisibility));
+        OnPropertyChanged(nameof(CollapseHoverResponseEntryVisibility));
         OnPropertyChanged(nameof(CanOpenWidgetCompactHoverResponseDetails));
         OnPropertyChanged(nameof(CanOpenWidgetCompactAnimationDetails));
         OnPropertyChanged(nameof(SelectedWidgetCompactAnimationEffectText));

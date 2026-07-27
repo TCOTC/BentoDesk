@@ -326,12 +326,12 @@ Text="BentoDesk" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem
-                    Tag="CapsuleMode"
-                    svc:Localized.Key="Settings.Nav.CapsuleMode">
+                    Tag="CollapseMode"
+                    svc:Localized.Key="Settings.Nav.CollapseMode">
                     <NavigationViewItem.Icon>
                         <ImageIcon Style="{StaticResource SettingsNavImageIconStyle}">
                             <ImageIcon.Source>
-                                <media:SvgImageSource UriSource="ms-appx:///Assets/SettingsNavIcons/capsule-mode.svg" />
+                                <media:SvgImageSource UriSource="ms-appx:///Assets/SettingsNavIcons/collapse-mode.svg" />
                             </ImageIcon.Source>
                         </ImageIcon>
                     </NavigationViewItem.Icon>
@@ -696,16 +696,16 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                     </StackPanel>
                 </StackPanel>
 
-                <sections:CapsuleModeSettingsSection x:Name="CapsuleModeSection" Visibility="Collapsed" NavigationRequested="SettingsSection_NavigationRequested" />
-                <StackPanel x:Name="CapsuleBehaviorSettingsSection" Visibility="Collapsed" Style="{StaticResource SectionPanelStyle}">
+                <sections:CollapseModeSettingsSection x:Name="CollapseModeSection" Visibility="Collapsed" NavigationRequested="SettingsSection_NavigationRequested" />
+                <StackPanel x:Name="CollapseBehaviorSettingsSection" Visibility="Collapsed" Style="{StaticResource SectionPanelStyle}">
                     <StackPanel Margin="0,8,0,0" Spacing="4">
-                        <toolkit:SettingsCard Visibility="{Binding WidgetCompactHoverResponseCustomVisibility}" HorizontalContentAlignment="Right" svc:Localized.DescriptionKey="Settings.Capsule.ExpandDelay.Description" svc:Localized.HeaderKey="Settings.Capsule.ExpandDelay.Title">
+                        <toolkit:SettingsCard Visibility="{Binding WidgetCompactHoverResponseCustomVisibility}" HorizontalContentAlignment="Right" svc:Localized.DescriptionKey="Settings.Collapse.ExpandDelay.Description" svc:Localized.HeaderKey="Settings.Collapse.ExpandDelay.Title">
                             <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Spacing="8">
                                 <TextBlock Style="{StaticResource SliderSettingValueTextStyle}" Text="{Binding WidgetCompactExpandDelayText}" />
                                 <Slider Maximum="1000" Minimum="100" StepFrequency="10" Style="{StaticResource InlineMetricSliderStyle}" Value="{Binding WidgetCompactExpandDelayMs, Mode=TwoWay}" />
                             </StackPanel>
                         </toolkit:SettingsCard>
-                        <toolkit:SettingsCard Visibility="{Binding WidgetCompactHoverResponseCustomVisibility}" HorizontalContentAlignment="Right" svc:Localized.DescriptionKey="Settings.Capsule.CollapseDelay.Description" svc:Localized.HeaderKey="Settings.Capsule.CollapseDelay.Title">
+                        <toolkit:SettingsCard Visibility="{Binding WidgetCompactHoverResponseCustomVisibility}" HorizontalContentAlignment="Right" svc:Localized.DescriptionKey="Settings.Collapse.CollapseDelay.Description" svc:Localized.HeaderKey="Settings.Collapse.CollapseDelay.Title">
                             <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Spacing="8">
                                 <TextBlock Style="{StaticResource SliderSettingValueTextStyle}" Text="{Binding WidgetCompactCollapseDelayText}" />
                                 <Slider Maximum="1500" Minimum="200" StepFrequency="20" Style="{StaticResource InlineMetricSliderStyle}" Value="{Binding WidgetCompactCollapseDelayMs, Mode=TwoWay}" />
@@ -714,9 +714,9 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel x:Name="CapsuleAnimationSettingsSection" Visibility="Collapsed" Style="{StaticResource SectionPanelStyle}">
+                <StackPanel x:Name="CollapseAnimationSettingsSection" Visibility="Collapsed" Style="{StaticResource SectionPanelStyle}">
                     <StackPanel Margin="0,8,0,0" Spacing="4">
-                        <toolkit:SettingsCard Visibility="{Binding WidgetCompactAnimationCustomVisibility}" HorizontalContentAlignment="Right" svc:Localized.DescriptionKey="Settings.Capsule.AnimationDuration.Description" svc:Localized.HeaderKey="Settings.Capsule.AnimationDuration.Title">
+                        <toolkit:SettingsCard Visibility="{Binding WidgetCompactAnimationCustomVisibility}" HorizontalContentAlignment="Right" svc:Localized.DescriptionKey="Settings.Collapse.AnimationDuration.Description" svc:Localized.HeaderKey="Settings.Collapse.AnimationDuration.Title">
                             <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Spacing="8">
                                 <TextBlock Style="{StaticResource SliderSettingValueTextStyle}" Text="{Binding WidgetCompactAnimationDurationText}" />
                                 <Slider Maximum="400" Minimum="120" StepFrequency="10" Style="{StaticResource InlineMetricSliderStyle}" Value="{Binding WidgetCompactAnimationDurationMs, Mode=TwoWay}" />
@@ -725,12 +725,12 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel x:Name="CapsuleOverridesSettingsSection" Visibility="Collapsed" Style="{StaticResource SectionPanelStyle}">
+                <StackPanel x:Name="CollapseOverridesSettingsSection" Visibility="Collapsed" Style="{StaticResource SectionPanelStyle}">
                     <StackPanel Margin="0,8,0,0" Spacing="4">
-                        <toolkit:SettingsCard Visibility="{Binding CapsuleOverridesEmptyVisibility}" svc:Localized.DescriptionKey="Settings.Capsule.Overrides.Empty.Description" svc:Localized.HeaderKey="Settings.Capsule.Overrides.Empty.Title">
+                        <toolkit:SettingsCard Visibility="{Binding CollapseOverridesEmptyVisibility}" svc:Localized.DescriptionKey="Settings.Collapse.Overrides.Empty.Description" svc:Localized.HeaderKey="Settings.Collapse.Overrides.Empty.Title">
                             <toolkit:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE73E;" /></toolkit:SettingsCard.HeaderIcon>
                         </toolkit:SettingsCard>
-                        <ItemsControl ItemsSource="{Binding CapsuleOverrideItems}" Visibility="{Binding CapsuleOverridesListVisibility}">
+                        <ItemsControl ItemsSource="{Binding CollapseOverrideItems}" Visibility="{Binding CollapseOverridesListVisibility}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Style="{StaticResource SettingsGroupStyle}" Margin="0,0,0,4">
@@ -740,17 +740,17 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                                                 <TextBlock Style="{StaticResource SettingTitleTextStyle}" Text="{Binding DisplayName}" />
                                                 <TextBlock Style="{StaticResource SettingDescriptionTextStyle}" Text="{Binding Summary}" />
                                             </StackPanel>
-                                            <Button Grid.Column="2" Click="ResetCapsuleWidgetOverrideButton_Click" Tag="{Binding WidgetId}" VerticalAlignment="Center">
-                                                <TextBlock svc:Localized.Key="Settings.Capsule.Overrides.FollowGlobal" />
+                                            <Button Grid.Column="2" Click="ResetCollapseWidgetOverrideButton_Click" Tag="{Binding WidgetId}" VerticalAlignment="Center">
+                                                <TextBlock svc:Localized.Key="Settings.Collapse.Overrides.FollowGlobal" />
                                             </Button>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <toolkit:SettingsCard Visibility="{Binding CapsuleOverridesListVisibility}" HorizontalContentAlignment="Right" svc:Localized.DescriptionKey="Settings.Capsule.Overrides.ResetAll.Description" svc:Localized.HeaderKey="Settings.Capsule.Overrides.ResetAll.Title">
-                            <Button Command="{Binding ResetAllCapsuleOverridesCommand}">
-                                <StackPanel Orientation="Horizontal" Spacing="6"><FontIcon FontSize="13" Glyph="&#xE777;" /><TextBlock svc:Localized.Key="Settings.Capsule.Overrides.ResetAll.Action" /></StackPanel>
+                        <toolkit:SettingsCard Visibility="{Binding CollapseOverridesListVisibility}" HorizontalContentAlignment="Right" svc:Localized.DescriptionKey="Settings.Collapse.Overrides.ResetAll.Description" svc:Localized.HeaderKey="Settings.Collapse.Overrides.ResetAll.Title">
+                            <Button Command="{Binding ResetAllCollapseOverridesCommand}">
+                                <StackPanel Orientation="Horizontal" Spacing="6"><FontIcon FontSize="13" Glyph="&#xE777;" /><TextBlock svc:Localized.Key="Settings.Collapse.Overrides.ResetAll.Action" /></StackPanel>
                             </Button>
                         </toolkit:SettingsCard>
                     </StackPanel>

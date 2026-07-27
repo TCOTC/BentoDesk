@@ -222,7 +222,7 @@
 
                 <!-- Step 2 (feature widgets) removed; Music is enabled only from Settings. -->
 
-                <!-- ─────────── Step 3: Appearance (controls + live preview + capsule) ─────────── -->
+                <!-- ─────────── Step 3: Appearance (controls + live preview + collapse) ─────────── -->
                 <Grid
                     x:Name="Step3Panel"
                     Visibility="Collapsed"

@@ -357,7 +357,7 @@ public sealed partial class WidgetWindow
         _trayAnimation.NextGeneration();
         _trayAnimation.RevealWindowForTrayShow();
         // Stop any in-flight animation but do NOT snap the HWND back to
-        // _targetPosition: when the widget is expanded via capsule mode the
+        // _targetPosition: when the widget is expanded via collapse mode the
         // current bounds differ from _targetPosition (stale compact bounds),
         // and restoring would cause a visible position jump before the hide
         // animation begins. PrepareVisualState below will set _targetPosition

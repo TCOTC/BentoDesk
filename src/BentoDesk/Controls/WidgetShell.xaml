@@ -259,7 +259,7 @@
                 </Border.Background>
             </Border>
 
-            <!-- Shimmer gradient (search capsule) -->
+            <!-- Shimmer gradient (search compact chrome) -->
             <Border x:Name="CompactShimmer"
                     Grid.ColumnSpan="4"
                     Margin="-8,0,-6,0"
@@ -335,7 +335,7 @@
                     Visibility="Collapsed">
                     <Image x:Name="CompactThumbnail" Stretch="UniformToFill" />
                 </Border>
-                <!-- Rotating vinyl disc (music capsule only). Sits before the title text. -->
+                <!-- Rotating vinyl disc (music compact chrome only). Sits before the title text. -->
                 <Grid
                     x:Name="CompactVinylHost"
                     Width="26"

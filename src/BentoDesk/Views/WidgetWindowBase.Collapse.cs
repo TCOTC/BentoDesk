@@ -90,7 +90,7 @@ public abstract partial class WidgetWindowBase
     protected bool IsCompactBoundsStateActive =>
         IsWidgetCollapsedBoundsActive || _targetCollapsed;
 
-    /// <summary>True while the capsule fold/expand rendering loop is active.</summary>
+    /// <summary>True while the collapse fold/expand rendering loop is active.</summary>
     protected bool IsCollapseAnimationActive => _isCollapseAnimationRendering;
 
     internal WidgetCompactViewState CurrentCompactViewState => _compactViewState;
@@ -104,7 +104,7 @@ public abstract partial class WidgetWindowBase
     protected string ResolveEffectiveCompactContentMode()
     {
         // Content-mode settings were removed for file title-bar collapse.
-        // Music / capsule chrome still uses Smart presentation.
+        // Music / compact chrome still uses Smart presentation.
         return SettingsService.WidgetCompactContentModeSmart;
     }
 
@@ -184,7 +184,7 @@ public abstract partial class WidgetWindowBase
             return;
         }
 
-        // File widgets keep the original title bar; only music / capsule chrome
+        // File widgets keep the original title bar; only music / compact chrome
         // needs a compact presentation payload.
         if (!WidgetShellControl.UsesTitleBarOnlyCollapse)
         {
@@ -510,7 +510,7 @@ public abstract partial class WidgetWindowBase
         {
             WidgetCollapseBehavior.Expanded => false,
             WidgetCollapseBehavior.Click => Config.IsCollapsed,
-            // 悬停展开的收起只应由指针离开计时器驱动；设置刷新不得批量收起其他盒子。
+            // 悬停展开的折叠只应由指针离开计时器驱动；设置刷新不得批量折叠其他盒子。
             WidgetCollapseBehavior.Smart => ResolveSmartDesiredCollapsed(
                 previousBehavior,
                 behaviorChanged),
@@ -528,13 +528,13 @@ public abstract partial class WidgetWindowBase
             return _targetCollapsed;
         }
 
-        // 从「保持展开」切入悬停展开：进入收起态。
+        // 从「保持展开」切入悬停展开：进入折叠态。
         if (previousBehavior == WidgetCollapseBehavior.Expanded)
         {
             return true;
         }
 
-        // 从「点击展开」切入：保留当时的展开/收起状态。
+        // 从「点击展开」切入：保留当时的展开/折叠状态。
         if (previousBehavior == WidgetCollapseBehavior.Click)
         {
             return Config.IsCollapsed;
@@ -1332,9 +1332,9 @@ public abstract partial class WidgetWindowBase
         if (UsesCompactExpansionGeometry())
         {
             // A completed manual resize is the source of truth: never re-anchor
-            // the panel back to the capsule corner (that used to snap the panel
+            // the panel back to the compact corner (that used to snap the panel
             // back to its pre-resize position). Only clamp into the work area,
-            // then let the capsule follow the adjusted panel below.
+            // then let the compact chrome follow the adjusted panel below.
             bounds = ClampBoundsIntoWorkArea(bounds, ResolveCompactWorkArea(bounds));
             RectInt32 current = GetCurrentWindowBounds();
             if (!BoundsEqual(current, bounds))
@@ -1370,9 +1370,9 @@ public abstract partial class WidgetWindowBase
         }
 
         // During a manual resize the grabbed edge must stay the free edge.
-        // Re-anchoring to the capsule corner here would pin the anchor-side
+        // Re-anchoring to the compact corner here would pin the anchor-side
         // edges and mirror the drag onto the opposite side, so the user's
-        // proposed bounds are applied as-is. The capsule relationship is
+        // proposed bounds are applied as-is. The compact chrome relationship is
         // re-established from the final bounds when the resize completes.
         if (!string.IsNullOrEmpty(ResizeDirection))
         {

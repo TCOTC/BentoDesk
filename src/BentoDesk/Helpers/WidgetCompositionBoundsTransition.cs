@@ -8,7 +8,7 @@ using Windows.Graphics;
 namespace BentoDesk.Helpers;
 
 /// <summary>
-/// Drives capsule fold/expand size illusion via Composition Scale around a
+/// Drives collapse fold/expand size illusion via Composition Scale around a
 /// fixed pivot, so the host HWND geometry can stay fixed during the animation.
 /// </summary>
 internal static class WidgetCompositionBoundsTransition

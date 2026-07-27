@@ -41,7 +41,7 @@ public sealed record WidgetCompactPresentation(
     Windows.UI.Color? IconColor = null,
     bool EnableBounceOnUpdate = false,
     bool ShowVinyl = false,
-    // ── Music capsule body progress bar (below the artist name) ──
+    // ── Music compact chrome body progress bar (below the artist name) ──
     // Determinate fill ratio in [0,1]. Null means "no bar" (e.g. no
     // seekable timeline yet). Driven by SeekValue/SeekMaximum.
     double? MusicProgress = null);
