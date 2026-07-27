@@ -59,6 +59,8 @@ public abstract partial class WidgetWindowBase
 
         AppWindow.IsShownInSwitchers = false;
         ExtendsContentIntoTitleBar = false;
+        Activated -= WidgetWindowBase_Activated;
+        Activated += WidgetWindowBase_Activated;
 
         var config = Config;
         // Use center point for consistent monitor determination.

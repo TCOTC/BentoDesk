@@ -664,7 +664,7 @@
   "Settings.Section.CapsuleMode": "胶囊模式",
   "Settings.Capsule.ExpandDelay.Title": "悬停展开延迟",
   "Settings.FileStacks.Custom.Preview.Loading": "正在读取文件盒子内容…",
-  "Settings.Opacity.Description": "调整亚克力材质的背景透视程度",
+  "Settings.Opacity.Description": "只调整背景磨砂的透视程度（可透出壁纸），图标和文字保持不透明。建议开启系统设置 › 个性化 › 颜色 › 透明效果以获得磨砂壁纸",
   "Widget.MoveBackToDesktop": "移回桌面",
   "Settings.DataBackup.SuccessTitle": "应用数据已备份",
   "Widget.Stack.Category.Archives": "压缩包",

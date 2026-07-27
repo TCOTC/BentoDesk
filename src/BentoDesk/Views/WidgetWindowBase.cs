@@ -60,6 +60,8 @@ public abstract partial class WidgetWindowBase : Window
     protected bool MicaControllerAttached;
     private bool? _acrylicControllerUsesBase;
     private bool? _micaControllerUsesAlt;
+    private double _lastAcrylicControllerOpacity = double.NaN;
+    private double _lastAcrylicControllerIntensity = double.NaN;
     protected SystemBackdropConfiguration? BackdropConfiguration;
     protected ICompositionSupportsSystemBackdrop? BackdropTarget;
 
@@ -233,6 +235,7 @@ public abstract partial class WidgetWindowBase : Window
 
     protected void CleanupBase()
     {
+        Activated -= WidgetWindowBase_Activated;
         CleanupWidgetCollapse();
         StopBackdropRefreshTimer();
         if (_inactiveBackdropCleanupTimer is not null)

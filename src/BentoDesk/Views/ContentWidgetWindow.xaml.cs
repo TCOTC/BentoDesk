@@ -288,13 +288,29 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
             ?? AccentColorHelper.DefaultAccentColor;
         string materialType = SettingsService.Settings.WidgetMaterialType;
 
-        // Simplified layering: only apply surface color overlay for Solid mode.
+        // Solid：表面色；亚克力：系统透明开启时加轻遮罩补滑块行程；Mica：全透明透出背板。
         if (materialType is SettingsService.WidgetMaterialTypeSolid)
         {
             var surfaceColor = BuildFrostedSurfaceColor(isDark, accentColor, surfaceOpacity);
             ContentWidgetShell.BackgroundSurface.Background = GetOrUpdateSolidColorBrush(
                 ContentWidgetShell.BackgroundSurface.Background,
                 surfaceColor);
+        }
+        else if (SettingsService.IsAcrylicMaterial(materialType) &&
+                 Win32Helper.IsTransparencyEffectsEnabled())
+        {
+            double intensity = Math.Clamp(
+                SettingsService.Settings.WidgetMaterialIntensity,
+                SettingsService.MinWidgetMaterialIntensity,
+                SettingsService.MaxWidgetMaterialIntensity);
+            var plateColor = BuildAcrylicPlateOverlayColor(
+                isDark,
+                accentColor,
+                surfaceOpacity,
+                intensity);
+            ContentWidgetShell.BackgroundSurface.Background = GetOrUpdateSolidColorBrush(
+                ContentWidgetShell.BackgroundSurface.Background,
+                plateColor);
         }
         else
         {
@@ -324,6 +340,30 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
 
     protected override void OnRootElementLoaded()
     {
+        // 清掉 WinUI 默认不透明祖先背景，否则 DesktopAcrylic 背板透不出壁纸。
+        var parent = VisualTreeHelper.GetParent(RootGrid) as FrameworkElement;
+        while (parent is not null)
+        {
+            if (parent is Control control)
+            {
+                control.Background = new SolidColorBrush(Colors.Transparent);
+            }
+            else if (parent is Panel panel)
+            {
+                panel.Background = new SolidColorBrush(Colors.Transparent);
+            }
+            else if (parent is Border border)
+            {
+                border.Background = new SolidColorBrush(Colors.Transparent);
+            }
+            else if (parent is ContentPresenter presenter)
+            {
+                presenter.Background = new SolidColorBrush(Colors.Transparent);
+            }
+
+            parent = VisualTreeHelper.GetParent(parent) as FrameworkElement;
+        }
+
         RootGrid.Focus(FocusState.Programmatic);
     }
 

@@ -75,12 +75,25 @@ public sealed partial class WidgetWindow
             ?? AccentColorHelper.DefaultAccentColor;
         string materialType = _settingsService.Settings.WidgetMaterialType;
 
-        // Simplified layering: only apply surface color overlay for Solid mode.
-        // For Acrylic/Mica/Transparent, BackgroundPlate is transparent to let the system backdrop show through.
+        // Solid：表面色；亚克力：系统透明开启时加轻遮罩补滑块行程；Mica：全透明透出背板。
         if (materialType is SettingsService.WidgetMaterialTypeSolid)
         {
             var solidColor = BuildFrostedSurfaceColor(isDark, accentColor, surfaceOpacity);
             BackgroundPlate.Background = GetOrUpdateSolidColorBrush(BackgroundPlate.Background, solidColor);
+        }
+        else if (SettingsService.IsAcrylicMaterial(materialType) &&
+                 Win32Helper.IsTransparencyEffectsEnabled())
+        {
+            double intensity = Math.Clamp(
+                SettingsService.Settings.WidgetMaterialIntensity,
+                SettingsService.MinWidgetMaterialIntensity,
+                SettingsService.MaxWidgetMaterialIntensity);
+            var plateColor = BuildAcrylicPlateOverlayColor(
+                isDark,
+                accentColor,
+                surfaceOpacity,
+                intensity);
+            BackgroundPlate.Background = GetOrUpdateSolidColorBrush(BackgroundPlate.Background, plateColor);
         }
         else
         {

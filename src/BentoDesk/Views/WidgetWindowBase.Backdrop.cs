@@ -39,11 +39,18 @@ public abstract partial class WidgetWindowBase
             Win32Helper.ApplyFullWindowFrame(HWnd);
             ApplyDwmBorderStyle(isDark);
 
-            int backdropType;
+            // 整窗 layered alpha 会让图标/文字一起变淡，且破坏系统背板；透明度只改背景层。
+            Win32Helper.ClearTemporaryWindowAlpha(HWnd);
+            EnsureDesktopBackdropStaysActive();
+
+            int backdropType = Win32Helper.DWMSBT_NONE;
             bool controllerApplied = false;
+            double intensity = NormalizeMaterialIntensity(
+                SettingsService.Settings.WidgetMaterialIntensity);
 
             if (SettingsService.IsMicaMaterial(materialType))
             {
+                DisposeAcrylicController();
                 controllerApplied = ApplyMicaController(
                     isDark,
                     tintColor,
@@ -52,6 +59,8 @@ public abstract partial class WidgetWindowBase
 
             if (!controllerApplied && SettingsService.IsAcrylicMaterial(materialType))
             {
+                // 桌面钉住窗口几乎从不激活；必须保持 IsInputActive，并用带 alpha 的 FallbackColor，
+                // 否则会一直画不透明实心，Tint/Lum 再怎么调也看不到壁纸。
                 controllerApplied = ApplyAcrylicController(
                     isDark,
                     tintColor,
@@ -67,7 +76,7 @@ public abstract partial class WidgetWindowBase
             }
             else if (materialType is SettingsService.WidgetMaterialTypeSolid)
             {
-                DetachAcrylicControllerTarget();
+                DisposeAcrylicController();
                 DetachMicaControllerTarget();
                 backdropType = Win32Helper.DWMSBT_NONE;
                 Win32Helper.DwmSetWindowAttribute(HWnd, Win32Helper.DWMWA_SYSTEMBACKDROP_TYPE, ref backdropType, sizeof(int));
@@ -75,18 +84,22 @@ public abstract partial class WidgetWindowBase
             }
             else
             {
+                DisposeAcrylicController();
                 backdropType = Win32Helper.DWMSBT_TRANSIENTWINDOW;
                 Win32Helper.DwmSetWindowAttribute(HWnd, Win32Helper.DWMWA_SYSTEMBACKDROP_TYPE, ref backdropType, sizeof(int));
-                DetachAcrylicControllerTarget();
                 DetachMicaControllerTarget();
                 Win32Helper.ApplyAccentBlur(HWnd, tintColor, Math.Min(surfaceOpacity, 0.52), true);
             }
 
             App.LogVerbose(
                 $"[Backdrop] hwnd=0x{HWnd.ToInt64():X} material={materialType} isDark={isDark} " +
-                $"opacity={surfaceOpacity:F3} tint=#{tintColor.A:X2}{tintColor.R:X2}{tintColor.G:X2}{tintColor.B:X2} " +
+                $"opacity={surfaceOpacity:F3} intensity={intensity:F3} " +
+                $"tint=#{tintColor.A:X2}{tintColor.R:X2}{tintColor.G:X2}{tintColor.B:X2} " +
                 $"dwmBackdropType={backdropType} " +
-                $"acrylicController={AcrylicController is not null} micaController={MicaController is not null}");
+                $"acrylicController={AcrylicController is not null} micaController={MicaController is not null} " +
+                $"inputActive={BackdropConfiguration?.IsInputActive} " +
+                $"transparencyFx={Win32Helper.IsTransparencyEffectsEnabled()} " +
+                $"acrylicSupported={DesktopAcrylicController.IsSupported()}");
 
             ScheduleInactiveBackdropControllerCleanup(materialType);
         }
@@ -293,9 +306,10 @@ public abstract partial class WidgetWindowBase
             MicaController.SetSystemBackdropConfiguration(BackdropConfiguration);
         }
 
-        MicaController.Kind = useAlt ? MicaKind.BaseAlt : MicaKind.Base;
-        MicaController.TintColor = tintColor;
-        MicaController.FallbackColor = useAlt
+        double intensity = NormalizeMaterialIntensity(
+            SettingsService.Settings.WidgetMaterialIntensity);
+        var effectiveTint = BuildAcrylicAccentTintColor(isDark, tintColor, intensity);
+        var fallback = useAlt
             ? isDark
                 ? ColorHelper.FromArgb(0xFF, 0x16, 0x18, 0x1D)
                 : ColorHelper.FromArgb(0xFF, 0xE8, 0xEA, 0xEF)
@@ -303,17 +317,19 @@ public abstract partial class WidgetWindowBase
                 ? ColorHelper.FromArgb(0xFF, 0x20, 0x22, 0x26)
                 : ColorHelper.FromArgb(0xFF, 0xFF, 0xFF, 0xFF);
 
-        double intensity = NormalizeMaterialIntensity(
-            SettingsService.Settings.WidgetMaterialIntensity);
         double tintOpacity = useAlt
-            ? LerpMaterialValue(0.28, 0.82, intensity)
-            : LerpMaterialValue(0.04, 0.46, intensity);
+            ? LerpMaterialValue(0.18, 0.90, intensity)
+            : LerpMaterialValue(0.02, 0.62, intensity);
         double luminosityOpacity = useAlt
-            ? LerpMaterialValue(isDark ? 0.34 : 0.42, isDark ? 0.72 : 0.76, intensity)
-            : LerpMaterialValue(isDark ? 0.78 : 0.82, isDark ? 0.94 : 0.96, intensity);
+            ? LerpMaterialValue(isDark ? 0.28 : 0.36, isDark ? 0.82 : 0.88, intensity)
+            : LerpMaterialValue(isDark ? 0.70 : 0.76, isDark ? 0.96 : 0.98, intensity);
 
+        MicaController.Kind = useAlt ? MicaKind.BaseAlt : MicaKind.Base;
+        MicaController.TintColor = effectiveTint;
+        MicaController.FallbackColor = BlendBackdropColors(fallback, effectiveTint, intensity * 0.55);
         MicaController.TintOpacity = (float)tintOpacity;
         MicaController.LuminosityOpacity = (float)luminosityOpacity;
+        MicaController.SetSystemBackdropConfiguration(BackdropConfiguration);
         return true;
     }
 
@@ -360,6 +376,58 @@ public abstract partial class WidgetWindowBase
         }
     }
 
+    protected static Windows.UI.Color BuildAcrylicAccentTintColor(
+        bool isDark,
+        Windows.UI.Color baseTint,
+        double intensity)
+    {
+        intensity = Math.Clamp(intensity, 0.0, 1.0);
+        var accent = App.Current.ThemeService?.GetEffectiveAccentColor()
+            ?? AccentColorHelper.DefaultAccentColor;
+        double accentMix = LerpMaterialValue(isDark ? 0.04 : 0.06, isDark ? 0.42 : 0.36, intensity);
+        return BlendBackdropColors(baseTint, accent, accentMix);
+    }
+
+    /// <summary>
+    /// 桌面钉住窗口几乎从不成为前台；若 IsInputActive=false，亚克力会掉进不透明 Fallback。
+    /// </summary>
+    protected void EnsureDesktopBackdropStaysActive()
+    {
+        BackdropConfiguration ??= new SystemBackdropConfiguration();
+        BackdropConfiguration.IsInputActive = true;
+
+        try
+        {
+            AcrylicController?.SetSystemBackdropConfiguration(BackdropConfiguration);
+            MicaController?.SetSystemBackdropConfiguration(BackdropConfiguration);
+        }
+        catch
+        {
+        }
+    }
+
+    private void WidgetWindowBase_Activated(object sender, WindowActivatedEventArgs args)
+    {
+        // 无论激活还是失活，桌面盒子都保持背板 Active，才能持续透出壁纸。
+        EnsureDesktopBackdropStaysActive();
+    }
+
+    private static Windows.UI.Color BlendBackdropColors(
+        Windows.UI.Color fromColor,
+        Windows.UI.Color toColor,
+        double amount)
+    {
+        amount = Math.Clamp(amount, 0.0, 1.0);
+        static byte BlendChannel(byte from, byte to, double mix) =>
+            (byte)Math.Clamp(Math.Round(from + ((to - from) * mix)), 0, 255);
+
+        return ColorHelper.FromArgb(
+            BlendChannel(fromColor.A, toColor.A, amount),
+            BlendChannel(fromColor.R, toColor.R, amount),
+            BlendChannel(fromColor.G, toColor.G, amount),
+            BlendChannel(fromColor.B, toColor.B, amount));
+    }
+
     protected bool ApplyAcrylicController(
         bool isDark,
         Windows.UI.Color tintColor,
@@ -372,29 +440,65 @@ public abstract partial class WidgetWindowBase
             return false;
         }
 
+        double opacity = Math.Clamp(surfaceOpacity, 0.0, 1.0);
+        double intensity = NormalizeMaterialIntensity(
+            SettingsService.Settings.WidgetMaterialIntensity);
+
         BackdropTarget ??= this.As<ICompositionSupportsSystemBackdrop>();
         BackdropConfiguration ??= new SystemBackdropConfiguration();
+        // 桌面盒子必须保持 Active，否则 Tint/Lum 无效，只剩不透明 Fallback。
         BackdropConfiguration.IsInputActive = true;
         BackdropConfiguration.Theme = isDark ? SystemBackdropTheme.Dark : SystemBackdropTheme.Light;
         BackdropConfiguration.HighContrastBackgroundColor = isDark
             ? ColorHelper.FromArgb(0xFF, 0x20, 0x20, 0x20)
             : ColorHelper.FromArgb(0xFF, 0xF3, 0xF3, 0xF3);
 
-        if (AcrylicController is not null &&
-            !AcrylicController.IsClosed &&
-            _acrylicControllerUsesBase != useBase)
+        // 透明度/浓度变化时重建，并在挂载前写入 Tint/Lum（事后改属性在桌面层常无效）。
+        bool kindChanged = _acrylicControllerUsesBase != useBase;
+        bool valuesChanged =
+            !double.IsFinite(_lastAcrylicControllerOpacity) ||
+            !double.IsFinite(_lastAcrylicControllerIntensity) ||
+            Math.Abs(_lastAcrylicControllerOpacity - opacity) > 0.001 ||
+            Math.Abs(_lastAcrylicControllerIntensity - intensity) > 0.001;
+        if (AcrylicController is not null && (kindChanged || valuesChanged))
         {
             DisposeAcrylicController();
         }
+
+        // 背景透视（不影响内容）：cover=0 尽量透出壁纸，cover=1 更实。
+        // 系统透明开启时是真亚克力：必须把 Tint/Lum 拉满行程，否则滑块几乎无感、只剩固定磨砂。
+        double cover = Math.Clamp(opacity, 0.0, 1.0);
+        double peakTint = useBase
+            ? LerpMaterialValue(isDark ? 0.62 : 0.55, isDark ? 0.92 : 0.88, intensity)
+            : LerpMaterialValue(isDark ? 0.48 : 0.40, isDark ? 0.82 : 0.76, intensity);
+        double peakLuminosity = useBase
+            ? LerpMaterialValue(isDark ? 0.78 : 0.82, isDark ? 0.98 : 0.98, intensity)
+            : LerpMaterialValue(isDark ? 0.62 : 0.68, isDark ? 0.95 : 0.96, intensity);
+        // 低透明度端压到接近 0，高透明度端用满峰值，保证两端反差大。
+        double tintOpacity = LerpMaterialValue(0.0, peakTint, cover);
+        double luminosityOpacity = LerpMaterialValue(0.0, peakLuminosity, cover);
+        var effectiveTint = BuildAcrylicAccentTintColor(isDark, tintColor, intensity);
+        // Fallback 也必须跟透明度走：系统透明关闭时只画 Fallback，alpha 就是滑块行程。
+        byte fallbackAlpha = (byte)Math.Clamp(Math.Round(255.0 * cover), 0, 255);
+        var fallbackColor = ColorHelper.FromArgb(
+            fallbackAlpha,
+            effectiveTint.R,
+            effectiveTint.G,
+            effectiveTint.B);
 
         if (AcrylicController is null || AcrylicController.IsClosed)
         {
             DetachMicaControllerTarget();
             AcrylicController = new DesktopAcrylicController
             {
-                Kind = useBase ? DesktopAcrylicKind.Base : DesktopAcrylicKind.Thin
+                Kind = useBase ? DesktopAcrylicKind.Base : DesktopAcrylicKind.Thin,
+                TintColor = effectiveTint,
+                FallbackColor = fallbackColor,
+                TintOpacity = (float)tintOpacity,
+                LuminosityOpacity = (float)luminosityOpacity
             };
             _acrylicControllerUsesBase = useBase;
+            AcrylicControllerAttached = false;
         }
 
         DetachMicaControllerTarget();
@@ -409,27 +513,56 @@ public abstract partial class WidgetWindowBase
             AcrylicControllerAttached = true;
             AcrylicController.SetSystemBackdropConfiguration(BackdropConfiguration);
         }
+        else
+        {
+            AcrylicController.Kind = useBase ? DesktopAcrylicKind.Base : DesktopAcrylicKind.Thin;
+            AcrylicController.TintColor = effectiveTint;
+            AcrylicController.FallbackColor = fallbackColor;
+            AcrylicController.TintOpacity = (float)tintOpacity;
+            AcrylicController.LuminosityOpacity = (float)luminosityOpacity;
+            AcrylicController.SetSystemBackdropConfiguration(BackdropConfiguration);
+        }
 
+        // 挂载后再写一遍，避免 AddSystemBackdropTarget 重置属性。
         AcrylicController.Kind = useBase ? DesktopAcrylicKind.Base : DesktopAcrylicKind.Thin;
-        AcrylicController.TintColor = tintColor;
-        AcrylicController.FallbackColor = tintColor;
+        AcrylicController.TintColor = effectiveTint;
+        AcrylicController.FallbackColor = fallbackColor;
+        AcrylicController.TintOpacity = (float)tintOpacity;
+        AcrylicController.LuminosityOpacity = (float)luminosityOpacity;
+        AcrylicController.SetSystemBackdropConfiguration(BackdropConfiguration);
 
-        double intensity = NormalizeMaterialIntensity(
-            SettingsService.Settings.WidgetMaterialIntensity);
-        double surfaceStrength = LerpMaterialValue(0.08, 1.0, Math.Clamp(surfaceOpacity, 0.0, 1.0));
-        double tintOpacity = useBase
-            ? LerpMaterialValue(isDark ? 0.18 : 0.12, isDark ? 0.72 : 0.62, intensity)
-            : LerpMaterialValue(isDark ? 0.04 : 0.02, isDark ? 0.42 : 0.34, intensity);
-        double luminosityOpacity = useBase
-            ? LerpMaterialValue(isDark ? 0.38 : 0.46, isDark ? 0.82 : 0.90, intensity)
-            : LerpMaterialValue(isDark ? 0.16 : 0.22, isDark ? 0.56 : 0.64, intensity);
-
-        AcrylicController.TintOpacity = (float)Math.Clamp(tintOpacity * surfaceStrength, 0.0, 1.0);
-        AcrylicController.LuminosityOpacity = (float)Math.Clamp(
-            luminosityOpacity * surfaceStrength,
-            0.0,
-            1.0);
+        _lastAcrylicControllerOpacity = opacity;
+        _lastAcrylicControllerIntensity = intensity;
+        App.LogVerbose(
+            $"[Backdrop] acrylic tintOp={tintOpacity:F3} lumOp={luminosityOpacity:F3} " +
+            $"fallbackA={fallbackAlpha} cover={cover:F3} kind={(useBase ? "Base" : "Thin")}");
         return true;
+    }
+
+    /// <summary>
+    /// 系统透明开启时，真亚克力本身几乎总是磨砂；用轻遮罩把「背景透明度」滑块补出可见行程。
+    /// 系统透明关闭时不要用遮罩——那时 FallbackColor 的 alpha 已经承担透明度。
+    /// </summary>
+    protected static Windows.UI.Color BuildAcrylicPlateOverlayColor(
+        bool isDark,
+        Windows.UI.Color accentColor,
+        double surfaceOpacity,
+        double intensity)
+    {
+        double cover = Math.Clamp(surfaceOpacity, 0.0, 1.0);
+        intensity = Math.Clamp(intensity, 0.0, 1.0);
+        double plateOpacity = Math.Clamp(
+            LerpMaterialValue(0.0, isDark ? 0.42 : 0.34, cover) *
+            LerpMaterialValue(0.70, 1.20, intensity),
+            0.0,
+            isDark ? 0.50 : 0.42);
+
+        var baseColor = isDark
+            ? ColorHelper.FromArgb(0xFF, 0x20, 0x22, 0x26)
+            : ColorHelper.FromArgb(0xFF, 0xFF, 0xFF, 0xFF);
+        var tinted = BlendBackdropColors(baseColor, accentColor, isDark ? 0.10 : 0.08);
+        byte alpha = (byte)Math.Clamp(Math.Round(plateOpacity * 255.0), 0, 255);
+        return ColorHelper.FromArgb(alpha, tinted.R, tinted.G, tinted.B);
     }
 
     protected bool ApplyTransparentAcrylicController(bool isDark)
@@ -445,38 +578,31 @@ public abstract partial class WidgetWindowBase
         BackdropConfiguration.IsInputActive = true;
         BackdropConfiguration.Theme = isDark ? SystemBackdropTheme.Dark : SystemBackdropTheme.Light;
 
-        if (AcrylicController is null || AcrylicController.IsClosed)
-        {
-            AcrylicController = new DesktopAcrylicController
-            {
-                Kind = DesktopAcrylicKind.Thin
-            };
-
-        }
-
+        DisposeAcrylicController();
         DetachMicaControllerTarget();
-        if (!AcrylicControllerAttached)
+        AcrylicController = new DesktopAcrylicController
         {
-            if (!AcrylicController.AddSystemBackdropTarget(BackdropTarget))
-            {
-                DisposeAcrylicController();
-                return false;
-            }
+            Kind = DesktopAcrylicKind.Thin,
+            TintColor = Colors.Transparent,
+            FallbackColor = Colors.Transparent,
+            TintOpacity = 0.0f,
+            LuminosityOpacity = 0.0f
+        };
+        _acrylicControllerUsesBase = false;
+        AcrylicControllerAttached = false;
 
-            AcrylicControllerAttached = true;
-            AcrylicController.SetSystemBackdropConfiguration(BackdropConfiguration);
+        if (!AcrylicController.AddSystemBackdropTarget(BackdropTarget))
+        {
+            DisposeAcrylicController();
+            return false;
         }
 
-        AcrylicController.Kind = DesktopAcrylicKind.Thin;
-        AcrylicController.TintColor = isDark
-            ? ColorHelper.FromArgb(0x01, 0x20, 0x22, 0x26)
-            : ColorHelper.FromArgb(0x01, 0xFF, 0xFF, 0xFF);
-        AcrylicController.FallbackColor = isDark
-            ? ColorHelper.FromArgb(0x01, 0x20, 0x22, 0x26)
-            : ColorHelper.FromArgb(0x01, 0xFF, 0xFF, 0xFF);
+        AcrylicControllerAttached = true;
+        AcrylicController.SetSystemBackdropConfiguration(BackdropConfiguration);
+        AcrylicController.TintColor = Colors.Transparent;
+        AcrylicController.FallbackColor = Colors.Transparent;
         AcrylicController.TintOpacity = 0.0f;
         AcrylicController.LuminosityOpacity = 0.0f;
-
         return true;
     }
 

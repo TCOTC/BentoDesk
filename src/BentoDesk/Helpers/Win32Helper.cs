@@ -1054,6 +1054,27 @@ public static partial class Win32Helper
         return false;
     }
 
+    /// <summary>
+    /// Windows「透明效果」关闭时，系统亚克力会退回不透明 Fallback，无法透出壁纸。
+    /// </summary>
+    public static bool IsTransparencyEffectsEnabled()
+    {
+        try
+        {
+            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+            if (key?.GetValue("EnableTransparency") is int value)
+            {
+                return value != 0;
+            }
+        }
+        catch
+        {
+        }
+
+        return true;
+    }
+
     public static bool IsKeyPressed(Windows.System.VirtualKey key)
     {
         return (GetKeyState((int)key) & 0x8000) != 0;
