@@ -87,15 +87,24 @@ public sealed partial class WidgetWindow
                 }
 
                 PushToBottom();
-                Win32Helper.ClearTemporaryWindowAlpha(_hWnd);
-                QueueBackdropRefresh();
+                // Fade / ScaleFade / Zoom keep Win32 alpha when a fade-in will
+                // follow (Composition opacity cannot cover Mica). The
+                // no-animation path passes beforeVisible and must clear here.
+                if (beforeVisible is not null || !_trayAnimation.HasPreparedSoftOpacity)
+                {
+                    Win32Helper.ClearTemporaryWindowAlpha(_hWnd);
+                    QueueBackdropRefresh();
+                }
             }))
         {
             PushToBottom();
             _trayAnimation.RevealWindowForTrayShow();
             beforeVisible?.Invoke();
-            Win32Helper.ClearTemporaryWindowAlpha(_hWnd);
-            QueueBackdropRefresh();
+            if (beforeVisible is not null || !_trayAnimation.HasPreparedSoftOpacity)
+            {
+                Win32Helper.ClearTemporaryWindowAlpha(_hWnd);
+                QueueBackdropRefresh();
+            }
         }
     }
 
@@ -244,6 +253,7 @@ public sealed partial class WidgetWindow
             {
                 _trayAnimation.RestoreVisualState();
                 _trayAnimation.RestoreWindowPosition();
+                QueueBackdropRefresh();
                 QueueItemContainerTransitionRestore(animationGeneration);
             });
     }
@@ -323,6 +333,7 @@ public sealed partial class WidgetWindow
         {
             _trayAnimation.RestoreVisualState();
             _trayAnimation.RestoreWindowPosition();
+            QueueBackdropRefresh();
             QueueItemContainerTransitionRestore(animationGeneration);
         });
     }

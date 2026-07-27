@@ -205,14 +205,9 @@ public partial class SettingsViewModel
 
     private static string NormalizeWidgetAnimationEffect(string? effect)
     {
-        return effect is
-            SettingsService.WidgetAnimationEffectNone or
-            SettingsService.WidgetAnimationEffectFade or
-            SettingsService.WidgetAnimationEffectScaleFade or
-            SettingsService.WidgetAnimationEffectSlideFade or
-            SettingsService.WidgetAnimationEffectZoom
-            ? effect
-            : SettingsService.WidgetAnimationEffectSlideFade;
+        return effect == SettingsService.WidgetAnimationEffectNone
+            ? SettingsService.WidgetAnimationEffectNone
+            : SettingsService.WidgetAnimationEffectFade;
     }
 
     private static string NormalizeWidgetAnimationSpeed(string? speed)

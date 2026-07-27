@@ -337,21 +337,16 @@ public partial class SettingsViewModel
         get => _selectedAnimationPreset;
         set
         {
-            string normalizedValue = value is
-                AnimationPresetNone or
-                AnimationPresetGentle or
-                AnimationPresetStandard or
-                AnimationPresetEmphasized or
-                AnimationPresetCustom
-                    ? value
-                    : AnimationPresetCustom;
+            string normalizedValue = value == AnimationPresetNone
+                ? AnimationPresetNone
+                : AnimationPresetFade;
             if (!SetProperty(ref _selectedAnimationPreset, normalizedValue))
             {
                 return;
             }
 
             OnPropertyChanged(nameof(SelectedAnimationPresetText));
-            if (_isRestoringDefaults || _isApplyingSettingsSnapshot || normalizedValue == AnimationPresetCustom)
+            if (_isRestoringDefaults || _isApplyingSettingsSnapshot)
             {
                 return;
             }
@@ -378,32 +373,15 @@ public partial class SettingsViewModel
             }
 
             _settingsService.Settings.WidgetAnimationEffect = _selectedWidgetAnimationEffect;
-            if (_selectedWidgetAnimationEffect == SettingsService.WidgetAnimationEffectSlideFade &&
-                _selectedWidgetAnimationSlideDirection == SettingsService.WidgetAnimationSlideDirectionNone)
-            {
-                SelectedWidgetAnimationSlideDirection = SettingsService.WidgetAnimationSlideDirectionRight;
-            }
 
             if (!_isApplyingAnimationPreset)
             {
                 _settingsService.SaveDebounced();
             }
-            OnPropertyChanged(nameof(SelectedWidgetAnimationEffectText));
-            OnPropertyChanged(nameof(IsDirectionEnabled));
-            OnPropertyChanged(nameof(IsEasingEnabled));
-            OnPropertyChanged(nameof(IsSpeedEnabled));
+
             SyncAnimationPresetSelection();
         }
     }
-
-    public string SelectedWidgetAnimationEffectText => GetWidgetAnimationEffectDisplayName(SelectedWidgetAnimationEffect);
-
-    public bool IsDirectionEnabled =>
-        _selectedWidgetAnimationEffect is SettingsService.WidgetAnimationEffectSlideFade;
-
-    public bool IsEasingEnabled => _selectedWidgetAnimationEffect != SettingsService.WidgetAnimationEffectNone;
-
-    public bool IsSpeedEnabled => _selectedWidgetAnimationEffect != SettingsService.WidgetAnimationEffectNone;
 
     public string SelectedWidgetAnimationSpeed
     {
@@ -425,12 +403,10 @@ public partial class SettingsViewModel
             {
                 _settingsService.SaveDebounced();
             }
-            OnPropertyChanged(nameof(SelectedWidgetAnimationSpeedText));
+
             SyncAnimationPresetSelection();
         }
     }
-
-    public string SelectedWidgetAnimationSpeedText => GetWidgetAnimationSpeedDisplayName(SelectedWidgetAnimationSpeed);
 
     public string SelectedWidgetAnimationSlideDirection
     {
@@ -452,12 +428,10 @@ public partial class SettingsViewModel
             {
                 _settingsService.SaveDebounced();
             }
-            OnPropertyChanged(nameof(SelectedWidgetAnimationSlideDirectionText));
+
             SyncAnimationPresetSelection();
         }
     }
-
-    public string SelectedWidgetAnimationSlideDirectionText => GetWidgetAnimationSlideDirectionDisplayName(SelectedWidgetAnimationSlideDirection);
 
     public string SelectedWidgetAnimationEasingIntensity
     {
@@ -479,12 +453,10 @@ public partial class SettingsViewModel
             {
                 _settingsService.SaveDebounced();
             }
-            OnPropertyChanged(nameof(SelectedWidgetAnimationEasingIntensityText));
+
             SyncAnimationPresetSelection();
         }
     }
-
-    public string SelectedWidgetAnimationEasingIntensityText => GetWidgetAnimationEasingIntensityDisplayName(SelectedWidgetAnimationEasingIntensity);
 
     public string SelectedDisplayWidgetChromeMode
     {

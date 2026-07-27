@@ -216,12 +216,14 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task LoadAsync_UnknownAnimationEffectFallsBackToSlideFade()
+    public async Task LoadAsync_UnknownAnimationEffectFallsBackToFade()
     {
         var settings = new AppSettings
         {
             WidgetAnimationEffect = "SlideLeftFade",
-            WidgetAnimationSlideDirection = SettingsService.WidgetAnimationSlideDirectionNone
+            WidgetAnimationSlideDirection = SettingsService.WidgetAnimationSlideDirectionRight,
+            WidgetAnimationSpeed = SettingsService.WidgetAnimationSpeedRelaxed,
+            WidgetAnimationEasingIntensity = SettingsService.WidgetAnimationEasingStrong
         };
         await File.WriteAllTextAsync(
             Path.Combine(_settingsRoot, "settings.json"),
@@ -230,30 +232,14 @@ public sealed class SettingsServiceTests : IDisposable
         var service = new SettingsService(_settingsRoot);
         await service.LoadAsync();
 
-        Assert.Equal(SettingsService.WidgetAnimationEffectSlideFade, service.Settings.WidgetAnimationEffect);
+        Assert.Equal(SettingsService.WidgetAnimationEffectFade, service.Settings.WidgetAnimationEffect);
+        Assert.Equal(SettingsService.WidgetAnimationSpeedRelaxed, service.Settings.WidgetAnimationSpeed);
         Assert.Equal(
-            SettingsService.WidgetAnimationSlideDirectionRight,
+            SettingsService.WidgetAnimationSlideDirectionNone,
             service.Settings.WidgetAnimationSlideDirection);
-    }
-
-    [Fact]
-    public async Task LoadAsync_SlideAnimationWithoutDirectionDefaultsToRight()
-    {
-        var settings = new AppSettings
-        {
-            WidgetAnimationEffect = SettingsService.WidgetAnimationEffectSlideFade,
-            WidgetAnimationSlideDirection = SettingsService.WidgetAnimationSlideDirectionNone
-        };
-        await File.WriteAllTextAsync(
-            Path.Combine(_settingsRoot, "settings.json"),
-            JsonSerializer.Serialize(settings, s_jsonOptions));
-
-        var service = new SettingsService(_settingsRoot);
-        await service.LoadAsync();
-
         Assert.Equal(
-            SettingsService.WidgetAnimationSlideDirectionRight,
-            service.Settings.WidgetAnimationSlideDirection);
+            SettingsService.WidgetAnimationEasingStrong,
+            service.Settings.WidgetAnimationEasingIntensity);
     }
 
     [Fact]
@@ -289,8 +275,10 @@ public sealed class SettingsServiceTests : IDisposable
 
         SettingsService.ApplyDefaultPreferences(restoredDefaults);
 
-        Assert.Equal(SettingsService.WidgetAnimationEffectSlideFade, newUserDefaults.WidgetAnimationEffect);
+        Assert.Equal(SettingsService.WidgetAnimationEffectFade, newUserDefaults.WidgetAnimationEffect);
         Assert.Equal(newUserDefaults.WidgetAnimationEffect, restoredDefaults.WidgetAnimationEffect);
+        Assert.Equal(SettingsService.WidgetAnimationSpeedStandard, newUserDefaults.WidgetAnimationSpeed);
+        Assert.Equal(SettingsService.WidgetAnimationEasingStandard, newUserDefaults.WidgetAnimationEasingIntensity);
         Assert.True(newUserDefaults.WidgetCapsuleModeEnabled);
         Assert.Equal(newUserDefaults.WidgetCapsuleModeEnabled, restoredDefaults.WidgetCapsuleModeEnabled);
         Assert.Equal(SettingsService.WidgetCompactWidthModeAligned, newUserDefaults.WidgetCompactWidthMode);

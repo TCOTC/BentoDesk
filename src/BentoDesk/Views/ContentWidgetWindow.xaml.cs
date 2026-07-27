@@ -448,15 +448,24 @@ IsHideAnimationRunning = false;
                 }
 
                 PushToBottom();
-                Win32Helper.ClearTemporaryWindowAlpha(HWnd);
-                ApplyBackdropPreference();
+                // Fade / ScaleFade / Zoom keep Win32 alpha when a fade-in will
+                // follow (Composition opacity cannot cover Mica). The
+                // no-animation path passes beforeVisible and must clear here.
+                if (beforeVisible is not null || !TrayAnimation.HasPreparedSoftOpacity)
+                {
+                    Win32Helper.ClearTemporaryWindowAlpha(HWnd);
+                    ApplyBackdropPreference();
+                }
             }))
         {
             PushToBottom();
             TrayAnimation.RevealWindowForTrayShow();
             beforeVisible?.Invoke();
-            Win32Helper.ClearTemporaryWindowAlpha(HWnd);
-            ApplyBackdropPreference();
+            if (beforeVisible is not null || !TrayAnimation.HasPreparedSoftOpacity)
+            {
+                Win32Helper.ClearTemporaryWindowAlpha(HWnd);
+                ApplyBackdropPreference();
+            }
         }
     }
 

@@ -20,17 +20,19 @@ public static class WidgetAnimationSettings
     public static WidgetAnimationOptions From(AppSettings settings)
     {
         string effect = NormalizeEffect(settings.WidgetAnimationEffect);
-        string slideDirection = NormalizeSlideDirection(settings.WidgetAnimationSlideDirection);
-        if (effect == SettingsService.WidgetAnimationEffectSlideFade &&
-            slideDirection == SettingsService.WidgetAnimationSlideDirectionNone)
+        if (effect == SettingsService.WidgetAnimationEffectNone)
         {
-            slideDirection = SettingsService.WidgetAnimationSlideDirectionRight;
+            return new WidgetAnimationOptions(
+                SettingsService.WidgetAnimationEffectNone,
+                SettingsService.WidgetAnimationSpeedStandard,
+                SettingsService.WidgetAnimationSlideDirectionNone,
+                SettingsService.WidgetAnimationEasingNone);
         }
 
         return new WidgetAnimationOptions(
-            effect,
+            SettingsService.WidgetAnimationEffectFade,
             NormalizeSpeed(settings.WidgetAnimationSpeed),
-            slideDirection,
+            SettingsService.WidgetAnimationSlideDirectionNone,
             NormalizeEasingIntensity(settings.WidgetAnimationEasingIntensity));
     }
 
@@ -48,11 +50,9 @@ public static class WidgetAnimationSettings
 
     public static bool UsesGroupOffset(string effect)
     {
-        return NormalizeEffect(effect) is not (
-            SettingsService.WidgetAnimationEffectNone or
-            SettingsService.WidgetAnimationEffectFade or
-            SettingsService.WidgetAnimationEffectScaleFade or
-            SettingsService.WidgetAnimationEffectZoom);
+        // Only Fade / None are supported; neither moves the HWND group.
+        _ = effect;
+        return false;
     }
 
     public static (double X, double Y) GetDirectionalOffset(
@@ -101,16 +101,36 @@ public static class WidgetAnimationSettings
         };
     }
 
+    /// <summary>
+    /// Opacity easing for tray show/hide. Hide uses ease-out so the window
+    /// settles into transparent instead of the slide ease-in's end cliff.
+    /// </summary>
+    public static double EaseOpacity(double progress, string easingIntensity, bool isShowing)
+    {
+        if (isShowing)
+        {
+            return Ease(progress, easingIntensity, isShowing: true);
+        }
+
+        string intensity = NormalizeEasingIntensity(easingIntensity);
+        if (intensity == SettingsService.WidgetAnimationEasingNone)
+        {
+            return progress;
+        }
+
+        return intensity switch
+        {
+            SettingsService.WidgetAnimationEasingLight => CubicBezierEase(progress, 0.25, 0.0, 0.35, 1.0),
+            SettingsService.WidgetAnimationEasingStrong => CubicBezierEase(progress, 0.15, 0.0, 0.1, 1.0),
+            _ => CubicBezierEase(progress, 0.22, 0.0, 0.2, 1.0)
+        };
+    }
+
     public static string NormalizeEffect(string? effect)
     {
-        return effect is
-            SettingsService.WidgetAnimationEffectNone or
-            SettingsService.WidgetAnimationEffectFade or
-            SettingsService.WidgetAnimationEffectScaleFade or
-            SettingsService.WidgetAnimationEffectSlideFade or
-            SettingsService.WidgetAnimationEffectZoom
-            ? effect
-            : SettingsService.WidgetAnimationEffectSlideFade;
+        return effect == SettingsService.WidgetAnimationEffectNone
+            ? SettingsService.WidgetAnimationEffectNone
+            : SettingsService.WidgetAnimationEffectFade;
     }
 
     public static string NormalizeSpeed(string? speed)

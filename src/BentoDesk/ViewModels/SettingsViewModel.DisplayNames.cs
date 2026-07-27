@@ -119,61 +119,9 @@ public partial class SettingsViewModel
 
     public string GetAnimationPresetDisplayName(string preset)
     {
-        return preset switch
-        {
-            AnimationPresetNone => _localizationService.T("Settings.Animation.Preset.None"),
-            AnimationPresetGentle => _localizationService.T("Settings.Animation.Preset.Gentle"),
-            AnimationPresetEmphasized => _localizationService.T("Settings.Animation.Preset.Emphasized"),
-            AnimationPresetCustom => _localizationService.T("Settings.Animation.Preset.Custom"),
-            _ => _localizationService.T("Settings.Animation.Preset.Standard")
-        };
-    }
-
-    public string GetWidgetAnimationEffectDisplayName(string effect)
-    {
-        return NormalizeWidgetAnimationEffect(effect) switch
-        {
-            SettingsService.WidgetAnimationEffectNone => _localizationService.T("Settings.Animation.Effect.None"),
-            SettingsService.WidgetAnimationEffectFade => _localizationService.T("Settings.Animation.Effect.Fade"),
-            SettingsService.WidgetAnimationEffectScaleFade => _localizationService.T("Settings.Animation.Effect.ScaleFade"),
-            SettingsService.WidgetAnimationEffectZoom => _localizationService.T("Settings.Animation.Effect.Zoom"),
-            _ => _localizationService.T("Settings.Animation.Effect.SlideFade")
-        };
-    }
-
-    public string GetWidgetAnimationSpeedDisplayName(string speed)
-    {
-        return NormalizeWidgetAnimationSpeed(speed) switch
-        {
-            SettingsService.WidgetAnimationSpeedVeryFast => _localizationService.T("Settings.Animation.Speed.VeryFast"),
-            SettingsService.WidgetAnimationSpeedFast => _localizationService.T("Settings.Animation.Speed.Fast"),
-            SettingsService.WidgetAnimationSpeedRelaxed => _localizationService.T("Settings.Animation.Speed.Relaxed"),
-            SettingsService.WidgetAnimationSpeedSlow => _localizationService.T("Settings.Animation.Speed.Slow"),
-            _ => _localizationService.T("Settings.Animation.Speed.Standard")
-        };
-    }
-
-    public string GetWidgetAnimationSlideDirectionDisplayName(string direction)
-    {
-        return NormalizeWidgetAnimationSlideDirection(direction) switch
-        {
-            SettingsService.WidgetAnimationSlideDirectionLeft => _localizationService.T("Settings.Animation.Direction.Left"),
-            SettingsService.WidgetAnimationSlideDirectionRight => _localizationService.T("Settings.Animation.Direction.Right"),
-            SettingsService.WidgetAnimationSlideDirectionUp => _localizationService.T("Settings.Animation.Direction.Up"),
-            SettingsService.WidgetAnimationSlideDirectionDown => _localizationService.T("Settings.Animation.Direction.Down"),
-            _ => _localizationService.T("Settings.Animation.Direction.None")
-        };
-    }
-
-    public string GetWidgetAnimationEasingIntensityDisplayName(string intensity)
-    {
-        return NormalizeWidgetAnimationEasingIntensity(intensity) switch
-        {
-            SettingsService.WidgetAnimationEasingLight => _localizationService.T("Settings.Animation.Easing.Light"),
-            SettingsService.WidgetAnimationEasingStandard => _localizationService.T("Settings.Animation.Easing.Standard"),
-            SettingsService.WidgetAnimationEasingStrong => _localizationService.T("Settings.Animation.Easing.Strong"),
-            _ => _localizationService.T("Settings.Animation.Easing.None")
-        };
+        return preset == AnimationPresetNone
+            ? _localizationService.T("Settings.Animation.Preset.None")
+            : _localizationService.T("Settings.Animation.Effect.Fade");
     }
 
     public string GetWidgetChromeModeDisplayName(string mode)

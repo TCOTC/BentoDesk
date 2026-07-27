@@ -15,30 +15,47 @@ public sealed class WidgetAnimationSettingsTests
     }
 
     [Fact]
-    public void From_SlideWithNoDirectionFallsBackToRight()
+    public void From_FadeKeepsConfiguredSpeedAndEasing()
     {
         var settings = new BentoDesk.Models.AppSettings
         {
-            WidgetAnimationEffect = SettingsService.WidgetAnimationEffectSlideFade,
-            WidgetAnimationSlideDirection = SettingsService.WidgetAnimationSlideDirectionNone
+            WidgetAnimationEffect = SettingsService.WidgetAnimationEffectFade,
+            WidgetAnimationSlideDirection = SettingsService.WidgetAnimationSlideDirectionRight,
+            WidgetAnimationSpeed = SettingsService.WidgetAnimationSpeedRelaxed,
+            WidgetAnimationEasingIntensity = SettingsService.WidgetAnimationEasingLight
         };
 
         var options = WidgetAnimationSettings.From(settings);
 
-        Assert.Equal(SettingsService.WidgetAnimationSlideDirectionRight, options.SlideDirection);
+        Assert.Equal(SettingsService.WidgetAnimationEffectFade, options.Effect);
+        Assert.Equal(SettingsService.WidgetAnimationSpeedRelaxed, options.Speed);
+        Assert.Equal(SettingsService.WidgetAnimationSlideDirectionNone, options.SlideDirection);
+        Assert.Equal(SettingsService.WidgetAnimationEasingLight, options.EasingIntensity);
     }
 
     [Fact]
-    public void UsesGroupOffset_SlideMovesTheNativeWindowGroup()
+    public void From_NoneKeepsAnimationDisabled()
     {
-        Assert.True(WidgetAnimationSettings.UsesGroupOffset(
+        var settings = new BentoDesk.Models.AppSettings
+        {
+            WidgetAnimationEffect = SettingsService.WidgetAnimationEffectNone
+        };
+
+        var options = WidgetAnimationSettings.From(settings);
+
+        Assert.Equal(SettingsService.WidgetAnimationEffectNone, options.Effect);
+        Assert.Equal(SettingsService.WidgetAnimationEasingNone, options.EasingIntensity);
+        Assert.False(options.UsesGroupOffset);
+    }
+
+    [Fact]
+    public void UsesGroupOffset_IsAlwaysFalse()
+    {
+        Assert.False(WidgetAnimationSettings.UsesGroupOffset(
+            SettingsService.WidgetAnimationEffectFade));
+        Assert.False(WidgetAnimationSettings.UsesGroupOffset(
             SettingsService.WidgetAnimationEffectSlideFade));
-    }
-
-    [Fact]
-    public void UsesGroupOffset_UnknownEffectFallsBackToSlideBatchGeometry()
-    {
-        Assert.True(WidgetAnimationSettings.UsesGroupOffset("SlideRight"));
+        Assert.False(WidgetAnimationSettings.UsesGroupOffset("SlideRight"));
     }
 
     [Theory]

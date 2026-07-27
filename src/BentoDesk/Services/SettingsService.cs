@@ -246,9 +246,9 @@ public sealed class SettingsService
         settings.WidgetMaterialIntensity = DefaultWidgetMaterialIntensity;
         settings.WidgetBorderColorMode = WidgetBorderColorModeNeutral;
         settings.WidgetBorderStyle = WidgetBorderStyleThin;
-        settings.WidgetAnimationEffect = WidgetAnimationEffectSlideFade;
+        settings.WidgetAnimationEffect = WidgetAnimationEffectFade;
         settings.WidgetAnimationSpeed = WidgetAnimationSpeedStandard;
-        settings.WidgetAnimationSlideDirection = WidgetAnimationSlideDirectionRight;
+        settings.WidgetAnimationSlideDirection = WidgetAnimationSlideDirectionNone;
         settings.WidgetAnimationEasingIntensity = WidgetAnimationEasingStandard;
         settings.DisplayWidgetChromeMode = WidgetChromeModeOverlay;
         settings.InteractiveWidgetChromeMode = WidgetChromeModeStandard;
@@ -633,12 +633,9 @@ settings.FocusClickedWidgetOnRaise = false;
 
         if (settings.WidgetAnimationEffect is not (
             WidgetAnimationEffectNone or
-            WidgetAnimationEffectFade or
-            WidgetAnimationEffectScaleFade or
-            WidgetAnimationEffectSlideFade or
-            WidgetAnimationEffectZoom))
+            WidgetAnimationEffectFade))
         {
-            settings.WidgetAnimationEffect = WidgetAnimationEffectSlideFade;
+            settings.WidgetAnimationEffect = WidgetAnimationEffectFade;
             changed = true;
         }
 
@@ -660,14 +657,7 @@ settings.FocusClickedWidgetOnRaise = false;
             WidgetAnimationSlideDirectionUp or
             WidgetAnimationSlideDirectionDown))
         {
-            settings.WidgetAnimationSlideDirection = WidgetAnimationSlideDirectionRight;
-            changed = true;
-        }
-
-        if (settings.WidgetAnimationEffect == WidgetAnimationEffectSlideFade &&
-            settings.WidgetAnimationSlideDirection == WidgetAnimationSlideDirectionNone)
-        {
-            settings.WidgetAnimationSlideDirection = WidgetAnimationSlideDirectionRight;
+            settings.WidgetAnimationSlideDirection = WidgetAnimationSlideDirectionNone;
             changed = true;
         }
 
@@ -701,8 +691,7 @@ settings.FocusClickedWidgetOnRaise = false;
                 changed = true;
             }
         }
-        else if (settings.WidgetAnimationEffect != WidgetAnimationEffectSlideFade &&
-                 settings.WidgetAnimationSlideDirection != WidgetAnimationSlideDirectionNone)
+        else if (settings.WidgetAnimationSlideDirection != WidgetAnimationSlideDirectionNone)
         {
             settings.WidgetAnimationSlideDirection = WidgetAnimationSlideDirectionNone;
             changed = true;

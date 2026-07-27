@@ -161,26 +161,18 @@
                 </Grid>
             </Border>
 
-            <Border Style="{StaticResource SettingsGroupStyle}">
-                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12" Margin="4">
-                    <Button Grid.Column="0" Click="NestedSettingsButton_Click" Style="{StaticResource DrillDownRowStyle}" Tag="AppearanceAnimationSettings">
-                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                            <FontIcon Grid.Column="0" FontSize="18" Glyph="&#xE7B5;" IsHitTestVisible="False" VerticalAlignment="Center" />
-                            <StackPanel Grid.Column="1" IsHitTestVisible="False" Spacing="3" VerticalAlignment="Center">
-                                <TextBlock Style="{StaticResource SettingTitleTextStyle}" svc:Localized.Key="Settings.Group.Animation.Title" />
-                                <TextBlock Style="{StaticResource SettingDescriptionTextStyle}" Text="{Binding SelectedAnimationPresetText}" />
-                            </StackPanel>
-                        </Grid>
-                    </Button>
-                    <ComboBox
-                        Grid.Column="1"
-                        MinWidth="{StaticResource SettingsControlMinWidth}"
-                        VerticalAlignment="Center"
-                        ItemsSource="{Binding AvailableAnimationPresetOptions}"
-                        controls:SettingsComboBox.Value="{Binding SelectedAnimationPreset, Mode=TwoWay}" />
-                    <FontIcon Grid.Column="2" FontSize="12" Glyph="&#xE76C;" IsHitTestVisible="False" VerticalAlignment="Center" />
-                </Grid>
-            </Border>
+            <toolkit:SettingsCard
+                HorizontalContentAlignment="Right"
+                svc:Localized.DescriptionKey="Settings.Group.Animation.Description"
+                svc:Localized.HeaderKey="Settings.Group.Animation.Title">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE7B5;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <ComboBox
+                    MinWidth="{StaticResource SettingsControlMinWidth}"
+                    ItemsSource="{Binding AvailableAnimationPresetOptions}"
+                    controls:SettingsComboBox.Value="{Binding SelectedAnimationPreset, Mode=TwoWay}" />
+            </toolkit:SettingsCard>
         </StackPanel>
     </StackPanel>
 </UserControl>

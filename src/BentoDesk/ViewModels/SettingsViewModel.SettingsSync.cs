@@ -210,10 +210,6 @@ public partial class SettingsViewModel
             _cachedWidgetCompactMediaCornerDisplayNames = null;
             _cachedLayoutDensityDisplayNames = null;
             _cachedAnimationPresetDisplayNames = null;
-            _cachedWidgetAnimationEffectDisplayNames = null;
-            _cachedWidgetAnimationSpeedDisplayNames = null;
-            _cachedWidgetAnimationSlideDirectionDisplayNames = null;
-            _cachedWidgetAnimationEasingIntensityDisplayNames = null;
             _cachedDisplayWidgetChromeModeDisplayNames = null;
             _cachedInteractiveWidgetChromeModeDisplayNames = null;
             _cachedWidgetTitleIconModeDisplayNames = null;
@@ -236,10 +232,6 @@ public partial class SettingsViewModel
             OnPropertyChanged(nameof(AvailableWidgetCompactMediaCornerDisplayNames));
             OnPropertyChanged(nameof(AvailableLayoutDensityDisplayNames));
             OnPropertyChanged(nameof(AvailableAnimationPresetDisplayNames));
-            OnPropertyChanged(nameof(AvailableWidgetAnimationEffectDisplayNames));
-            OnPropertyChanged(nameof(AvailableWidgetAnimationSpeedDisplayNames));
-            OnPropertyChanged(nameof(AvailableWidgetAnimationSlideDirectionDisplayNames));
-            OnPropertyChanged(nameof(AvailableWidgetAnimationEasingIntensityDisplayNames));
             OnPropertyChanged(nameof(AvailableDisplayWidgetChromeModeDisplayNames));
             OnPropertyChanged(nameof(AvailableInteractiveWidgetChromeModeDisplayNames));
             OnPropertyChanged(nameof(AvailableWidgetTitleIconModeDisplayNames));
@@ -285,13 +277,6 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(SelectedWidgetCompactMediaCornerText));
         OnPropertyChanged(nameof(SelectedLayoutDensityText));
         OnPropertyChanged(nameof(SelectedAnimationPresetText));
-        OnPropertyChanged(nameof(SelectedWidgetAnimationEffectText));
-        OnPropertyChanged(nameof(IsDirectionEnabled));
-        OnPropertyChanged(nameof(IsEasingEnabled));
-        OnPropertyChanged(nameof(IsSpeedEnabled));
-        OnPropertyChanged(nameof(SelectedWidgetAnimationSpeedText));
-        OnPropertyChanged(nameof(SelectedWidgetAnimationSlideDirectionText));
-        OnPropertyChanged(nameof(SelectedWidgetAnimationEasingIntensityText));
         OnPropertyChanged(nameof(SelectedDisplayWidgetChromeModeText));
         OnPropertyChanged(nameof(SelectedInteractiveWidgetChromeModeText));
         OnPropertyChanged(nameof(SelectedWidgetTitleIconModeText));

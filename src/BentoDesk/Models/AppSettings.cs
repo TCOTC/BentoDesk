@@ -110,7 +110,7 @@ public class AppSettings
     /// <summary>
     /// Animation effect used when desktop widgets show or hide.
     /// </summary>
-    public string WidgetAnimationEffect { get; set; } = "SlideFade";
+    public string WidgetAnimationEffect { get; set; } = "Fade";
 
     /// <summary>
     /// Animation speed preset used when desktop widgets show or hide.
@@ -121,7 +121,7 @@ public class AppSettings
     /// Slide direction for Slide animation effect.
     /// Valid values: <c>"None"</c>, <c>"Left"</c>, <c>"Right"</c>, <c>"Up"</c>, <c>"Down"</c>.
     /// </summary>
-    public string WidgetAnimationSlideDirection { get; set; } = "Right";
+    public string WidgetAnimationSlideDirection { get; set; } = "None";
 
     /// <summary>
     /// Easing intensity for animations.

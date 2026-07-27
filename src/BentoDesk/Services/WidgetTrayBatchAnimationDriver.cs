@@ -8,9 +8,8 @@ namespace BentoDesk.Services;
 
 /// <summary>
 /// One window's participation in a shared batch tray animation.
-/// The batch driver moves the HWND physically; the owning window keeps
-/// its own GPU-driven opacity/scale Composition animations and its own
-/// completion logic.
+/// The batch driver moves the HWND and applies Win32 layered alpha; the owning
+/// window keeps GPU-driven scale Composition animations and completion logic.
 /// </summary>
 public sealed class WidgetTrayBatchAnimationEntry
 {
@@ -21,12 +20,16 @@ public sealed class WidgetTrayBatchAnimationEntry
     public required double FromOffsetY { get; init; }
     public required double ToOffsetX { get; init; }
     public required double ToOffsetY { get; init; }
+    public float FromOpacity { get; init; } = 1f;
+    public float ToOpacity { get; init; } = 1f;
 
     /// <summary>Returns false when the owning window started a newer animation.</summary>
     public required Func<bool> IsValid { get; init; }
 
     /// <summary>Invoked once on the UI thread after the final frame commits.</summary>
     public required Action Completed { get; init; }
+
+    public bool AnimatesOpacity => Math.Abs(FromOpacity - ToOpacity) > 0.001f;
 }
 
 /// <summary>
@@ -142,8 +145,10 @@ public sealed class WidgetTrayBatchAnimationDriver
 
             double rawProgress = Math.Clamp(_stopwatch.Elapsed.TotalMilliseconds / _durationMs, 0.0, 1.0);
             double easedProgress = WidgetAnimationSettings.Ease(rawProgress, _easingIntensity, _isShowing);
+            double opacityProgress = WidgetAnimationSettings.EaseOpacity(rawProgress, _easingIntensity, _isShowing);
 
             MoveEntriesFrame(easedProgress);
+            ApplyEntriesOpacity(opacityProgress);
 
             if (rawProgress < 1.0)
             {
@@ -191,6 +196,33 @@ public sealed class WidgetTrayBatchAnimationDriver
         }
 
         Win32Helper.EndDeferWindowPos(hdwp);
+    }
+
+    private void ApplyEntriesOpacity(double easedProgress)
+    {
+        foreach (var entry in _entries)
+        {
+            if (!entry.AnimatesOpacity)
+            {
+                continue;
+            }
+
+            float opacity = (float)Lerp(entry.FromOpacity, entry.ToOpacity, easedProgress);
+            ApplyWindowOpacity(entry.WindowHandle, opacity);
+        }
+    }
+
+    internal static void ApplyWindowOpacity(IntPtr hwnd, float opacity)
+    {
+        float clamped = Math.Clamp(opacity, 0f, 1f);
+        if (clamped >= 0.999f)
+        {
+            Win32Helper.ClearTemporaryWindowAlpha(hwnd);
+            return;
+        }
+
+        byte alpha = (byte)Math.Clamp((int)Math.Round(clamped * 255f), 0, 255);
+        Win32Helper.SetTemporaryWindowAlpha(hwnd, alpha);
     }
 
     private static (int X, int Y) GetEntryFramePosition(

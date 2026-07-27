@@ -124,8 +124,8 @@ public sealed partial class WidgetManager
                 // Step 1: 在同一帧内完成所有偏移量设置
                 ApplyTrayAnimationGroupOffset(windows);
 
-                // Step 2: 收集所有窗口的共享动画条目（窗口自身的 Opacity/Scale
-                // 仍由各自的 Composition 动画驱动）
+                // Step 2: 收集所有窗口的共享动画条目（Scale 仍由各窗口
+                // Composition 驱动；整窗透明度由 batch 的 Win32 alpha 驱动）
                 var entries = new List<WidgetTrayBatchAnimationEntry>(windows.Count);
                 foreach (var window in windows)
                 {

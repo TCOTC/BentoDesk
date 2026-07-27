@@ -583,34 +583,6 @@ public sealed partial class SettingsWindow
                 displayValue = ViewModel.GetCornerDisplayName;
                 break;
 
-            case "WidgetAnimationEffect":
-                selectedValue = ViewModel.SelectedWidgetAnimationEffect;
-                values = ViewModel.AvailableWidgetAnimationEffects;
-                applyValue = value => ViewModel.SelectedWidgetAnimationEffect = value;
-                displayValue = ViewModel.GetWidgetAnimationEffectDisplayName;
-                break;
-
-            case "WidgetAnimationSpeed":
-                selectedValue = ViewModel.SelectedWidgetAnimationSpeed;
-                values = ViewModel.AvailableWidgetAnimationSpeeds;
-                applyValue = value => ViewModel.SelectedWidgetAnimationSpeed = value;
-                displayValue = ViewModel.GetWidgetAnimationSpeedDisplayName;
-                break;
-
-            case "WidgetAnimationSlideDirection":
-                selectedValue = ViewModel.SelectedWidgetAnimationSlideDirection;
-                values = ViewModel.AvailableWidgetAnimationSlideDirections;
-                applyValue = value => ViewModel.SelectedWidgetAnimationSlideDirection = value;
-                displayValue = ViewModel.GetWidgetAnimationSlideDirectionDisplayName;
-                break;
-
-            case "WidgetAnimationEasingIntensity":
-                selectedValue = ViewModel.SelectedWidgetAnimationEasingIntensity;
-                values = ViewModel.AvailableWidgetAnimationEasingIntensities;
-                applyValue = value => ViewModel.SelectedWidgetAnimationEasingIntensity = value;
-                displayValue = ViewModel.GetWidgetAnimationEasingIntensityDisplayName;
-                break;
-
             default:
                 return;
         }

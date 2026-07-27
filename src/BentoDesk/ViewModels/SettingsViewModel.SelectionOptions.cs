@@ -63,18 +63,6 @@ public partial class SettingsViewModel
     public IReadOnlyList<SettingsOption> AvailableAnimationPresetOptions =>
         CreateSelectionOptions(AvailableAnimationPresets, AvailableAnimationPresetDisplayNames);
 
-    public IReadOnlyList<SettingsOption> AvailableWidgetAnimationEffectOptions =>
-        CreateSelectionOptions(AvailableWidgetAnimationEffects, AvailableWidgetAnimationEffectDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableWidgetAnimationSpeedOptions =>
-        CreateSelectionOptions(AvailableWidgetAnimationSpeeds, AvailableWidgetAnimationSpeedDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableWidgetAnimationSlideDirectionOptions =>
-        CreateSelectionOptions(AvailableWidgetAnimationSlideDirections, AvailableWidgetAnimationSlideDirectionDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableWidgetAnimationEasingIntensityOptions =>
-        CreateSelectionOptions(AvailableWidgetAnimationEasingIntensities, AvailableWidgetAnimationEasingIntensityDisplayNames);
-
     public IReadOnlyList<SettingsOption> AvailableDisplayWidgetChromeModeOptions =>
         CreateSelectionOptions(AvailableDisplayWidgetChromeModes, AvailableDisplayWidgetChromeModeDisplayNames);
 
@@ -139,10 +127,6 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(AvailableWidgetCompactMediaCornerOptions));
         OnPropertyChanged(nameof(AvailableLayoutDensityOptions));
         OnPropertyChanged(nameof(AvailableAnimationPresetOptions));
-        OnPropertyChanged(nameof(AvailableWidgetAnimationEffectOptions));
-        OnPropertyChanged(nameof(AvailableWidgetAnimationSpeedOptions));
-        OnPropertyChanged(nameof(AvailableWidgetAnimationSlideDirectionOptions));
-        OnPropertyChanged(nameof(AvailableWidgetAnimationEasingIntensityOptions));
         OnPropertyChanged(nameof(AvailableDisplayWidgetChromeModeOptions));
         OnPropertyChanged(nameof(AvailableInteractiveWidgetChromeModeOptions));
         OnPropertyChanged(nameof(AvailableWidgetTitleIconModeOptions));

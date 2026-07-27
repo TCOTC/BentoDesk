@@ -391,47 +391,10 @@ set => WidgetOpacity = Math.Clamp(1.0 - value / 100d, SettingsService.MinWidgetO
     public string[] AvailableAnimationPresets { get; } =
     [
         AnimationPresetNone,
-        AnimationPresetGentle,
-        AnimationPresetStandard,
-        AnimationPresetEmphasized,
-        AnimationPresetCustom
+        AnimationPresetFade
     ];
     public string[] AvailableAnimationPresetDisplayNames =>
         _cachedAnimationPresetDisplayNames ??= AvailableAnimationPresets.Select(GetAnimationPresetDisplayName).ToArray();
-    public string[] AvailableWidgetAnimationEffects { get; } =
-    [
-        SettingsService.WidgetAnimationEffectSlideFade,
-        SettingsService.WidgetAnimationEffectFade,
-        SettingsService.WidgetAnimationEffectScaleFade,
-        SettingsService.WidgetAnimationEffectZoom,
-        SettingsService.WidgetAnimationEffectNone
-    ];
-    public string[] AvailableWidgetAnimationEffectDisplayNames => _cachedWidgetAnimationEffectDisplayNames ??= AvailableWidgetAnimationEffects.Select(GetWidgetAnimationEffectDisplayName).ToArray();
-    public string[] AvailableWidgetAnimationSpeeds { get; } =
-    [
-        SettingsService.WidgetAnimationSpeedVeryFast,
-        SettingsService.WidgetAnimationSpeedFast,
-        SettingsService.WidgetAnimationSpeedStandard,
-        SettingsService.WidgetAnimationSpeedRelaxed,
-        SettingsService.WidgetAnimationSpeedSlow
-    ];
-    public string[] AvailableWidgetAnimationSpeedDisplayNames => _cachedWidgetAnimationSpeedDisplayNames ??= AvailableWidgetAnimationSpeeds.Select(GetWidgetAnimationSpeedDisplayName).ToArray();
-    public string[] AvailableWidgetAnimationSlideDirections { get; } =
-    [
-        SettingsService.WidgetAnimationSlideDirectionLeft,
-        SettingsService.WidgetAnimationSlideDirectionRight,
-        SettingsService.WidgetAnimationSlideDirectionUp,
-        SettingsService.WidgetAnimationSlideDirectionDown
-    ];
-    public string[] AvailableWidgetAnimationSlideDirectionDisplayNames => _cachedWidgetAnimationSlideDirectionDisplayNames ??= AvailableWidgetAnimationSlideDirections.Select(GetWidgetAnimationSlideDirectionDisplayName).ToArray();
-    public string[] AvailableWidgetAnimationEasingIntensities { get; } =
-    [
-        SettingsService.WidgetAnimationEasingNone,
-        SettingsService.WidgetAnimationEasingLight,
-        SettingsService.WidgetAnimationEasingStandard,
-        SettingsService.WidgetAnimationEasingStrong
-    ];
-    public string[] AvailableWidgetAnimationEasingIntensityDisplayNames => _cachedWidgetAnimationEasingIntensityDisplayNames ??= AvailableWidgetAnimationEasingIntensities.Select(GetWidgetAnimationEasingIntensityDisplayName).ToArray();
 
     public string[] AvailableDisplayWidgetChromeModes { get; } =
     [

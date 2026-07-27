@@ -75,11 +75,21 @@ public sealed class WidgetTrayAnimationController
     private double _renderFromOffsetY;
     private double _renderToOffsetX;
     private double _renderToOffsetY;
+    private float _renderFromOpacity = RestingOpacity;
+    private float _renderToOpacity = RestingOpacity;
+    private bool _renderAnimatesOpacity;
     private bool _renderIsShowing;
     private long _renderGeneration;
     private string _renderEasingIntensity = string.Empty;
     private Action? _renderCompleted;
     private Microsoft.UI.Composition.Compositor? _cachedCompositor;
+
+    /// <summary>
+    /// True when the prepared show state starts below full opacity (Fade /
+    /// ScaleFade / Zoom). FinishDesktopLayerShow must leave Win32 alpha alone
+    /// so the upcoming fade-in owns whole-window opacity including Mica.
+    /// </summary>
+    public bool HasPreparedSoftOpacity => _preparedOpacity < 0.999f;
 
     public WidgetTrayAnimationController(
         AppWindow appWindow,
@@ -250,9 +260,11 @@ public sealed class WidgetTrayAnimationController
         StopVisualAnimations(visual);
         visual.CenterPoint = GetVisualCenterPoint();
         visual.Offset = Vector3.Zero;
+        // Keep Composition opacity at 1 — system backdrops (Mica/Acrylic) ignore
+        // visual.Opacity. Soft opacity is applied via Win32 layered alpha instead.
         visual.Opacity = RestingOpacity;
         visual.Scale = new Vector3(scale, scale, 1.0f);
-        visual.Opacity = Math.Clamp(opacity, 0.0f, 1.0f);
+        ApplyWindowOpacity(opacity);
     }
 
     public void PrepareHiddenState()
@@ -264,9 +276,10 @@ public sealed class WidgetTrayAnimationController
             ApplyWindowOffset(_preparedOffsetX, _preparedOffsetY);
             var v = GetCachedRootVisual();
             StopVisualAnimations(v);
-            v.Opacity = Math.Clamp(_preparedOpacity, 0.0f, 1.0f);
+            v.Opacity = RestingOpacity;
             v.CenterPoint = GetVisualCenterPoint();
             v.Scale = new Vector3(_preparedScale, _preparedScale, 1.0f);
+            ApplyWindowOpacity(_preparedOpacity);
             return;
         }
 
@@ -276,7 +289,7 @@ public sealed class WidgetTrayAnimationController
         visual.Offset = Vector3.Zero;
         visual.Opacity = RestingOpacity;
         visual.Scale = new Vector3(RestingScale, RestingScale, 1.0f);
-        visual.Opacity = SoftOpacity;
+        ApplyWindowOpacity(SoftOpacity);
     }
 
     public void Animate(
@@ -311,38 +324,25 @@ public sealed class WidgetTrayAnimationController
         // Ensure visual is ready and any previous animations are stopped.
         var visual = GetCachedRootVisual();
         StopVisualAnimations(visual);
+        visual.Opacity = RestingOpacity;
+        bool animatesOpacity = Math.Abs(fromOpacity - toOpacity) > 0.001f;
+        ApplyWindowOpacity(fromOpacity);
 
         if (durationMs <= 1)
         {
             // Ensure final visual state is applied for instant transitions.
-            visual.Opacity = toOpacity;
             visual.CenterPoint = GetVisualCenterPoint();
             visual.Scale = new Vector3(toScale, toScale, 1);
-            CompleteAnimation(toOffsetX, toOffsetY, isShowing, generation, completed);
+            CompleteAnimation(toOffsetX, toOffsetY, toOpacity, isShowing, generation, completed);
             return;
         }
 
-        // ── Opacity & Scale: Composition KeyFrame animations (GPU-driven) ──
+        // ── Scale: Composition KeyFrame animation (GPU-driven) ──
+        // Opacity uses Win32 layered alpha so Mica/Acrylic fade with the HWND.
         var compositor = GetCachedCompositor(visual);
         var easing = CreateEasingFunction(compositor, easingIntensity, isShowing);
         var duration = TimeSpan.FromMilliseconds(durationMs);
 
-        // Opacity animation
-        if (Math.Abs(fromOpacity - toOpacity) > 0.001f)
-        {
-            var opacityAnim = compositor.CreateScalarKeyFrameAnimation();
-            opacityAnim.Duration = duration;
-            opacityAnim.InsertKeyFrame(0, fromOpacity);
-            opacityAnim.InsertKeyFrame(1, toOpacity, easing);
-            visual.Opacity = fromOpacity;
-            visual.StartAnimation("Opacity", opacityAnim);
-        }
-        else
-        {
-            visual.Opacity = toOpacity;
-        }
-
-        // Scale animation
         if (Math.Abs(fromScale - toScale) > 0.001f)
         {
             visual.CenterPoint = GetVisualCenterPoint();
@@ -359,13 +359,14 @@ public sealed class WidgetTrayAnimationController
             visual.Scale = new Vector3(toScale, toScale, 1);
         }
 
-        // ── Window offset: still CPU-driven via AppWindow.Move() ──
-        // Only the position needs CompositionTarget.Rendering; opacity/scale
-        // are now GPU-driven and don't need per-frame CPU updates.
+        // ── Window offset + layered alpha: CPU-driven per frame ──
         _renderFromOffsetX = fromOffsetX;
         _renderFromOffsetY = fromOffsetY;
         _renderToOffsetX = toOffsetX;
         _renderToOffsetY = toOffsetY;
+        _renderFromOpacity = fromOpacity;
+        _renderToOpacity = toOpacity;
+        _renderAnimatesOpacity = animatesOpacity;
         _renderDurationMs = durationMs;
         _renderIsShowing = isShowing;
         _renderGeneration = generation;
@@ -374,7 +375,7 @@ public sealed class WidgetTrayAnimationController
         _isRendering = true;
         _animationStartTime = DateTime.UtcNow;
         
-        // Use the same easing for window position interpolation.
+        // Use the same easing for window position / alpha interpolation.
         _renderEasingIntensity = easingIntensity;
 
         CompositionTarget.Rendering -= OnRenderingFrame;
@@ -418,34 +419,22 @@ public sealed class WidgetTrayAnimationController
 
         var visual = GetCachedRootVisual();
         StopVisualAnimations(visual);
+        visual.Opacity = RestingOpacity;
+        ApplyWindowOpacity(fromOpacity);
 
         if (durationMs <= 1)
         {
-            visual.Opacity = toOpacity;
             visual.CenterPoint = GetVisualCenterPoint();
             visual.Scale = new Vector3(toScale, toScale, 1);
-            CompleteAnimation(toOffsetX, toOffsetY, isShowing, generation, completed);
+            CompleteAnimation(toOffsetX, toOffsetY, toOpacity, isShowing, generation, completed);
             return null;
         }
 
-        // ── Opacity & Scale: Composition KeyFrame animations (GPU-driven) ──
+        // ── Scale: Composition KeyFrame animation (GPU-driven) ──
+        // Opacity is applied as Win32 layered alpha by the batch driver.
         var compositor = GetCachedCompositor(visual);
         var easing = CreateEasingFunction(compositor, easingIntensity, isShowing);
         var duration = TimeSpan.FromMilliseconds(durationMs);
-
-        if (Math.Abs(fromOpacity - toOpacity) > 0.001f)
-        {
-            var opacityAnim = compositor.CreateScalarKeyFrameAnimation();
-            opacityAnim.Duration = duration;
-            opacityAnim.InsertKeyFrame(0, fromOpacity);
-            opacityAnim.InsertKeyFrame(1, toOpacity, easing);
-            visual.Opacity = fromOpacity;
-            visual.StartAnimation("Opacity", opacityAnim);
-        }
-        else
-        {
-            visual.Opacity = toOpacity;
-        }
 
         if (Math.Abs(fromScale - toScale) > 0.001f)
         {
@@ -463,7 +452,7 @@ public sealed class WidgetTrayAnimationController
             visual.Scale = new Vector3(toScale, toScale, 1);
         }
 
-        // Position frames are owned by the batch driver from here on.
+        // Position + layered-alpha frames are owned by the batch driver from here on.
         var basePosition = _targetPosition ?? GetCurrentBasePosition();
         long capturedGeneration = generation;
 
@@ -476,8 +465,10 @@ public sealed class WidgetTrayAnimationController
             FromOffsetY = fromOffsetY,
             ToOffsetX = toOffsetX,
             ToOffsetY = toOffsetY,
+            FromOpacity = fromOpacity,
+            ToOpacity = toOpacity,
             IsValid = () => capturedGeneration == Generation,
-            Completed = () => CompleteAnimation(toOffsetX, toOffsetY, isShowing, capturedGeneration, completed)
+            Completed = () => CompleteAnimation(toOffsetX, toOffsetY, toOpacity, isShowing, capturedGeneration, completed)
         };
     }
 
@@ -545,8 +536,18 @@ public sealed class WidgetTrayAnimationController
             double currentOffsetX = Lerp(_renderFromOffsetX, _renderToOffsetX, easedProgress);
             double currentOffsetY = Lerp(_renderFromOffsetY, _renderToOffsetY, easedProgress);
 
-            // Only move the window — opacity/scale are GPU-driven by Composition animations.
+            // Move the window; scale is GPU-driven. Opacity uses Win32 alpha so
+            // system backdrops fade with the HWND instead of only XAML content.
             ApplyWindowOffset(currentOffsetX, currentOffsetY);
+            if (_renderAnimatesOpacity)
+            {
+                double opacityProgress = WidgetAnimationSettings.EaseOpacity(
+                    rawProgress,
+                    _renderEasingIntensity,
+                    _renderIsShowing);
+                float currentOpacity = (float)Lerp(_renderFromOpacity, _renderToOpacity, opacityProgress);
+                ApplyWindowOpacity(currentOpacity);
+            }
 
             if (rawProgress < 1.0)
             {
@@ -558,6 +559,7 @@ public sealed class WidgetTrayAnimationController
             CompleteAnimation(
                 _renderToOffsetX,
                 _renderToOffsetY,
+                _renderToOpacity,
                 _renderIsShowing,
                 _renderGeneration,
                 _renderCompleted);
@@ -687,6 +689,7 @@ public sealed class WidgetTrayAnimationController
     private void CompleteAnimation(
         double finalOffsetX,
         double finalOffsetY,
+        float finalOpacity,
         bool isShowing,
         long generation,
         Action? completed)
@@ -697,11 +700,15 @@ public sealed class WidgetTrayAnimationController
         }
 
         ApplyWindowOffset(finalOffsetX, finalOffsetY);
+        ApplyWindowOpacity(finalOpacity);
         SetOffsetOverride(null, null);
         RestoreDwmTransitions();
         _log($"AnimateCompleted mode={(isShowing ? "show" : "hide")} gen={generation}");
         completed?.Invoke();
     }
+
+    private void ApplyWindowOpacity(float opacity) =>
+        WidgetTrayBatchAnimationDriver.ApplyWindowOpacity(_windowHandle, opacity);
 
     private void ApplyWindowOffset(double offsetX, double offsetY)
     {

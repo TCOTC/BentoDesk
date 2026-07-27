@@ -40,10 +40,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private const string BorderMedium = SettingsService.WidgetBorderStyleMedium;
     private const string BorderThick = SettingsService.WidgetBorderStyleThick;
     private const string AnimationPresetNone = "None";
-    private const string AnimationPresetGentle = "Gentle";
-    private const string AnimationPresetStandard = "Standard";
-    private const string AnimationPresetEmphasized = "Emphasized";
-    private const string AnimationPresetCustom = "Custom";
+    private const string AnimationPresetFade = "Fade";
     private const string RepositoryUrl = "https://github.com/TCOTC/BentoDesk";
     private const string OfficialWebsiteUrl = "https://github.com/TCOTC/BentoDesk";
 
@@ -70,10 +67,10 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private string _selectedWidgetCollapseBehavior = SettingsService.WidgetCollapseBehaviorClick;
     private string _selectedWidgetCompactContentMode = SettingsService.WidgetCompactContentModeSmart;
     private string _selectedLayoutDensity = SettingsService.LayoutDensityStandard;
-    private string _selectedAnimationPreset = AnimationPresetStandard;
+    private string _selectedAnimationPreset = AnimationPresetFade;
     private string _selectedWidgetAnimationEffect = SettingsService.WidgetAnimationEffectFade;
     private string _selectedWidgetAnimationSpeed = SettingsService.WidgetAnimationSpeedStandard;
-    private string _selectedWidgetAnimationSlideDirection = SettingsService.WidgetAnimationSlideDirectionRight;
+    private string _selectedWidgetAnimationSlideDirection = SettingsService.WidgetAnimationSlideDirectionNone;
     private string _selectedWidgetAnimationEasingIntensity = SettingsService.WidgetAnimationEasingStandard;
     private string _selectedDisplayWidgetChromeMode = SettingsService.WidgetChromeModeOverlay;
     private string _selectedInteractiveWidgetChromeMode = SettingsService.WidgetChromeModeStandard;
@@ -105,10 +102,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private string[]? _cachedWidgetCompactContentModeDisplayNames;
     private string[]? _cachedLayoutDensityDisplayNames;
     private string[]? _cachedAnimationPresetDisplayNames;
-    private string[]? _cachedWidgetAnimationEffectDisplayNames;
-    private string[]? _cachedWidgetAnimationSpeedDisplayNames;
-    private string[]? _cachedWidgetAnimationSlideDirectionDisplayNames;
-    private string[]? _cachedWidgetAnimationEasingIntensityDisplayNames;
     private string[]? _cachedDisplayWidgetChromeModeDisplayNames;
     private string[]? _cachedInteractiveWidgetChromeModeDisplayNames;
     private string[]? _cachedWidgetTitleIconModeDisplayNames;
@@ -505,29 +498,17 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
 
     private void ApplyAnimationPreset(string preset)
     {
-        (string effect, string speed, string direction, string easing) = preset switch
-        {
-            AnimationPresetNone => (
+        (string effect, string speed, string direction, string easing) = preset == AnimationPresetNone
+            ? (
                 SettingsService.WidgetAnimationEffectNone,
                 SettingsService.WidgetAnimationSpeedStandard,
                 SettingsService.WidgetAnimationSlideDirectionNone,
-                SettingsService.WidgetAnimationEasingNone),
-            AnimationPresetGentle => (
+                SettingsService.WidgetAnimationEasingNone)
+            : (
                 SettingsService.WidgetAnimationEffectFade,
-                SettingsService.WidgetAnimationSpeedRelaxed,
-                SettingsService.WidgetAnimationSlideDirectionNone,
-                SettingsService.WidgetAnimationEasingLight),
-            AnimationPresetEmphasized => (
-                SettingsService.WidgetAnimationEffectScaleFade,
-                SettingsService.WidgetAnimationSpeedRelaxed,
-                SettingsService.WidgetAnimationSlideDirectionNone,
-                SettingsService.WidgetAnimationEasingStrong),
-            _ => (
-                SettingsService.WidgetAnimationEffectSlideFade,
                 SettingsService.WidgetAnimationSpeedStandard,
-                SettingsService.WidgetAnimationSlideDirectionRight,
-                SettingsService.WidgetAnimationEasingStandard)
-        };
+                SettingsService.WidgetAnimationSlideDirectionNone,
+                SettingsService.WidgetAnimationEasingStandard);
 
         _isApplyingAnimationPreset = true;
         try
@@ -561,34 +542,9 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
 
     private string ResolveAnimationPreset()
     {
-        if (_selectedWidgetAnimationEffect == SettingsService.WidgetAnimationEffectNone)
-        {
-            return AnimationPresetNone;
-        }
-
-        if (_selectedWidgetAnimationEffect == SettingsService.WidgetAnimationEffectFade &&
-            _selectedWidgetAnimationSpeed == SettingsService.WidgetAnimationSpeedRelaxed &&
-            _selectedWidgetAnimationEasingIntensity == SettingsService.WidgetAnimationEasingLight)
-        {
-            return AnimationPresetGentle;
-        }
-
-        if (_selectedWidgetAnimationEffect == SettingsService.WidgetAnimationEffectSlideFade &&
-            _selectedWidgetAnimationSpeed == SettingsService.WidgetAnimationSpeedStandard &&
-            _selectedWidgetAnimationSlideDirection == SettingsService.WidgetAnimationSlideDirectionRight &&
-            _selectedWidgetAnimationEasingIntensity == SettingsService.WidgetAnimationEasingStandard)
-        {
-            return AnimationPresetStandard;
-        }
-
-        if (_selectedWidgetAnimationEffect == SettingsService.WidgetAnimationEffectScaleFade &&
-            _selectedWidgetAnimationSpeed == SettingsService.WidgetAnimationSpeedRelaxed &&
-            _selectedWidgetAnimationEasingIntensity == SettingsService.WidgetAnimationEasingStrong)
-        {
-            return AnimationPresetEmphasized;
-        }
-
-        return AnimationPresetCustom;
+        return _selectedWidgetAnimationEffect == SettingsService.WidgetAnimationEffectNone
+            ? AnimationPresetNone
+            : AnimationPresetFade;
     }
 
     private void ApplySpacingScaleChange(

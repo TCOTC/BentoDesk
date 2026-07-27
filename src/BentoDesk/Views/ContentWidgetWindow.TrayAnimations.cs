@@ -55,6 +55,7 @@ public sealed partial class ContentWidgetWindow
             {
                 TrayAnimation.RestoreVisualState();
                 TrayAnimation.RestoreWindowPosition();
+                ApplyBackdropPreference();
             });
     }
 
@@ -130,6 +131,7 @@ public sealed partial class ContentWidgetWindow
             {
                 TrayAnimation.RestoreVisualState();
                 TrayAnimation.RestoreWindowPosition();
+                ApplyBackdropPreference();
             });
     }
 
