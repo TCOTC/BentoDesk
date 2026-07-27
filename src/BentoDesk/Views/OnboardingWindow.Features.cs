@@ -129,19 +129,4 @@ public sealed partial class OnboardingWindow
             card.BorderThickness = new Thickness(1);
         }
     }
-
-    // ════════════════════════════════════════════════════════════
-    //  Step 3: Appearance (capsule toggle handler)
-    // ════════════════════════════════════════════════════════════
-
-    private void Step3CapsuleToggle_Toggled(object sender, RoutedEventArgs e)
-    {
-        if (sender is not ToggleSwitch toggle)
-        {
-            return;
-        }
-
-        _settingsService.Settings.WidgetCapsuleModeEnabled = toggle.IsOn;
-        _settingsService.SaveDebounced();
-    }
 }

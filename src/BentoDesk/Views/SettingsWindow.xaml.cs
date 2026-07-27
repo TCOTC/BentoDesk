@@ -101,7 +101,6 @@ public sealed partial class SettingsWindow : Window
             ["AppearanceWindowSettings"] = new("AppearanceWindowSettings", "Settings.Group.AppVisual.Title", "Appearance", "Appearance"),
             ["AppearanceAnimationSettings"] = new("AppearanceAnimationSettings", "Settings.Group.Animation.Title", "Appearance", "Appearance"),
             ["CapsuleBehaviorSettings"] = new("CapsuleBehaviorSettings", "Settings.Capsule.HoverResponse.Title", "CapsuleMode", "CapsuleMode"),
-            ["CapsuleArrangementSettings"] = new("CapsuleArrangementSettings", "Settings.Capsule.ArrangementDetails.Title", "CapsuleMode", "CapsuleMode"),
             ["CapsuleAnimationSettings"] = new("CapsuleAnimationSettings", "Settings.Capsule.Animation.Title", "CapsuleMode", "CapsuleMode"),
             ["CapsuleOverridesSettings"] = new("CapsuleOverridesSettings", "Settings.Capsule.Overrides.Title", "CapsuleMode", "CapsuleMode"),
             ["BackupRestoreSettings"] = new("BackupRestoreSettings", "Settings.DataBackup.Title", "Maintenance", "Maintenance"),

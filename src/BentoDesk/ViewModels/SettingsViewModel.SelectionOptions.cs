@@ -25,26 +25,6 @@ public partial class SettingsViewModel
     public IReadOnlyList<SettingsOption> AvailableWidgetCollapseBehaviorOptions =>
         CreateSelectionOptions(AvailableWidgetCollapseBehaviors, AvailableWidgetCollapseBehaviorDisplayNames);
 
-    public IReadOnlyList<SettingsOption> AvailableWidgetCompactWidthModeOptions =>
-        CreateSelectionOptions(
-            AvailableWidgetCompactWidthModes,
-            AvailableWidgetCompactWidthModeDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableWidgetCapsuleArrangementOptions =>
-        CreateSelectionOptions(
-            AvailableWidgetCapsuleArrangementModes,
-            AvailableWidgetCapsuleArrangementDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableWidgetCapsuleBarPlacementOptions =>
-        CreateSelectionOptions(
-            AvailableWidgetCapsuleBarPlacements,
-            AvailableWidgetCapsuleBarPlacementDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableWidgetCapsuleBarDirectionOptions =>
-        CreateSelectionOptions(
-            AvailableWidgetCapsuleBarDirections,
-            AvailableWidgetCapsuleBarDirectionDisplayNames);
-
     public IReadOnlyList<SettingsOption> AvailableWidgetCompactAnimationEffectOptions =>
         CreateSelectionOptions(AvailableWidgetCompactAnimationEffects, AvailableWidgetCompactAnimationEffectDisplayNames);
 
@@ -108,10 +88,6 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(AvailableWidgetBorderColorModeOptions));
         OnPropertyChanged(nameof(AvailableWidgetBorderStyleOptions));
         OnPropertyChanged(nameof(AvailableWidgetCollapseBehaviorOptions));
-        OnPropertyChanged(nameof(AvailableWidgetCompactWidthModeOptions));
-        OnPropertyChanged(nameof(AvailableWidgetCapsuleArrangementOptions));
-        OnPropertyChanged(nameof(AvailableWidgetCapsuleBarPlacementOptions));
-        OnPropertyChanged(nameof(AvailableWidgetCapsuleBarDirectionOptions));
         OnPropertyChanged(nameof(AvailableWidgetCompactAnimationEffectOptions));
         OnPropertyChanged(nameof(AvailableWidgetCompactHoverResponseOptions));
         OnPropertyChanged(nameof(AvailableWidgetCompactMediaCornerOptions));

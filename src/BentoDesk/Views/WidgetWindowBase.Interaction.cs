@@ -148,15 +148,11 @@ public abstract partial class WidgetWindowBase
         RectInt32 initialBounds = GetActualWindowBounds();
         InitialWindowPos = new PointInt32(initialBounds.X, initialBounds.Y);
         InitialWindowSize = new SizeInt32(initialBounds.Width, initialBounds.Height);
-        bool movesCapsuleBar = BeginCompactArrangementDrag();
         DragCaptureElement = captureElement;
         captureElement.CapturePointer(e.Pointer);
         e.Handled = true;
 
-        if (!movesCapsuleBar)
-        {
-            App.Current?.ResizeGuideOverlay.BeginDrag(HWnd, RootElement);
-        }
+        App.Current?.ResizeGuideOverlay.BeginDrag(HWnd, RootElement);
     }
 
     protected void ContinueWindowDragCore(PointerRoutedEventArgs e)
@@ -187,17 +183,14 @@ public abstract partial class WidgetWindowBase
         int newY = InitialWindowPos.Y + deltaY;
 
         var proposedBounds = new RectInt32(newX, newY, InitialWindowSize.Width, InitialWindowSize.Height);
-        if (!TryMoveCompactArrangement(proposedBounds, out _))
-        {
-            var snappedBounds = App.Current?.ResizeGuideOverlay.UpdateGuidesAndSnapForDrag(proposedBounds)
-                ?? proposedBounds;
-            ApplyWindowBounds(
-                snappedBounds.X,
-                snappedBounds.Y,
-                snappedBounds.Width,
-                snappedBounds.Height,
-                persist: false);
-        }
+        var snappedBounds = App.Current?.ResizeGuideOverlay.UpdateGuidesAndSnapForDrag(proposedBounds)
+            ?? proposedBounds;
+        ApplyWindowBounds(
+            snappedBounds.X,
+            snappedBounds.Y,
+            snappedBounds.Width,
+            snappedBounds.Height,
+            persist: false);
         e.Handled = true;
     }
 
@@ -215,7 +208,6 @@ public abstract partial class WidgetWindowBase
 
         App.Current?.ResizeGuideOverlay.EndDrag();
 
-        CompleteCompactArrangementDrag();
         RectInt32 finalBounds = GetActualWindowBounds();
         finalBounds = CompleteExpandedWidgetDrag(finalBounds);
         CapturePositionAnchor(finalBounds.X, finalBounds.Y, finalBounds.Width, finalBounds.Height);
@@ -465,7 +457,6 @@ public abstract partial class WidgetWindowBase
         bool hasMoved = HasMovedTitleBarDrag;
         DragCaptureElement = null;
         App.Current?.ResizeGuideOverlay.EndDrag();
-        CompleteCompactArrangementDrag();
         RectInt32 finalBounds = GetActualWindowBounds();
         finalBounds = CompleteExpandedWidgetDrag(finalBounds);
         CapturePositionAnchor(finalBounds.X, finalBounds.Y, finalBounds.Width, finalBounds.Height);

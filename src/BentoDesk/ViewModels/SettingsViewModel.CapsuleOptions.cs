@@ -7,12 +7,6 @@ namespace BentoDesk.ViewModels;
 
 public partial class SettingsViewModel
 {
-    private bool _widgetCapsuleModeEnabled;
-    private string _selectedWidgetCompactWidthMode = SettingsService.WidgetCompactWidthModeAligned;
-    private string _selectedWidgetCapsuleArrangementMode = SettingsService.WidgetCapsuleArrangementFree;
-    private double _widgetCapsuleBarSpacing = SettingsService.DefaultWidgetCapsuleBarSpacing;
-    private string _selectedWidgetCapsuleBarPlacement = SettingsService.WidgetCapsuleBarPlacementFloating;
-    private string _selectedWidgetCapsuleBarDirection = SettingsService.WidgetCapsuleBarDirectionAuto;
     private string _selectedWidgetCompactAnimationEffect = SettingsService.WidgetCompactAnimationSmooth;
     private string _selectedWidgetCompactMediaCornerMode = SettingsService.WidgetCompactMediaCornerFollowWidget;
     private double _widgetCompactAnimationDurationMs = SettingsService.DefaultWidgetCompactAnimationDurationMs;
@@ -23,252 +17,15 @@ public partial class SettingsViewModel
     private string[]? _cachedWidgetCompactAnimationEffectDisplayNames;
     private string[]? _cachedWidgetCompactHoverResponseDisplayNames;
     private string[]? _cachedWidgetCompactMediaCornerDisplayNames;
-    private string[]? _cachedWidgetCompactWidthModeDisplayNames;
-    private string[]? _cachedWidgetCapsuleArrangementDisplayNames;
-    private string[]? _cachedWidgetCapsuleBarPlacementDisplayNames;
-    private string[]? _cachedWidgetCapsuleBarDirectionDisplayNames;
-
-    public bool WidgetCapsuleModeEnabled
-    {
-        get => _widgetCapsuleModeEnabled;
-        set
-        {
-            if (!SetProperty(ref _widgetCapsuleModeEnabled, value))
-            {
-                return;
-            }
-
-            OnPropertyChanged(nameof(IsSmartWidgetCollapseBehavior));
-            OnPropertyChanged(nameof(IsWidgetCapsuleBarEnabled));
-            OnPropertyChanged(nameof(IsWidgetCapsuleBarSpacingEnabled));
-            OnPropertyChanged(nameof(CanOpenWidgetCompactHoverResponseDetails));
-            OnPropertyChanged(nameof(CanOpenWidgetCompactAnimationDetails));
-            if (_isRestoringDefaults || _isApplyingSettingsSnapshot)
-            {
-                return;
-            }
-
-            _settingsService.Settings.WidgetCapsuleModeEnabled = value;
-            if (value &&
-                SettingsService.NormalizeWidgetCollapseBehavior(_settingsService.Settings.WidgetCollapseBehavior) ==
-                SettingsService.WidgetCollapseBehaviorExpanded)
-            {
-                _settingsService.Settings.WidgetCollapseBehavior = SelectedWidgetCollapseBehavior;
-            }
-            _settingsService.SaveDebounced();
-        }
-    }
 
     public bool IsSmartWidgetCollapseBehavior =>
-        WidgetCapsuleModeEnabled &&
         SelectedWidgetCollapseBehavior == SettingsService.WidgetCollapseBehaviorSmart;
 
     public bool IsSmartWidgetCollapseBehaviorSelected =>
         SelectedWidgetCollapseBehavior == SettingsService.WidgetCollapseBehaviorSmart;
 
-    public string[] AvailableWidgetCompactWidthModes { get; } =
-    [
-        SettingsService.WidgetCompactWidthModeAligned,
-        SettingsService.WidgetCompactWidthModeIndependent
-    ];
-
-    public string[] AvailableWidgetCompactWidthModeDisplayNames =>
-        _cachedWidgetCompactWidthModeDisplayNames ??=
-            AvailableWidgetCompactWidthModes
-                .Select(GetWidgetCompactWidthModeDisplayName)
-                .ToArray();
-
-    public string SelectedWidgetCompactWidthMode
-    {
-        get => _selectedWidgetCompactWidthMode;
-        set
-        {
-            string normalized = SettingsService.NormalizeWidgetCompactWidthMode(value);
-            if (!SetProperty(ref _selectedWidgetCompactWidthMode, normalized))
-            {
-                return;
-            }
-
-            OnPropertyChanged(nameof(SelectedWidgetCompactWidthModeText));
-            if (_isRestoringDefaults || _isApplyingSettingsSnapshot)
-            {
-                return;
-            }
-
-            _settingsService.Settings.WidgetCompactWidthMode = normalized;
-            _settingsService.SaveDebounced();
-        }
-    }
-
-    public string SelectedWidgetCompactWidthModeText =>
-        GetWidgetCompactWidthModeDisplayName(SelectedWidgetCompactWidthMode);
-
     public Visibility CapsuleHoverResponseEntryVisibility =>
         IsSmartWidgetCollapseBehaviorSelected ? Visibility.Visible : Visibility.Collapsed;
-
-    public string[] AvailableWidgetCapsuleArrangementModes { get; } =
-    [
-        SettingsService.WidgetCapsuleArrangementFree,
-        SettingsService.WidgetCapsuleArrangementBar
-    ];
-
-    public string[] AvailableWidgetCapsuleArrangementDisplayNames =>
-        _cachedWidgetCapsuleArrangementDisplayNames ??=
-            AvailableWidgetCapsuleArrangementModes
-                .Select(GetWidgetCapsuleArrangementDisplayName)
-                .ToArray();
-
-    public string SelectedWidgetCapsuleArrangementMode
-    {
-        get => _selectedWidgetCapsuleArrangementMode;
-        set
-        {
-            string normalized = SettingsService.NormalizeWidgetCapsuleArrangementMode(value);
-            if (!SetProperty(ref _selectedWidgetCapsuleArrangementMode, normalized))
-            {
-                return;
-            }
-
-            OnPropertyChanged(nameof(SelectedWidgetCapsuleArrangementText));
-            OnPropertyChanged(nameof(IsWidgetCapsuleBarSelected));
-            OnPropertyChanged(nameof(IsWidgetCapsuleBarEnabled));
-            OnPropertyChanged(nameof(IsWidgetCapsuleBarSpacingEnabled));
-            OnPropertyChanged(nameof(CapsuleArrangementEntryVisibility));
-            if (_isRestoringDefaults || _isApplyingSettingsSnapshot)
-            {
-                return;
-            }
-
-            _settingsService.Settings.WidgetCapsuleArrangementMode = normalized;
-            _settingsService.SaveDebounced();
-        }
-    }
-
-    public string SelectedWidgetCapsuleArrangementText =>
-        GetWidgetCapsuleArrangementDisplayName(SelectedWidgetCapsuleArrangementMode);
-
-    public bool IsWidgetCapsuleBarSelected =>
-        SelectedWidgetCapsuleArrangementMode == SettingsService.WidgetCapsuleArrangementBar;
-
-    public bool IsWidgetCapsuleBarEnabled =>
-        WidgetCapsuleModeEnabled &&
-        IsWidgetCapsuleBarSelected;
-
-    public bool IsWidgetCapsuleBarSpacingEnabled => IsWidgetCapsuleBarEnabled;
-
-    public Visibility CapsuleArrangementEntryVisibility =>
-        IsWidgetCapsuleBarSelected ? Visibility.Visible : Visibility.Collapsed;
-
-    public string[] AvailableWidgetCapsuleBarPlacements { get; } =
-    [
-        SettingsService.WidgetCapsuleBarPlacementFloating,
-        SettingsService.WidgetCapsuleBarPlacementTop,
-        SettingsService.WidgetCapsuleBarPlacementBottom,
-        SettingsService.WidgetCapsuleBarPlacementLeft,
-        SettingsService.WidgetCapsuleBarPlacementRight
-    ];
-
-    public string[] AvailableWidgetCapsuleBarPlacementDisplayNames =>
-        _cachedWidgetCapsuleBarPlacementDisplayNames ??=
-            AvailableWidgetCapsuleBarPlacements
-                .Select(GetWidgetCapsuleBarPlacementDisplayName)
-                .ToArray();
-
-    public string SelectedWidgetCapsuleBarPlacement
-    {
-        get => _selectedWidgetCapsuleBarPlacement;
-        set
-        {
-            string normalized = SettingsService.NormalizeWidgetCapsuleBarPlacement(value);
-            if (!SetProperty(ref _selectedWidgetCapsuleBarPlacement, normalized))
-            {
-                return;
-            }
-
-            OnPropertyChanged(nameof(SelectedWidgetCapsuleBarPlacementText));
-            OnPropertyChanged(nameof(CapsuleArrangementDetailsSummaryText));
-            if (_isRestoringDefaults || _isApplyingSettingsSnapshot)
-            {
-                return;
-            }
-
-            _settingsService.Settings.WidgetCapsuleBarPlacement = normalized;
-            _settingsService.SaveDebounced();
-        }
-    }
-
-    public string SelectedWidgetCapsuleBarPlacementText =>
-        GetWidgetCapsuleBarPlacementDisplayName(SelectedWidgetCapsuleBarPlacement);
-
-    public string[] AvailableWidgetCapsuleBarDirections { get; } =
-    [
-        SettingsService.WidgetCapsuleBarDirectionAuto,
-        SettingsService.WidgetCapsuleBarDirectionHorizontal,
-        SettingsService.WidgetCapsuleBarDirectionVertical
-    ];
-
-    public string[] AvailableWidgetCapsuleBarDirectionDisplayNames =>
-        _cachedWidgetCapsuleBarDirectionDisplayNames ??=
-            AvailableWidgetCapsuleBarDirections
-                .Select(GetWidgetCapsuleBarDirectionDisplayName)
-                .ToArray();
-
-    public string SelectedWidgetCapsuleBarDirection
-    {
-        get => _selectedWidgetCapsuleBarDirection;
-        set
-        {
-            string normalized = SettingsService.NormalizeWidgetCapsuleBarDirection(value);
-            if (!SetProperty(ref _selectedWidgetCapsuleBarDirection, normalized))
-            {
-                return;
-            }
-
-            OnPropertyChanged(nameof(SelectedWidgetCapsuleBarDirectionText));
-            OnPropertyChanged(nameof(CapsuleArrangementDetailsSummaryText));
-            if (_isRestoringDefaults || _isApplyingSettingsSnapshot)
-            {
-                return;
-            }
-
-            _settingsService.Settings.WidgetCapsuleBarDirection = normalized;
-            _settingsService.SaveDebounced();
-        }
-    }
-
-    public string SelectedWidgetCapsuleBarDirectionText =>
-        GetWidgetCapsuleBarDirectionDisplayName(SelectedWidgetCapsuleBarDirection);
-
-    public double WidgetCapsuleBarSpacing
-    {
-        get => _widgetCapsuleBarSpacing;
-        set
-        {
-            double normalized = SettingsService.NormalizeWidgetCapsuleBarSpacing(value);
-            if (!SetProperty(ref _widgetCapsuleBarSpacing, normalized))
-            {
-                return;
-            }
-
-            OnPropertyChanged(nameof(WidgetCapsuleBarSpacingText));
-            OnPropertyChanged(nameof(CapsuleArrangementDetailsSummaryText));
-            if (_isRestoringDefaults || _isApplyingSettingsSnapshot)
-            {
-                return;
-            }
-
-            _settingsService.Settings.WidgetCapsuleBarSpacing = normalized;
-            _settingsService.SaveDebounced();
-        }
-    }
-
-    public string WidgetCapsuleBarSpacingText => $"{Math.Round(WidgetCapsuleBarSpacing):0} px";
-
-    public string CapsuleArrangementDetailsSummaryText => _localizationService.Format(
-        "Settings.Capsule.Arrangement.Summary",
-        SelectedWidgetCapsuleBarPlacementText,
-        SelectedWidgetCapsuleBarDirectionText,
-        WidgetCapsuleBarSpacingText);
 
     public string[] AvailableWidgetCompactAnimationEffects { get; } =
     [
@@ -342,7 +99,7 @@ public partial class SettingsViewModel
         IsWidgetCompactAnimationCustom ? Visibility.Visible : Visibility.Collapsed;
 
     public bool CanOpenWidgetCompactAnimationDetails =>
-        WidgetCapsuleModeEnabled && IsWidgetCompactAnimationCustom;
+        IsWidgetCompactAnimationCustom;
 
     public double WidgetCompactAnimationDurationMs
     {
@@ -458,7 +215,7 @@ public partial class SettingsViewModel
         IsWidgetCompactHoverResponseCustom ? Visibility.Visible : Visibility.Collapsed;
 
     public bool CanOpenWidgetCompactHoverResponseDetails =>
-        WidgetCapsuleModeEnabled && IsWidgetCompactHoverResponseCustom;
+        IsWidgetCompactHoverResponseCustom;
 
     public double WidgetCompactExpandDelayMs
     {
@@ -796,38 +553,6 @@ public partial class SettingsViewModel
             SettingsService.WidgetCompactHoverResponseCustom =>
                 _localizationService.T("Settings.Capsule.HoverResponse.Custom"),
             _ => _localizationService.T("Settings.Capsule.HoverResponse.Balanced")
-        };
-
-    private string GetWidgetCapsuleArrangementDisplayName(string mode) =>
-        SettingsService.NormalizeWidgetCapsuleArrangementMode(mode) switch
-        {
-            SettingsService.WidgetCapsuleArrangementBar =>
-                _localizationService.T("Settings.Capsule.Arrangement.Bar"),
-            _ => _localizationService.T("Settings.Capsule.Arrangement.Free")
-        };
-
-    private string GetWidgetCapsuleBarPlacementDisplayName(string placement) =>
-        SettingsService.NormalizeWidgetCapsuleBarPlacement(placement) switch
-        {
-            SettingsService.WidgetCapsuleBarPlacementTop =>
-                _localizationService.T("Settings.Capsule.Placement.Top"),
-            SettingsService.WidgetCapsuleBarPlacementBottom =>
-                _localizationService.T("Settings.Capsule.Placement.Bottom"),
-            SettingsService.WidgetCapsuleBarPlacementLeft =>
-                _localizationService.T("Settings.Capsule.Placement.Left"),
-            SettingsService.WidgetCapsuleBarPlacementRight =>
-                _localizationService.T("Settings.Capsule.Placement.Right"),
-            _ => _localizationService.T("Settings.Capsule.Placement.Floating")
-        };
-
-    private string GetWidgetCapsuleBarDirectionDisplayName(string direction) =>
-        SettingsService.NormalizeWidgetCapsuleBarDirection(direction) switch
-        {
-            SettingsService.WidgetCapsuleBarDirectionHorizontal =>
-                _localizationService.T("Settings.Capsule.Direction.Horizontal"),
-            SettingsService.WidgetCapsuleBarDirectionVertical =>
-                _localizationService.T("Settings.Capsule.Direction.Vertical"),
-            _ => _localizationService.T("Settings.Capsule.Direction.Auto")
         };
 
     private string GetWidgetCompactMediaCornerDisplayName(string mode) =>

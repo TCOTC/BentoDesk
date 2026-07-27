@@ -22,23 +22,6 @@ public sealed class SettingsSynchronizationTests
         bool settingsChanged = false;
         settingsService.SettingsChanged += () => settingsChanged = true;
 
-        settingsService.Settings.WidgetCapsuleModeEnabled = true;
-        settingsService.Settings.WidgetCompactWidthMode =
-            SettingsService.WidgetCompactWidthModeIndependent;
-        settingsService.Settings.WidgetCapsuleArrangementMode =
-            SettingsService.WidgetCapsuleArrangementBar;
-        settingsService.Settings.WidgetCapsuleBarPlacement =
-            SettingsService.WidgetCapsuleBarPlacementRight;
-        settingsService.Settings.WidgetCapsuleBarDirection =
-            SettingsService.WidgetCapsuleBarDirectionVertical;
-        settingsService.Settings.WidgetCapsuleBarSpacing = 12;
-        settingsService.Settings.WidgetCapsuleBarOrder = ["music", "tags"];
-        settingsService.Settings.WidgetCapsuleFreePlacements["music"] = new BentoDesk.Models.WidgetCompactPlacement
-        {
-            X = 120,
-            Y = 80,
-            PositionAnchor = WidgetPositionAnchors.LeftTop
-        };
         settingsService.Settings.MusicDisplayMode = SettingsService.MusicDisplayModeCover;
 
         await settingsService.SaveAsync();
@@ -48,39 +31,7 @@ public sealed class SettingsSynchronizationTests
         var reloadedService = new SettingsService(scope.RootPath);
         await reloadedService.LoadAsync();
 
-        Assert.True(reloadedService.Settings.WidgetCapsuleModeEnabled);
-        Assert.Equal(
-            SettingsService.WidgetCompactWidthModeIndependent,
-            reloadedService.Settings.WidgetCompactWidthMode);
-        Assert.Equal(
-            SettingsService.WidgetCapsuleArrangementBar,
-            reloadedService.Settings.WidgetCapsuleArrangementMode);
-        Assert.Equal(
-            SettingsService.WidgetCapsuleBarPlacementRight,
-            reloadedService.Settings.WidgetCapsuleBarPlacement);
-        Assert.Equal(
-            SettingsService.WidgetCapsuleBarDirectionVertical,
-            reloadedService.Settings.WidgetCapsuleBarDirection);
-        Assert.Equal(12d, reloadedService.Settings.WidgetCapsuleBarSpacing);
-        Assert.Equal(new[] { "music", "tags" }, reloadedService.Settings.WidgetCapsuleBarOrder);
-        Assert.Equal(120d, reloadedService.Settings.WidgetCapsuleFreePlacements["music"].X);
         Assert.Equal(SettingsService.MusicDisplayModeCover, reloadedService.Settings.MusicDisplayMode);
-    }
-
-    [Fact]
-    public async Task UnknownCapsuleArrangementFallsBackToFree()
-    {
-        using var scope = new TempSettingsScope();
-        var settingsService = new SettingsService(scope.RootPath);
-        settingsService.Settings.WidgetCapsuleArrangementMode = "Vertical";
-        await settingsService.SaveAsync(notifySubscribers: false);
-
-        var reloadedService = new SettingsService(scope.RootPath);
-        await reloadedService.LoadAsync();
-
-        Assert.Equal(
-            SettingsService.WidgetCapsuleArrangementFree,
-            reloadedService.Settings.WidgetCapsuleArrangementMode);
     }
 
     private sealed class TempSettingsScope : IDisposable
@@ -103,6 +54,7 @@ public sealed class SettingsSynchronizationTests
             }
             catch
             {
+                // Best-effort cleanup for temporary test settings.
             }
         }
     }

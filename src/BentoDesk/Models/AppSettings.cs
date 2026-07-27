@@ -135,43 +135,6 @@ public class AppSettings
     /// </summary>
     public string WidgetCollapseBehavior { get; set; } = "Smart";
 
-    /// <summary>Whether widgets are allowed to enter compact capsule mode.</summary>
-    public bool WidgetCapsuleModeEnabled { get; set; } = true;
-
-    /// <summary>
-    /// How compact and expanded widget widths relate to each other.
-    /// Valid values: <c>"Aligned"</c>, <c>"Independent"</c>.
-    /// </summary>
-    public string WidgetCompactWidthMode { get; set; } = "Aligned";
-
-    /// <summary>
-    /// How compact widgets are arranged on the desktop.
-    /// Valid values: <c>"Free"</c>, <c>"Bar"</c>.
-    /// </summary>
-    public string WidgetCapsuleArrangementMode { get; set; } = "Free";
-
-    /// <summary>Logical pixel spacing between adjacent widgets in a capsule bar.</summary>
-    public double WidgetCapsuleBarSpacing { get; set; } = 8;
-
-    /// <summary>
-    /// Where the capsule bar is anchored.
-    /// Valid values: <c>"Floating"</c>, <c>"Top"</c>, <c>"Bottom"</c>,
-    /// <c>"Left"</c>, <c>"Right"</c>.
-    /// </summary>
-    public string WidgetCapsuleBarPlacement { get; set; } = "Floating";
-
-    /// <summary>
-    /// Primary flow direction for the capsule bar.
-    /// Valid values: <c>"Auto"</c>, <c>"Horizontal"</c>, <c>"Vertical"</c>.
-    /// </summary>
-    public string WidgetCapsuleBarDirection { get; set; } = "Auto";
-
-    /// <summary>Stable user order used when compact widgets form a capsule bar.</summary>
-    public List<string> WidgetCapsuleBarOrder { get; set; } = [];
-
-    /// <summary>Free-layout placements preserved while a capsule bar is active.</summary>
-    public Dictionary<string, WidgetCompactPlacement> WidgetCapsuleFreePlacements { get; set; } = [];
-
     /// <summary>
     /// Information density used by compact widgets.
     /// Valid values: <c>"Smart"</c>, <c>"Minimal"</c>, <c>"Summary"</c>.

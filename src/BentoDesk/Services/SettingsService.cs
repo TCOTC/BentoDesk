@@ -84,21 +84,6 @@ public sealed class SettingsService
     public const string WidgetCollapseBehaviorExpanded = WidgetCollapseBehaviorNames.Expanded;
     public const string WidgetCollapseBehaviorClick = WidgetCollapseBehaviorNames.Click;
     public const string WidgetCollapseBehaviorSmart = WidgetCollapseBehaviorNames.Smart;
-    public const string WidgetCompactWidthModeAligned = "Aligned";
-    public const string WidgetCompactWidthModeIndependent = "Independent";
-    public const string WidgetCapsuleArrangementFree = "Free";
-    public const string WidgetCapsuleArrangementBar = "Bar";
-    public const string WidgetCapsuleBarPlacementFloating = "Floating";
-    public const string WidgetCapsuleBarPlacementTop = "Top";
-    public const string WidgetCapsuleBarPlacementBottom = "Bottom";
-    public const string WidgetCapsuleBarPlacementLeft = "Left";
-    public const string WidgetCapsuleBarPlacementRight = "Right";
-    public const string WidgetCapsuleBarDirectionAuto = "Auto";
-    public const string WidgetCapsuleBarDirectionHorizontal = "Horizontal";
-    public const string WidgetCapsuleBarDirectionVertical = "Vertical";
-    public const double DefaultWidgetCapsuleBarSpacing = 8;
-    public const double MinWidgetCapsuleBarSpacing = 0;
-    public const double MaxWidgetCapsuleBarSpacing = 32;
     public const string WidgetCompactContentModeMinimal = "Minimal";
     public const string WidgetCompactContentModeSummary = "Summary";
     public const string WidgetCompactContentModeSmart = "Smart";
@@ -196,8 +181,6 @@ public sealed class SettingsService
                 [nameof(AppSettings.AutoStart)] = DefaultPreferencePreservationReason.SystemIntegration,
                 [nameof(AppSettings.FeatureWidgetEnabledStates)] = DefaultPreferencePreservationReason.UserChoice,
                 [nameof(AppSettings.Widgets)] = DefaultPreferencePreservationReason.UserData,
-                [nameof(AppSettings.WidgetCapsuleBarOrder)] = DefaultPreferencePreservationReason.UserData,
-                [nameof(AppSettings.WidgetCapsuleFreePlacements)] = DefaultPreferencePreservationReason.UserData,
                 [nameof(AppSettings.DeletedWidgetIds)] = DefaultPreferencePreservationReason.UserData,
                 [nameof(AppSettings.RecentOrganizationHistory)] = DefaultPreferencePreservationReason.UserData,
                 [nameof(AppSettings.HasCompletedOnboarding)] = DefaultPreferencePreservationReason.RuntimeState,
@@ -240,12 +223,6 @@ public sealed class SettingsService
         settings.WidgetAnimationSlideDirection = WidgetAnimationSlideDirectionNone;
         settings.WidgetAnimationEasingIntensity = WidgetAnimationEasingStandard;
         settings.WidgetCollapseBehavior = WidgetCollapseBehaviorSmart;
-        settings.WidgetCapsuleModeEnabled = true;
-        settings.WidgetCompactWidthMode = WidgetCompactWidthModeAligned;
-        settings.WidgetCapsuleArrangementMode = WidgetCapsuleArrangementFree;
-        settings.WidgetCapsuleBarSpacing = DefaultWidgetCapsuleBarSpacing;
-        settings.WidgetCapsuleBarPlacement = WidgetCapsuleBarPlacementFloating;
-        settings.WidgetCapsuleBarDirection = WidgetCapsuleBarDirectionAuto;
         settings.WidgetCompactContentMode = WidgetCompactContentModeSmart;
         settings.WidgetCompactHideSensitiveContent = false;
         settings.WidgetCompactAnimationEffect = WidgetCompactAnimationSlow;
@@ -692,93 +669,6 @@ settings.FocusClickedWidgetOnRaise = false;
             changed = true;
         }
 
-        string normalizedCompactWidthMode = NormalizeWidgetCompactWidthMode(
-            settings.WidgetCompactWidthMode);
-        if (!string.Equals(
-                settings.WidgetCompactWidthMode,
-                normalizedCompactWidthMode,
-                StringComparison.Ordinal))
-        {
-            settings.WidgetCompactWidthMode = normalizedCompactWidthMode;
-            changed = true;
-        }
-
-        string normalizedCapsuleArrangement = NormalizeWidgetCapsuleArrangementMode(
-            settings.WidgetCapsuleArrangementMode);
-        if (!string.Equals(
-                settings.WidgetCapsuleArrangementMode,
-                normalizedCapsuleArrangement,
-                StringComparison.Ordinal))
-        {
-            settings.WidgetCapsuleArrangementMode = normalizedCapsuleArrangement;
-            changed = true;
-        }
-
-        string normalizedCapsulePlacement = NormalizeWidgetCapsuleBarPlacement(
-            settings.WidgetCapsuleBarPlacement);
-        if (!string.Equals(
-                settings.WidgetCapsuleBarPlacement,
-                normalizedCapsulePlacement,
-                StringComparison.Ordinal))
-        {
-            settings.WidgetCapsuleBarPlacement = normalizedCapsulePlacement;
-            changed = true;
-        }
-
-        string normalizedCapsuleDirection = NormalizeWidgetCapsuleBarDirection(
-            settings.WidgetCapsuleBarDirection);
-        if (!string.Equals(
-                settings.WidgetCapsuleBarDirection,
-                normalizedCapsuleDirection,
-                StringComparison.Ordinal))
-        {
-            settings.WidgetCapsuleBarDirection = normalizedCapsuleDirection;
-            changed = true;
-        }
-
-        double normalizedCapsuleSpacing = NormalizeWidgetCapsuleBarSpacing(
-            settings.WidgetCapsuleBarSpacing);
-        if (!NearlyEqual(settings.WidgetCapsuleBarSpacing, normalizedCapsuleSpacing))
-        {
-            settings.WidgetCapsuleBarSpacing = normalizedCapsuleSpacing;
-            changed = true;
-        }
-
-        if (settings.WidgetCapsuleBarOrder is null)
-        {
-            settings.WidgetCapsuleBarOrder = [];
-            changed = true;
-        }
-        else
-        {
-            List<string> normalizedOrder = settings.WidgetCapsuleBarOrder
-                .Where(id => !string.IsNullOrWhiteSpace(id))
-                .Distinct(StringComparer.Ordinal)
-                .ToList();
-            if (!settings.WidgetCapsuleBarOrder.SequenceEqual(normalizedOrder, StringComparer.Ordinal))
-            {
-                settings.WidgetCapsuleBarOrder = normalizedOrder;
-                changed = true;
-            }
-        }
-
-        if (settings.WidgetCapsuleFreePlacements is null)
-        {
-            settings.WidgetCapsuleFreePlacements = [];
-            changed = true;
-        }
-        else
-        {
-            foreach (string invalidId in settings.WidgetCapsuleFreePlacements
-                         .Where(entry => string.IsNullOrWhiteSpace(entry.Key) || entry.Value is null)
-                         .Select(entry => entry.Key)
-                         .ToList())
-            {
-                settings.WidgetCapsuleFreePlacements.Remove(invalidId);
-                changed = true;
-            }
-        }
-
         string normalizedCompactContentMode = WidgetCompactContentModeSmart;
         if (!string.Equals(settings.WidgetCompactContentMode, normalizedCompactContentMode, StringComparison.Ordinal))
         {
@@ -1042,65 +932,6 @@ settings.FocusClickedWidgetOnRaise = false;
     {
         return WidgetCollapseBehaviorNames.ToSettingValue(
             WidgetCollapseBehaviorNames.Normalize(value));
-    }
-
-    public static string NormalizeWidgetCompactWidthMode(string? value)
-    {
-        return string.Equals(
-            value,
-            WidgetCompactWidthModeIndependent,
-            StringComparison.OrdinalIgnoreCase)
-                ? WidgetCompactWidthModeIndependent
-                : WidgetCompactWidthModeAligned;
-    }
-
-    public static string NormalizeWidgetCapsuleArrangementMode(string? value)
-    {
-        return string.Equals(value, WidgetCapsuleArrangementBar, StringComparison.OrdinalIgnoreCase)
-            ? WidgetCapsuleArrangementBar
-            : WidgetCapsuleArrangementFree;
-    }
-
-    public static string NormalizeWidgetCapsuleBarPlacement(string? value)
-    {
-        if (string.Equals(value, WidgetCapsuleBarPlacementTop, StringComparison.OrdinalIgnoreCase))
-        {
-            return WidgetCapsuleBarPlacementTop;
-        }
-
-        if (string.Equals(value, WidgetCapsuleBarPlacementBottom, StringComparison.OrdinalIgnoreCase))
-        {
-            return WidgetCapsuleBarPlacementBottom;
-        }
-
-        if (string.Equals(value, WidgetCapsuleBarPlacementLeft, StringComparison.OrdinalIgnoreCase))
-        {
-            return WidgetCapsuleBarPlacementLeft;
-        }
-
-        return string.Equals(value, WidgetCapsuleBarPlacementRight, StringComparison.OrdinalIgnoreCase)
-            ? WidgetCapsuleBarPlacementRight
-            : WidgetCapsuleBarPlacementFloating;
-    }
-
-    public static string NormalizeWidgetCapsuleBarDirection(string? value)
-    {
-        if (string.Equals(value, WidgetCapsuleBarDirectionHorizontal, StringComparison.OrdinalIgnoreCase))
-        {
-            return WidgetCapsuleBarDirectionHorizontal;
-        }
-
-        return string.Equals(value, WidgetCapsuleBarDirectionVertical, StringComparison.OrdinalIgnoreCase)
-            ? WidgetCapsuleBarDirectionVertical
-            : WidgetCapsuleBarDirectionAuto;
-    }
-
-    public static double NormalizeWidgetCapsuleBarSpacing(double value)
-    {
-        double finiteValue = double.IsFinite(value)
-            ? value
-            : DefaultWidgetCapsuleBarSpacing;
-        return Math.Clamp(finiteValue, MinWidgetCapsuleBarSpacing, MaxWidgetCapsuleBarSpacing);
     }
 
     public static string NormalizeWidgetCompactContentMode(string? value)

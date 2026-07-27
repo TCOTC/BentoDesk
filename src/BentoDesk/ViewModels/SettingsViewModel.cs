@@ -233,17 +233,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
             _selectedWidgetBorderStyle = settings.WidgetBorderStyle is BorderThin or BorderMedium or BorderThick
                 ? settings.WidgetBorderStyle
                 : BorderThin;
-            _widgetCapsuleModeEnabled = settings.WidgetCapsuleModeEnabled;
-            _selectedWidgetCompactWidthMode = SettingsService.NormalizeWidgetCompactWidthMode(
-                settings.WidgetCompactWidthMode);
-            _selectedWidgetCapsuleArrangementMode = SettingsService.NormalizeWidgetCapsuleArrangementMode(
-                settings.WidgetCapsuleArrangementMode);
-            _widgetCapsuleBarSpacing = SettingsService.NormalizeWidgetCapsuleBarSpacing(
-                settings.WidgetCapsuleBarSpacing);
-            _selectedWidgetCapsuleBarPlacement = SettingsService.NormalizeWidgetCapsuleBarPlacement(
-                settings.WidgetCapsuleBarPlacement);
-            _selectedWidgetCapsuleBarDirection = SettingsService.NormalizeWidgetCapsuleBarDirection(
-                settings.WidgetCapsuleBarDirection);
             _selectedWidgetCollapseBehavior = SettingsService.NormalizeWidgetCollapseBehavior(settings.WidgetCollapseBehavior) == SettingsService.WidgetCollapseBehaviorSmart
                 ? SettingsService.WidgetCollapseBehaviorSmart
                 : SettingsService.WidgetCollapseBehaviorClick;

@@ -46,7 +46,6 @@ public abstract partial class WidgetWindowBase
     private RectInt32? _stableCompactBounds;
     private RectInt32? _expandedInteractionStartBounds;
     private RectInt32? _compactInteractionStartBounds;
-    private SizeInt32? _compactArrangementSizeOverride;
     private double? _observedCompactWidth;
     private WidgetCompactPlacement? _observedCompactPlacement;
     private long _collapseAnimationStarted;
@@ -91,102 +90,13 @@ public abstract partial class WidgetWindowBase
     protected bool IsCompactBoundsStateActive =>
         IsWidgetCollapsedBoundsActive || _targetCollapsed;
 
-    protected bool IsCompactArrangementDragActive { get; private set; }
-
     /// <summary>True while the capsule fold/expand rendering loop is active.</summary>
     protected bool IsCollapseAnimationActive => _isCollapseAnimationRendering;
 
     internal WidgetCompactViewState CurrentCompactViewState => _compactViewState;
 
-    public bool IsCompactArrangementActive => _collapseInitialized && _targetCollapsed;
-
-    public void ApplyCompactArrangement(RectInt32 bounds, bool constrainSize)
-    {
-        if (!DispatcherQueue.HasThreadAccess)
-        {
-            DispatcherQueue.TryEnqueue(() => ApplyCompactArrangement(bounds, constrainSize));
-            return;
-        }
-
-        if (IsClosing)
-        {
-            return;
-        }
-
-        _stableCompactBounds = bounds;
-        _compactArrangementSizeOverride = constrainSize
-            ? new SizeInt32(bounds.Width, bounds.Height)
-            : null;
-        ObserveCompactOverrides();
-        if (!_collapseInitialized)
-        {
-            return;
-        }
-
-        if (!_targetCollapsed)
-        {
-            ReanchorExpandedToCompact(bounds, preserveAnchor: false);
-            return;
-        }
-
-        ApplyCollapsedStateImmediately(collapsed: true);
-    }
-
-    public void PreviewCompactArrangement(RectInt32 bounds)
-    {
-        if (!DispatcherQueue.HasThreadAccess)
-        {
-            DispatcherQueue.TryEnqueue(() => PreviewCompactArrangement(bounds));
-            return;
-        }
-
-        if (IsClosing || !_collapseInitialized || !_targetCollapsed)
-        {
-            return;
-        }
-
-        _stableCompactBounds = bounds;
-        _compactArrangementSizeOverride = new SizeInt32(bounds.Width, bounds.Height);
-        MoveWindowWithoutPersisting(bounds);
-    }
-
-    protected bool BeginCompactArrangementDrag()
-    {
-        IsCompactArrangementDragActive = IsCompactBoundsStateActive &&
-            App.Current?.WidgetManager?.BeginCapsuleBarDrag(
-                Config.Id,
-                reorderMember: !WidgetShellControl.IsCompactMoveHandlePress) == true;
-        return IsCompactArrangementDragActive;
-    }
-
-    protected bool TryMoveCompactArrangement(
-        RectInt32 proposedBounds,
-        out RectInt32 resolvedBounds)
-    {
-        if (App.Current?.WidgetManager is { } manager)
-        {
-            return manager.TryMoveCapsuleBar(Config.Id, proposedBounds, out resolvedBounds);
-        }
-
-        resolvedBounds = proposedBounds;
-        return false;
-    }
-
-    protected void CompleteCompactArrangementDrag()
-    {
-        if (!IsCompactArrangementDragActive)
-        {
-            return;
-        }
-
-        App.Current?.WidgetManager?.CompleteCapsuleBarDrag(Config.Id);
-        IsCompactArrangementDragActive = false;
-    }
-
     protected WidgetCollapseBehavior EffectiveCollapseBehavior =>
-        SettingsService.Settings.WidgetCapsuleModeEnabled
-            ? WidgetCollapseBehaviorNames.Resolve(Config, SettingsService.Settings.WidgetCollapseBehavior)
-            : WidgetCollapseBehavior.Expanded;
+        WidgetCollapseBehaviorNames.Resolve(Config, SettingsService.Settings.WidgetCollapseBehavior);
 
     protected virtual bool SupportsCompactDropExpansion =>
         Config.WidgetKind is WidgetKind.File;
@@ -521,10 +431,6 @@ public abstract partial class WidgetWindowBase
     private void ApplyCompactTooltips()
     {
         var localization = App.Current.LocalizationService;
-        bool usesCapsuleBar = SettingsService.Settings.WidgetCapsuleModeEnabled &&
-            SettingsService.NormalizeWidgetCapsuleArrangementMode(
-                SettingsService.Settings.WidgetCapsuleArrangementMode) ==
-            SettingsService.WidgetCapsuleArrangementBar;
         Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(
             WidgetShellControl.CollapseActionButton,
             localization.T(_targetCollapsed && WidgetShellControl.UsesTitleBarOnlyCollapse
@@ -542,22 +448,16 @@ public abstract partial class WidgetWindowBase
                 : "Widget.Compact.MoveOrCollapse"));
         Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(
             WidgetShellControl.CompactMoveHandleElement,
-            localization.T(usesCapsuleBar ? "Widget.Compact.MoveBar" : "Widget.Compact.Move"));
+            localization.T("Widget.Compact.Move"));
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
             WidgetShellControl.CompactMoveHandleElement,
-            localization.T(usesCapsuleBar ? "Widget.Compact.MoveBar" : "Widget.Compact.Move"));
+            localization.T("Widget.Compact.Move"));
         Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(
             WidgetShellControl.CompactBodyElement,
             localization.T("Widget.Compact.Expand"));
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
             WidgetShellControl.CompactBodyElement,
             localization.T("Widget.Compact.Expand"));
-        Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(
-            WidgetShellControl.CompactReorderHandleElement,
-            localization.T("Widget.Compact.Reorder"));
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
-            WidgetShellControl.CompactReorderHandleElement,
-            localization.T("Widget.Compact.Reorder"));
         Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(
             WidgetShellControl.CompactExpandActionButton,
             localization.T("Widget.Compact.Expand"));
@@ -653,13 +553,9 @@ public abstract partial class WidgetWindowBase
             _suppressSmartExpansionUntilPointerExit = false;
         }
         bool canCollapse = behavior != WidgetCollapseBehavior.Expanded;
-        bool usesCapsuleBar = SettingsService.Settings.WidgetCapsuleModeEnabled &&
-            SettingsService.NormalizeWidgetCapsuleArrangementMode(
-                SettingsService.Settings.WidgetCapsuleArrangementMode) ==
-            SettingsService.WidgetCapsuleArrangementBar;
         WidgetShellControl.SetCollapseActionAvailable(canCollapse);
         WidgetShellControl.SetCompactInteractionMode(behavior == WidgetCollapseBehavior.Smart);
-        WidgetShellControl.SetCompactReorderEnabled(usesCapsuleBar && canCollapse);
+        WidgetShellControl.SetCompactReorderEnabled(false);
         OnCollapseBehaviorChanged(behavior);
     }
 
@@ -909,8 +805,7 @@ public abstract partial class WidgetWindowBase
 
     protected bool UsesCompactExpansionGeometry()
     {
-        return SettingsService.Settings.WidgetCapsuleModeEnabled &&
-            EffectiveCollapseBehavior != WidgetCollapseBehavior.Expanded;
+        return EffectiveCollapseBehavior != WidgetCollapseBehavior.Expanded;
     }
 
     private WidgetCompactExpansionLayout ResolveCompactExpansionLayout(
@@ -959,33 +854,13 @@ public abstract partial class WidgetWindowBase
         RectInt32 compactBounds,
         RectInt32 workArea)
     {
-        string arrangement = SettingsService.NormalizeWidgetCapsuleArrangementMode(
-            SettingsService.Settings.WidgetCapsuleArrangementMode);
-        string placement = arrangement == SettingsService.WidgetCapsuleArrangementBar
-            ? SettingsService.NormalizeWidgetCapsuleBarPlacement(
-                SettingsService.Settings.WidgetCapsuleBarPlacement)
-            : SettingsService.WidgetCapsuleBarPlacementFloating;
         bool preferRightAnchor = compactBounds.X + compactBounds.Width / 2 >=
             workArea.X + workArea.Width / 2;
         bool preferBottomAnchor = compactBounds.Y + compactBounds.Height / 2 >=
             workArea.Y + workArea.Height / 2;
 
-        List<WidgetCompactExpansionAnchor> anchors = placement switch
-        {
-            SettingsService.WidgetCapsuleBarPlacementTop => preferRightAnchor
-                ? [WidgetCompactExpansionAnchor.RightTop, WidgetCompactExpansionAnchor.LeftTop]
-                : [WidgetCompactExpansionAnchor.LeftTop, WidgetCompactExpansionAnchor.RightTop],
-            SettingsService.WidgetCapsuleBarPlacementBottom => preferRightAnchor
-                ? [WidgetCompactExpansionAnchor.RightBottom, WidgetCompactExpansionAnchor.LeftBottom]
-                : [WidgetCompactExpansionAnchor.LeftBottom, WidgetCompactExpansionAnchor.RightBottom],
-            SettingsService.WidgetCapsuleBarPlacementLeft => preferBottomAnchor
-                ? [WidgetCompactExpansionAnchor.LeftBottom, WidgetCompactExpansionAnchor.LeftTop]
-                : [WidgetCompactExpansionAnchor.LeftTop, WidgetCompactExpansionAnchor.LeftBottom],
-            SettingsService.WidgetCapsuleBarPlacementRight => preferBottomAnchor
-                ? [WidgetCompactExpansionAnchor.RightBottom, WidgetCompactExpansionAnchor.RightTop]
-                : [WidgetCompactExpansionAnchor.RightTop, WidgetCompactExpansionAnchor.RightBottom],
-            _ => ResolveFloatingAnchorOrder(preferRightAnchor, preferBottomAnchor)
-        };
+        List<WidgetCompactExpansionAnchor> anchors =
+            ResolveFloatingAnchorOrder(preferRightAnchor, preferBottomAnchor);
 
         WidgetCompactExpansionAnchor? preferred = _compactExpansionAnchor ??
             WidgetCompactExpansionCalculator.FromPositionAnchor(
@@ -1436,12 +1311,9 @@ public abstract partial class WidgetWindowBase
     protected (int MinWidth, int MaxWidth) GetCompactPhysicalWidthLimits()
     {
         double scale = Win32Helper.GetDpiScaleForWindow(HWnd, RootElement.XamlRoot);
-        double maximumWidth = UsesAlignedCompactWidth()
-            ? WidgetCompactBoundsCalculator.MaxAlignedWidth
-            : WidgetCompactBoundsCalculator.MaxWidth;
         return (
             Math.Max(1, (int)Math.Round(WidgetCompactBoundsCalculator.MinWidth * scale)),
-            Math.Max(1, (int)Math.Round(maximumWidth * scale)));
+            Math.Max(1, (int)Math.Round(WidgetCompactBoundsCalculator.MaxWidth * scale)));
     }
 
     protected void PersistCompletedWidgetResize(RectInt32 bounds)
@@ -1450,22 +1322,10 @@ public abstract partial class WidgetWindowBase
         {
             double scale = Win32Helper.GetDpiScaleForWindow(HWnd, RootElement.XamlRoot);
             double logicalWidth = bounds.Width / Math.Max(scale, 0.01);
-            double normalizedWidth = UsesAlignedCompactWidth()
-                ? WidgetCompactBoundsCalculator.ClampAlignedLogicalWidth(logicalWidth)
-                : WidgetCompactBoundsCalculator.ClampLogicalWidth(logicalWidth);
-            if (UsesAlignedCompactWidth())
-            {
-                Config.Width = normalizedWidth;
-                Config.CompactWidth = null;
-            }
-            else
-            {
-                Config.CompactWidth = normalizedWidth;
-            }
+            Config.CompactWidth = WidgetCompactBoundsCalculator.ClampLogicalWidth(logicalWidth);
             CaptureCompactPlacement(bounds, persist: false);
             SettingsService.UpdateWidget(Config, notifySubscribers: false);
             SettingsService.SaveDebounced(notifySubscribers: false);
-            App.Current?.WidgetManager?.RefreshCapsuleBarLayout();
             return;
         }
 
@@ -1481,8 +1341,6 @@ public abstract partial class WidgetWindowBase
             {
                 MoveWindowWithoutPersisting(bounds);
             }
-
-            SynchronizeAlignedCompactBoundsAfterExpandedResize(bounds);
         }
 
         CapturePositionAnchor(
@@ -1502,7 +1360,6 @@ public abstract partial class WidgetWindowBase
             bounds.Width,
             bounds.Height,
             persist: true);
-        App.Current?.WidgetManager?.RefreshCapsuleBarLayout();
     }
 
     protected RectInt32 AnchorExpandedResizeBounds(RectInt32 proposedBounds)
@@ -1510,22 +1367,6 @@ public abstract partial class WidgetWindowBase
         if (IsCompactBoundsStateActive)
         {
             return proposedBounds;
-        }
-
-        if (UsesAlignedCompactWidth() &&
-            ResizeDirection is "Left" or "Right" &&
-            _expandedInteractionStartBounds is { } expandedStart &&
-            _compactInteractionStartBounds is { } compactStart &&
-            Math.Abs(expandedStart.Width - compactStart.Width) <= 1)
-        {
-            WidgetCompactExpansionAnchor activeAnchor = _compactExpansionAnchor ??
-                WidgetCompactExpansionCalculator.FromPositionAnchor(
-                    Config.CompactPlacement?.PositionAnchor ?? Config.PositionAnchor) ??
-                WidgetCompactExpansionAnchor.LeftTop;
-            _compactExpansionAnchor =
-                WidgetCompactExpansionCalculator.ResolveHorizontalResizeAnchor(
-                    activeAnchor,
-                    ResizeDirection);
         }
 
         // During a manual resize the grabbed edge must stay the free edge.
@@ -1548,59 +1389,18 @@ public abstract partial class WidgetWindowBase
             return;
         }
 
-        bool aligned = UsesAlignedCompactWidth();
         double scale = Win32Helper.GetDpiScaleForWindow(HWnd, RootElement.XamlRoot);
-        // In aligned mode the capsule width tracks the panel width. Derive it from
-        // the final physical bounds because Config.Width is only updated later by
-        // UpdateConfigBoundsFromPhysical.
-        double? compactWidth = aligned
-            ? expandedBounds.Width / Math.Max(scale, 0.01)
-            : Config.CompactWidth;
         RectInt32 compactBounds = WidgetCompactBoundsCalculator.Calculate(
             expandedBounds,
             Config.PositionAnchor,
             scale,
             ResolveEffectiveCompactContentMode(),
             Config.WidgetKind,
-            compactWidth,
-            clampCustomWidth: !aligned);
+            Config.CompactWidth);
         CaptureCompactPlacement(compactBounds, persist: false);
         _compactExpansionAnchor =
             WidgetCompactExpansionCalculator.FromPositionAnchor(Config.PositionAnchor) ??
             _compactExpansionAnchor;
-    }
-
-    private void SynchronizeAlignedCompactBoundsAfterExpandedResize(RectInt32 expandedBounds)
-    {
-        if (!UsesAlignedCompactWidth() ||
-            ResizeDirection is not ("Left" or "Right") ||
-            _compactInteractionStartBounds is not { } compactStart)
-        {
-            return;
-        }
-
-        double scale = Win32Helper.GetDpiScaleForWindow(HWnd, RootElement.XamlRoot);
-        double logicalWidth = WidgetCompactBoundsCalculator.ClampAlignedLogicalWidth(
-            expandedBounds.Width / Math.Max(scale, 0.01));
-        int compactWidth = Math.Max(1, (int)Math.Round(logicalWidth * scale));
-        int compactX = ResizeDirection == "Left"
-            ? compactStart.X + compactStart.Width - compactWidth
-            : compactStart.X;
-        var compactBounds = new RectInt32(
-            compactX,
-            compactStart.Y,
-            compactWidth,
-            compactStart.Height);
-        compactBounds = ClampBoundsIntoWorkArea(
-            compactBounds,
-            ResolveCompactWorkArea(compactBounds));
-        if (_compactArrangementSizeOverride is not null)
-        {
-            _compactArrangementSizeOverride = new SizeInt32(
-                compactBounds.Width,
-                compactBounds.Height);
-        }
-        CaptureCompactPlacement(compactBounds, persist: false);
     }
 
     protected RectInt32 CompleteExpandedWidgetDrag(RectInt32 finalBounds)
@@ -1625,20 +1425,9 @@ public abstract partial class WidgetWindowBase
             compactStart.Y + deltaY,
             compactStart.Width,
             compactStart.Height);
-        if (App.Current?.WidgetManager?.MoveCapsuleBarFromExpandedWidget(
-                Config.Id,
-                deltaX,
-                deltaY,
-                out RectInt32 arrangedCompact) == true)
-        {
-            shiftedCompact = arrangedCompact;
-        }
-        else
-        {
-            RectInt32 workArea = ResolveCompactWorkArea(shiftedCompact);
-            shiftedCompact = ClampBoundsIntoWorkArea(shiftedCompact, workArea);
-            CaptureCompactPlacement(shiftedCompact, persist: false);
-        }
+        RectInt32 workArea = ResolveCompactWorkArea(shiftedCompact);
+        shiftedCompact = ClampBoundsIntoWorkArea(shiftedCompact, workArea);
+        CaptureCompactPlacement(shiftedCompact, persist: false);
         WidgetCompactExpansionLayout layout = ResolveCompactExpansionLayout(
             shiftedCompact,
             new SizeInt32(finalBounds.Width, finalBounds.Height),
@@ -1756,16 +1545,7 @@ public abstract partial class WidgetWindowBase
             expandedOrCurrent,
             scale,
             contentMode,
-            alignToExpandedWidth: UsesAlignedCompactWidth(),
             titleBarLogicalHeight: titleBarLogicalHeight);
-        if (_compactArrangementSizeOverride is { } arrangedSize)
-        {
-            resolved = new RectInt32(
-                resolved.X,
-                resolved.Y,
-                Math.Max(1, arrangedSize.Width),
-                Math.Max(1, arrangedSize.Height));
-        }
         return _stableCompactBounds is { } stable
             ? WidgetCompactBoundsCalculator.ApplySizeToStablePlacement(
                 stable,
@@ -1873,11 +1653,6 @@ public abstract partial class WidgetWindowBase
             OnBoundsTransitionCompleted();
         }
     }
-
-    private bool UsesAlignedCompactWidth() =>
-        SettingsService.NormalizeWidgetCompactWidthMode(
-            SettingsService.Settings.WidgetCompactWidthMode) ==
-        SettingsService.WidgetCompactWidthModeAligned;
 
     private void RaiseForExpandedState()
     {

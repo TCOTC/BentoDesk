@@ -247,8 +247,6 @@ public sealed class SettingsServiceTests : IDisposable
         var restoredDefaults = new AppSettings
         {
             WidgetAnimationEffect = SettingsService.WidgetAnimationEffectFade,
-            WidgetCapsuleModeEnabled = true,
-            WidgetCompactWidthMode = SettingsService.WidgetCompactWidthModeIndependent,
             WidgetCompactAnimationEffect = SettingsService.WidgetCompactAnimationSnappy,
             FileStackThreshold = 5,
             FileStackOrderBy = SettingsService.FileStackOrderByDateModified,
@@ -276,10 +274,6 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal(newUserDefaults.WidgetAnimationEffect, restoredDefaults.WidgetAnimationEffect);
         Assert.Equal(SettingsService.WidgetAnimationSpeedStandard, newUserDefaults.WidgetAnimationSpeed);
         Assert.Equal(SettingsService.WidgetAnimationEasingStandard, newUserDefaults.WidgetAnimationEasingIntensity);
-        Assert.True(newUserDefaults.WidgetCapsuleModeEnabled);
-        Assert.Equal(newUserDefaults.WidgetCapsuleModeEnabled, restoredDefaults.WidgetCapsuleModeEnabled);
-        Assert.Equal(SettingsService.WidgetCompactWidthModeAligned, newUserDefaults.WidgetCompactWidthMode);
-        Assert.Equal(newUserDefaults.WidgetCompactWidthMode, restoredDefaults.WidgetCompactWidthMode);
         Assert.Equal(SettingsService.WidgetCompactAnimationSlow, newUserDefaults.WidgetCompactAnimationEffect);
         Assert.Equal(newUserDefaults.WidgetCompactAnimationEffect, restoredDefaults.WidgetCompactAnimationEffect);
         Assert.Equal(SettingsService.WidgetCollapseBehaviorSmart, newUserDefaults.WidgetCollapseBehavior);

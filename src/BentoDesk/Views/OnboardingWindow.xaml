@@ -303,30 +303,6 @@
                             <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" svc:Localized.Key="Onboarding.Step3.MaterialSection"/>
                             <StackPanel x:Name="Step3MaterialSelector" Orientation="Horizontal" Spacing="6"/>
                         </StackPanel>
-
-                        <!-- Capsule mode toggle -->
-                        <Border Style="{StaticResource SettingCard}" Padding="14,12">
-                            <Grid ColumnSpacing="14">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Spacing="3">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <FontIcon Glyph="&#xE73E;" FontSize="14" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
-                                        <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorPrimaryBrush}" svc:Localized.Key="Onboarding.Step3.CapsuleTitle"/>
-                                    </StackPanel>
-                                    <TextBlock FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" svc:Localized.Key="Onboarding.Step3.CapsuleDescription"/>
-                                </StackPanel>
-                                <ToggleSwitch
-                                    x:Name="Step3CapsuleToggle"
-                                    Grid.Column="1"
-                                    OnContent=""
-                                    OffContent=""
-                                    MinWidth="0"
-                                    Toggled="Step3CapsuleToggle_Toggled"/>
-                            </Grid>
-                        </Border>
                     </StackPanel>
 
                     <!-- Right: live preview widget -->

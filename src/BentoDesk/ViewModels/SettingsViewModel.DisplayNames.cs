@@ -88,14 +88,6 @@ public partial class SettingsViewModel
         };
     }
 
-    public string GetWidgetCompactWidthModeDisplayName(string mode)
-    {
-        return SettingsService.NormalizeWidgetCompactWidthMode(mode) ==
-            SettingsService.WidgetCompactWidthModeIndependent
-                ? _localizationService.T("Settings.Capsule.WidthMode.Independent")
-                : _localizationService.T("Settings.Capsule.WidthMode.Aligned");
-    }
-
     public string GetLayoutDensityDisplayName(string density)
     {
         return density switch

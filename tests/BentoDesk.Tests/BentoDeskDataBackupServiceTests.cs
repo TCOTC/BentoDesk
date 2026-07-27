@@ -166,8 +166,6 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
         string sourceData = Directory.CreateDirectory(Path.Combine(sourceRoot, "data")).FullName;
         var sourceSettings = new AppSettings
         {
-            WidgetCapsuleModeEnabled = true,
-            WidgetCompactWidthMode = SettingsService.WidgetCompactWidthModeIndependent,
             WidgetCompactContentMode = SettingsService.WidgetCompactContentModeSummary,
             FileStacksEnabled = true,
             FileStackGroupBy = SettingsService.FileStackGroupByCustom,
@@ -239,10 +237,6 @@ public sealed class BentoDeskDataBackupServiceTests : IDisposable
         AppSettings restoredSettings = JsonSerializer.Deserialize<AppSettings>(
             await File.ReadAllTextAsync(Path.Combine(targetData, "settings.json")),
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
-        Assert.True(restoredSettings.WidgetCapsuleModeEnabled);
-        Assert.Equal(
-            SettingsService.WidgetCompactWidthModeIndependent,
-            restoredSettings.WidgetCompactWidthMode);
         Assert.Equal(SettingsService.WidgetCompactContentModeSummary, restoredSettings.WidgetCompactContentMode);
         Assert.True(restoredSettings.FileStacksEnabled);
         Assert.Equal(SettingsService.FileStackUnmatchedOther, restoredSettings.FileStackUnmatchedBehavior);

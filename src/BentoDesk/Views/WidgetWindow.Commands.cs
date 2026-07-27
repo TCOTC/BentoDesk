@@ -175,15 +175,11 @@ public sealed partial class WidgetWindow
         var initialBounds = GetActualWindowBounds();
         _initialWindowPos = new Windows.Graphics.PointInt32(initialBounds.X, initialBounds.Y);
         _initialWindowSize = new Windows.Graphics.SizeInt32(initialBounds.Width, initialBounds.Height);
-        bool movesCapsuleBar = BeginCompactArrangementDrag();
         _dragCaptureElement = captureElement;
         captureElement.CapturePointer(e.Pointer);
         e.Handled = true;
 
-        if (!movesCapsuleBar)
-        {
-            App.Current?.ResizeGuideOverlay.BeginDrag(_hWnd, RootGrid);
-        }
+        App.Current?.ResizeGuideOverlay.BeginDrag(_hWnd, RootGrid);
     }
 
     private void TitleBarGrid_PointerMoved(object sender, PointerRoutedEventArgs e)
@@ -230,17 +226,14 @@ public sealed partial class WidgetWindow
 
         var proposedBounds = new Windows.Graphics.RectInt32(
             newX, newY, _initialWindowSize.Width, _initialWindowSize.Height);
-        if (!TryMoveCompactArrangement(proposedBounds, out _))
-        {
-            var snappedBounds = App.Current?.ResizeGuideOverlay.UpdateGuidesAndSnapForDrag(proposedBounds)
-                ?? proposedBounds;
-            ApplyWindowBounds(
-                snappedBounds.X,
-                snappedBounds.Y,
-                snappedBounds.Width,
-                snappedBounds.Height,
-                persist: false);
-        }
+        var snappedBounds = App.Current?.ResizeGuideOverlay.UpdateGuidesAndSnapForDrag(proposedBounds)
+            ?? proposedBounds;
+        ApplyWindowBounds(
+            snappedBounds.X,
+            snappedBounds.Y,
+            snappedBounds.Width,
+            snappedBounds.Height,
+            persist: false);
         e.Handled = true;
     }
 
@@ -265,7 +258,6 @@ public sealed partial class WidgetWindow
         bool hasMoved = _hasMovedTitleBarDrag;
         _dragCaptureElement = null;
         App.Current?.ResizeGuideOverlay.EndDrag();
-        CompleteCompactArrangementDrag();
         if (hasMoved)
         {
             var finalBounds = GetActualWindowBounds();
@@ -295,7 +287,6 @@ public sealed partial class WidgetWindow
         // End drag-move snap session
         App.Current?.ResizeGuideOverlay.EndDrag();
 
-        CompleteCompactArrangementDrag();
         if (_hasMovedTitleBarDrag)
         {
             var finalBounds = GetActualWindowBounds();

@@ -38,7 +38,6 @@ public sealed partial class SettingsWindow
             ["AppearanceAnimationSettings"] = AppearanceAnimationSettingsSection,
             ["CapsuleMode"] = CapsuleModeSection,
             ["CapsuleBehaviorSettings"] = CapsuleBehaviorSettingsSection,
-            ["CapsuleArrangementSettings"] = CapsuleArrangementSettingsSection,
             ["CapsuleAnimationSettings"] = CapsuleAnimationSettingsSection,
             ["CapsuleOverridesSettings"] = CapsuleOverridesSettingsSection,
             ["AppearanceDetail"] = AppearanceDetailSection,

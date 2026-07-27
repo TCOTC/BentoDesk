@@ -102,54 +102,6 @@ public sealed class WidgetCompactBoundsCalculatorTests
         Assert.Equal(expectedWidth, result.Width);
     }
 
-    [Fact]
-    public void Resolve_AlignedModeUsesExpandedWidthInsteadOfCompactOverride()
-    {
-        var config = new WidgetConfig
-        {
-            Width = 360,
-            CompactWidth = 180,
-            PositionAnchor = WidgetPositionAnchors.LeftTop
-        };
-        var expanded = new RectInt32(20, 30, 360, 300);
-
-        RectInt32 independent = WidgetCompactBoundsCalculator.Resolve(
-            config,
-            expanded,
-            1,
-            SettingsService.WidgetCompactContentModeSmart);
-        RectInt32 aligned = WidgetCompactBoundsCalculator.Resolve(
-            config,
-            expanded,
-            1,
-            SettingsService.WidgetCompactContentModeSmart,
-            alignToExpandedWidth: true);
-
-        Assert.Equal(180, independent.Width);
-        Assert.Equal(360, aligned.Width);
-    }
-
-    [Fact]
-    public void Resolve_AlignedModeDoesNotApplyTheIndependentCapsuleMaximum()
-    {
-        var config = new WidgetConfig
-        {
-            Width = 720,
-            CompactWidth = 180,
-            PositionAnchor = WidgetPositionAnchors.LeftTop
-        };
-
-        RectInt32 aligned = WidgetCompactBoundsCalculator.Resolve(
-            config,
-            new RectInt32(20, 30, 720, 300),
-            1,
-            SettingsService.WidgetCompactContentModeSmart,
-            alignToExpandedWidth: true);
-
-        Assert.Equal(720, aligned.Width);
-        Assert.Equal(20, aligned.X);
-    }
-
     [Theory]
     [InlineData(144, WidgetCompactWidthTier.Narrow)]
     [InlineData(209.9, WidgetCompactWidthTier.Narrow)]
@@ -270,16 +222,6 @@ public sealed class WidgetCompactBoundsCalculatorTests
     public void NormalizeCollapseBehavior_ConstrainsValue(string? value, string expected)
     {
         Assert.Equal(expected, SettingsService.NormalizeWidgetCollapseBehavior(value));
-    }
-
-    [Theory]
-    [InlineData(null, SettingsService.WidgetCompactWidthModeAligned)]
-    [InlineData("unexpected", SettingsService.WidgetCompactWidthModeAligned)]
-    [InlineData("aligned", SettingsService.WidgetCompactWidthModeAligned)]
-    [InlineData("independent", SettingsService.WidgetCompactWidthModeIndependent)]
-    public void NormalizeCompactWidthMode_ConstrainsValue(string? value, string expected)
-    {
-        Assert.Equal(expected, SettingsService.NormalizeWidgetCompactWidthMode(value));
     }
 
     [Theory]
