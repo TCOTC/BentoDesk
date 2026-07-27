@@ -29,10 +29,7 @@ public sealed record WidgetContentDescriptor(
     string? CreateEntryTextKey = null,
     bool HasSettingsPage = false,
     string? SettingsSectionTag = null,
-    WidgetChromeCategory ChromeCategory = WidgetChromeCategory.Interactive,
-    WidgetChromeMode DefaultChromeMode = WidgetChromeMode.Standard,
-    bool CanUseOverlayChrome = true,
-    bool CanHideChrome = true)
+    WidgetChromeMode DefaultChromeMode = WidgetChromeMode.Standard)
 {
     public bool HasImplementedContent => ContentStage == WidgetContentStage.Implemented;
     public bool HasPlaceholderContent => ContentStage == WidgetContentStage.Placeholder;

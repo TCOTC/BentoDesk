@@ -120,7 +120,7 @@ public sealed partial class WidgetWindow
 
         _isInlineFlyoutOpen = true;
         BeginInteractionLayer("file-message-opened");
-        flyout.ShowAt(MoreButton);
+        flyout.ShowAt(TitleBarGrid);
         await completion.Task;
     }
 
@@ -384,31 +384,6 @@ public sealed partial class WidgetWindow
     {
         var flyout = new MenuFlyout();
 
-        var positionLock = new ToggleMenuFlyoutItem
-        {
-            Text = _localizationService.T("Widget.LockPosition"),
-            Icon = new FontIcon { Glyph = "\uE72E" },
-            IsChecked = ViewModel.IsPositionLocked
-        };
-        positionLock.Click += TogglePositionLock_Click;
-        flyout.Items.Add(positionLock);
-
-        var sizeLock = new ToggleMenuFlyoutItem
-        {
-            Text = _localizationService.T("Widget.LockSize"),
-            Icon = new FontIcon { Glyph = "\uE9CE" },
-            IsChecked = ViewModel.IsSizeLocked
-        };
-        sizeLock.Click += ToggleSizeLock_Click;
-        flyout.Items.Add(sizeLock);
-
-        flyout.Items.Add(new MenuFlyoutSeparator());
-
-        flyout.Items.Add(WidgetChromeMenuBuilder.Create(
-            ViewModel.Config,
-            _chromeDescriptor,
-            _localizationService,
-            SetChromeModeOverride));
         flyout.Items.Add(WidgetCollapseMenuBuilder.Create(
             ViewModel.Config,
             _localizationService,
@@ -447,48 +422,6 @@ public sealed partial class WidgetWindow
         deleteWidget.Click += DeleteWidget_Click;
         flyout.Items.Add(deleteWidget);
 
-        return flyout;
-    }
-
-    private void AddCreateWidgetItems(MenuFlyout flyout)
-    {
-        foreach (var descriptor in new WidgetContentFactory(_localizationService).GetCreateEntryDescriptors())
-        {
-            var createItem = new MenuFlyoutItem
-            {
-                Text = GetCreateEntryText(descriptor),
-                Icon = new FontIcon { Glyph = descriptor.DefaultGlyph }
-            };
-            createItem.Click += async (_, _) =>
-            {
-                if (App.Current.WidgetManager is { } widgetManager)
-                {
-                    await widgetManager.CreateWidgetOfKindAsync(descriptor.WidgetKind);
-                }
-            };
-            flyout.Items.Add(createItem);
-        }
-
-        var mapFolder = new MenuFlyoutItem
-        {
-            Text = _localizationService.T("Common.NewFolderMapping"),
-            Icon = new FontIcon { Glyph = "\uE8B7" }
-        };
-        mapFolder.Click += MapFolderButton_Click;
-        flyout.Items.Add(mapFolder);
-    }
-
-    private string GetCreateEntryText(WidgetContentDescriptor descriptor)
-    {
-        return string.IsNullOrWhiteSpace(descriptor.CreateEntryTextKey)
-            ? descriptor.DefaultTitle
-            : _localizationService.T(descriptor.CreateEntryTextKey);
-    }
-
-    private MenuFlyout CreateNewWidgetFlyout()
-    {
-        var flyout = new MenuFlyout();
-        AddCreateWidgetItems(flyout);
         return flyout;
     }
 

@@ -54,7 +54,6 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
     private Visibility _iconViewVisibility;
     private Visibility _listViewVisibility;
     private Visibility _loadingVisibility;
-    private Visibility _topAddButtonVisibility;
     private bool _isIconMode;
     private bool _isListMode;
     private bool _hideShortcutArrowOverlay;
@@ -159,12 +158,6 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
     {
         get => _loadingVisibility;
         set => SetProperty(ref _loadingVisibility, value);
-    }
-
-    public Visibility TopAddButtonVisibility
-    {
-        get => _topAddButtonVisibility;
-        set => SetProperty(ref _topAddButtonVisibility, value);
     }
 
     public bool IsIconMode

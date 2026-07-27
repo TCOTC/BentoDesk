@@ -6,53 +6,45 @@ namespace BentoDesk.Tests;
 public sealed class WidgetChromeModeResolverTests
 {
     [Fact]
-    public void Resolve_UsesDisplayGlobalDefaultForMusic()
+    public void Resolve_UsesFileDescriptorStandardChrome()
     {
-        var settingsService = new SettingsService();
-        settingsService.Settings.DisplayWidgetChromeMode = SettingsService.WidgetChromeModeHidden;
-        var descriptor = TestServices.CreateWidgetContentFactory().GetDescriptor(WidgetKind.Music);
-        var config = new WidgetConfig { WidgetKind = WidgetKind.Music };
-
-        var mode = new WidgetChromeModeResolver(settingsService).Resolve(config, descriptor);
-
-        Assert.Equal(WidgetChromeMode.Hidden, mode);
-    }
-
-    [Fact]
-    public void Resolve_UsesInteractiveGlobalDefaultForFile()
-    {
-        var settingsService = new SettingsService();
-        settingsService.Settings.InteractiveWidgetChromeMode = SettingsService.WidgetChromeModeCompact;
-        var descriptor = TestServices.CreateWidgetContentFactory().GetDescriptor(WidgetKind.File);
+        var factory = TestServices.CreateWidgetContentFactory();
+        var descriptor = factory.GetDescriptor(WidgetKind.File);
         var config = new WidgetConfig { WidgetKind = WidgetKind.File };
 
-        var mode = new WidgetChromeModeResolver(settingsService).Resolve(config, descriptor);
-
-        Assert.Equal(WidgetChromeMode.Compact, mode);
-    }
-
-    [Fact]
-    public void Resolve_InstanceOverrideWinsOverGlobalDefault()
-    {
-        var settingsService = new SettingsService();
-        settingsService.Settings.DisplayWidgetChromeMode = SettingsService.WidgetChromeModeOverlay;
-        var descriptor = TestServices.CreateWidgetContentFactory().GetDescriptor(WidgetKind.Music);
-        var config = new WidgetConfig { WidgetKind = WidgetKind.Music };
-        WidgetChromeModeNames.SetOverrideMode(config, WidgetChromeMode.Standard);
-
-        var mode = new WidgetChromeModeResolver(settingsService).Resolve(config, descriptor);
+        var mode = new WidgetChromeModeResolver().Resolve(config, descriptor);
 
         Assert.Equal(WidgetChromeMode.Standard, mode);
     }
 
     [Fact]
-    public void SetOverrideMode_SystemRemovesMetadata()
+    public void Resolve_UsesMusicDescriptorOverlayChrome()
     {
-        var config = new WidgetConfig { WidgetKind = WidgetKind.File };
-        WidgetChromeModeNames.SetOverrideMode(config, WidgetChromeMode.Hidden);
+        var factory = TestServices.CreateWidgetContentFactory();
+        var descriptor = factory.GetDescriptor(WidgetKind.Music);
+        var config = new WidgetConfig { WidgetKind = WidgetKind.Music };
 
-        WidgetChromeModeNames.SetOverrideMode(config, WidgetChromeMode.System);
+        var mode = new WidgetChromeModeResolver().Resolve(config, descriptor);
 
-        Assert.False(config.Metadata.ContainsKey(WidgetChromeModeNames.MetadataKey));
+        Assert.Equal(WidgetChromeMode.Overlay, mode);
+    }
+
+    [Fact]
+    public void Resolve_IgnoresLegacyChromeModeMetadata()
+    {
+        var factory = TestServices.CreateWidgetContentFactory();
+        var descriptor = factory.GetDescriptor(WidgetKind.Music);
+        var config = new WidgetConfig
+        {
+            WidgetKind = WidgetKind.Music,
+            Metadata = new Dictionary<string, string>
+            {
+                [WidgetChromeModeNames.MetadataKey] = "Standard"
+            }
+        };
+
+        var mode = new WidgetChromeModeResolver().Resolve(config, descriptor);
+
+        Assert.Equal(WidgetChromeMode.Overlay, mode);
     }
 }

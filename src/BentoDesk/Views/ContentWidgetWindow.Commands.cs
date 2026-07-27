@@ -37,111 +37,35 @@ public sealed partial class ContentWidgetWindow
         ContentWidgetShell.ChromeMode = chromeMode;
         ContentWidgetShell.TitleIconElement.IconSize = metrics.TitleIconSize;
         ContentWidgetShell.TitleTextElement.FontSize = metrics.TitleTextSize;
-        ApplyTitleActionButtonConfiguration();
         ApplyLockActionIconState();
 
-        WidgetTitleBarMetricsCalculator.ApplyActionButton(ContentWidgetShell.PositionLockActionButton, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionButton(ContentWidgetShell.SizeLockActionButton, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionButton(ContentWidgetShell.AddActionButton, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionButton(ContentWidgetShell.MoreActionButton, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionButton(ContentWidgetShell.CloseActionButton, metrics);
+        WidgetTitleBarMetricsCalculator.ApplyActionButton(ContentWidgetShell.LockActionButton, metrics);
+        WidgetTitleBarMetricsCalculator.ApplyActionButton(ContentWidgetShell.CollapseActionButton, metrics);
 
         WidgetActionIconHelper.ApplyPairSize(
-            ContentWidgetShell.PositionLockActionIcon,
-            ContentWidgetShell.PositionLockFilledActionIcon,
+            ContentWidgetShell.LockActionIcon,
+            ContentWidgetShell.LockFilledActionIcon,
             metrics);
-        WidgetActionIconHelper.ApplyPairSize(
-            ContentWidgetShell.SizeLockActionIcon,
-            ContentWidgetShell.SizeLockFilledActionIcon,
-            metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionIcon(ContentWidgetShell.AddActionIcon, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionIcon(ContentWidgetShell.MoreActionIcon, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionIcon(ContentWidgetShell.CloseActionIcon, metrics);
 
         ContentWidgetShell.SetTitleBarRowHeight(metrics.RowHeight);
         ContentWidgetShell.SetTitleBarPadding(WidgetTitleBarMetricsCalculator.CreateOuterPadding(chromeMode));
     }
 
-    private void ApplyTitleActionButtonConfiguration()
-    {
-        var actions = SettingsService.ParseWidgetHoverButtonActions(SettingsService.Settings.WidgetHoverButtonActions);
-        bool contentCanAdd = _contentHost.CurrentContent is IWidgetAddActionContent;
-        ContentWidgetShell.PositionLockActionButton.Visibility = actions.Contains(SettingsService.WidgetHoverActionLockPosition)
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        ContentWidgetShell.SizeLockActionButton.Visibility = actions.Contains(SettingsService.WidgetHoverActionLockSize)
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        ContentWidgetShell.ShowAddButton = contentCanAdd &&
-            actions.Contains(SettingsService.WidgetHoverActionAdd);
-        ContentWidgetShell.MoreActionButton.Visibility = actions.Contains(SettingsService.WidgetHoverActionMore)
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        ContentWidgetShell.CloseActionButton.Visibility = actions.Contains(SettingsService.WidgetHoverActionDelete)
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-    }
-
     private void ApplyLockActionIconState()
     {
         WidgetActionIconHelper.ApplyLockState(
-            ContentWidgetShell.PositionLockActionIcon,
-            ContentWidgetShell.PositionLockFilledActionIcon,
-            _config.IsPositionLocked,
-            ContentWidgetShell.SizeLockActionIcon,
-            ContentWidgetShell.SizeLockFilledActionIcon,
-            _config.IsSizeLocked);
+            ContentWidgetShell.LockActionIcon,
+            ContentWidgetShell.LockFilledActionIcon,
+            _config.IsPositionLocked && _config.IsSizeLocked);
     }
 
     // ── Button click handlers ──────────────────────────────────
 
-    private async void AddButton_Click(object sender, RoutedEventArgs e)
+    private void LockButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_contentHost.CurrentContent is IWidgetAddActionContent addActionContent)
-        {
-            await addActionContent.AddFromTitleButtonAsync();
-        }
-    }
-
-    private void CloseButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (FeatureWidgetSettings.IsFeatureWidget(_config.WidgetKind) &&
-            App.Current.WidgetManager is { } widgetManager)
-        {
-            var localization = App.Current.LocalizationService;
-            var flyout = WidgetCompactConfirmationMenuBuilder.CreateDeleteConfirmation(
-                new WidgetCompactConfirmationOptions(
-                    localization.Format("Widget.FeatureWidget.DisableConfirmTitle", _config.Name),
-                    localization.T("Widget.FeatureWidget.Disable"),
-                    async () => await widgetManager.SetFeatureWidgetEnabledAsync(_config.WidgetKind, enabled: false, reveal: false))
-                {
-                    Message = localization.T("Widget.FeatureWidget.DisableConfirmNote"),
-                    MessageGlyph = "\uE946",
-                    IsDangerAction = false,
-                    CancelText = localization.T("Common.Cancel")
-                });
-            ShowFlyoutWithInteraction(flyout, ContentWidgetShell.CloseActionButton);
-            return;
-        }
-
-        HideWindow();
-    }
-
-    private void MoreButton_Click(object sender, RoutedEventArgs e)
-    {
-        var target = sender as FrameworkElement ?? ContentWidgetShell.MoreActionButton;
-        ShowFlyoutWithInteraction(CreateMoreFlyout(), target);
-    }
-
-    private void PositionLockButton_Click(object sender, RoutedEventArgs e)
-    {
-        SetPositionLocked(!_config.IsPositionLocked);
-        ApplyLockActionIconState();
-    }
-
-    private void SizeLockButton_Click(object sender, RoutedEventArgs e)
-    {
-        SetSizeLocked(!_config.IsSizeLocked);
+        bool locked = !(_config.IsPositionLocked && _config.IsSizeLocked);
+        SetPositionLocked(locked);
+        SetSizeLocked(locked);
         ApplyLockActionIconState();
     }
 
@@ -189,23 +113,6 @@ public sealed partial class ContentWidgetWindow
     {
         var flyout = new MenuFlyout();
 
-        flyout.Items.Add(CreateToggleMenuItem(
-            App.Current.LocalizationService.T("Widget.LockPosition"),
-            "\uE72E",
-            _config.IsPositionLocked,
-            SetPositionLocked));
-        flyout.Items.Add(CreateToggleMenuItem(
-            App.Current.LocalizationService.T("Widget.LockSize"),
-            "\uE9CE",
-            _config.IsSizeLocked,
-            SetSizeLocked));
-        flyout.Items.Add(new MenuFlyoutSeparator());
-
-        flyout.Items.Add(WidgetChromeMenuBuilder.Create(
-            _config,
-            _descriptor,
-            App.Current.LocalizationService,
-            SetChromeModeOverride));
         flyout.Items.Add(WidgetCollapseMenuBuilder.Create(
             _config,
             App.Current.LocalizationService,
@@ -258,13 +165,6 @@ public sealed partial class ContentWidgetWindow
         return flyout;
     }
 
-    private void SetChromeModeOverride(WidgetChromeMode mode)
-    {
-        WidgetChromeModeNames.SetOverrideMode(_config, mode);
-        SettingsService.UpdateWidget(_config);
-        ApplyAppearancePreview();
-    }
-
     private static string GetSettingsMenuTextKey(WidgetKind kind)
     {
         return kind switch
@@ -272,18 +172,6 @@ public sealed partial class ContentWidgetWindow
             WidgetKind.Music => "Music.OpenSettings",
             _ => "Common.Configure"
         };
-    }
-
-    private static ToggleMenuFlyoutItem CreateToggleMenuItem(string text, string glyph, bool isChecked, Action<bool> applyValue)
-    {
-        var item = new ToggleMenuFlyoutItem
-        {
-            Text = text,
-            Icon = new FontIcon { Glyph = glyph },
-            IsChecked = isChecked
-        };
-        item.Click += (_, _) => applyValue(item.IsChecked);
-        return item;
     }
 
     private void SetPositionLocked(bool value)

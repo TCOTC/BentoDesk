@@ -88,7 +88,6 @@ public sealed partial class SettingsWindow : Window
             ["FeatureWidgets"] = new("FeatureWidgets", "Settings.Section.FeatureWidgets", null, "FeatureWidgets"),
             ["Interaction"] = new("Interaction", "Settings.Section.Interaction", null, "Interaction"),
             ["InteractionHotkeySettings"] = new("InteractionHotkeySettings", "Settings.Interaction.Hotkeys.Title", "Interaction", "Interaction"),
-            ["InteractionHoverSettings"] = new("InteractionHoverSettings", "Settings.Interaction.Hover.Title", "Interaction", "Interaction"),
             ["InteractionWindowSettings"] = new("InteractionWindowSettings", "Settings.Interaction.Window.Title", "Interaction", "Interaction"),
             ["Advanced"] = new("Advanced", "Settings.Section.Advanced", null, "Interaction"),
             ["Maintenance"] = new("Maintenance", "Settings.Section.Maintenance", null, "Maintenance"),

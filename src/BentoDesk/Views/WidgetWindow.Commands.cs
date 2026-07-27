@@ -93,17 +93,6 @@ public sealed partial class WidgetWindow
         });
     }
 
-    private void AddFileButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_isMigrationBusy)
-        {
-            return;
-        }
-
-        var target = sender as FrameworkElement ?? AddButton;
-        ShowFlyoutWithElevation(CreateNewWidgetFlyout(), target);
-    }
-
     private void TitleBarGrid_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
         if (_isMigrationBusy)
@@ -332,50 +321,6 @@ public sealed partial class WidgetWindow
         RestoreDesktopLayer();
     }
 
-    private async void MapFolderButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (App.Current is not App app || app.WidgetManager is null)
-        {
-            return;
-        }
-
-        BeginInteractionLayer("file-map-folder-picker-opened");
-
-        try
-        {
-            string? folderPath = FolderPickerService.PickFolder(_hWnd);
-            if (!string.IsNullOrWhiteSpace(folderPath))
-            {
-                await app.WidgetManager.CreateFolderWidgetAsync(folderPath);
-            }
-        }
-        finally
-        {
-            ReleaseInteractionLayer("file-picker-closed");
-        }
-    }
-
-    private void CloseButton_Click(object sender, RoutedEventArgs e)
-    {
-        var target = sender as FrameworkElement ?? CloseButton;
-        TrackMoreFlyoutAnchor(target, null);
-        ShowDeleteWidgetFlyout(target);
-    }
-
-    private void MoreButton_Click(object sender, RoutedEventArgs e)
-    {
-        var target = sender as FrameworkElement ?? MoreButton;
-        TrackMoreFlyoutAnchor(target, null);
-        ShowFlyoutWithElevation(CreateMoreFlyout(), target);
-    }
-
-    private void SetChromeModeOverride(WidgetChromeMode mode)
-    {
-        WidgetChromeModeNames.SetOverrideMode(ViewModel.Config, mode);
-        _settingsService.UpdateWidget(ViewModel.Config);
-        ApplyTitleBarLayout();
-    }
-
     private async Task PickAndImportFilesAsync()
     {
         BeginInteractionLayer("file-import-picker-opened");
@@ -542,21 +487,15 @@ public sealed partial class WidgetWindow
         }
     }
 
-    private void TogglePositionLock_Click(object sender, RoutedEventArgs e)
+    private void ToggleLock_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.TogglePositionLockCommand.Execute(null);
-        ApplyLockActionIconState();
-    }
-
-    private void ToggleSizeLock_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.ToggleSizeLockCommand.Execute(null);
+        ViewModel.ToggleWidgetLockCommand.Execute(null);
         ApplyLockActionIconState();
     }
 
     private void DeleteWidget_Click(object sender, RoutedEventArgs e)
     {
-        ShowDeleteWidgetFlyout(_lastMoreFlyoutTarget ?? MoreButton, _lastMoreFlyoutPosition);
+        ShowDeleteWidgetFlyout(_lastMoreFlyoutTarget ?? TitleBarGrid, _lastMoreFlyoutPosition);
     }
 
     private async Task ConfirmAndDeleteWidgetAsync()

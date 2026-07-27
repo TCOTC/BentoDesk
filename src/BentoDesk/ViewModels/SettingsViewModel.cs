@@ -71,8 +71,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private string _selectedWidgetAnimationSpeed = SettingsService.WidgetAnimationSpeedStandard;
     private string _selectedWidgetAnimationSlideDirection = SettingsService.WidgetAnimationSlideDirectionNone;
     private string _selectedWidgetAnimationEasingIntensity = SettingsService.WidgetAnimationEasingStandard;
-    private string _selectedDisplayWidgetChromeMode = SettingsService.WidgetChromeModeOverlay;
-    private string _selectedInteractiveWidgetChromeMode = SettingsService.WidgetChromeModeStandard;
     private string _selectedWidgetTitleIconMode = SettingsService.WidgetTitleIconModeColor;
     private string _selectedManagedDropAction = SettingsService.ManagedDropActionMove;
     private string _selectedMusicDisplayMode = SettingsService.MusicDisplayModeAuto;
@@ -89,7 +87,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private bool _isApplyingSettingsSnapshot;
     private bool _isApplyingLayoutDensityPreset;
     private bool _isApplyingAnimationPreset;
-    private bool _isUpdatingHoverButtonActionSelection;
 
     private string[]? _cachedTrayIconStyleDisplayNames;
     private string[]? _cachedThemeDisplayNames;
@@ -100,8 +97,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private string[]? _cachedWidgetCollapseBehaviorDisplayNames;
     private string[]? _cachedLayoutDensityDisplayNames;
     private string[]? _cachedAnimationPresetDisplayNames;
-    private string[]? _cachedDisplayWidgetChromeModeDisplayNames;
-    private string[]? _cachedInteractiveWidgetChromeModeDisplayNames;
     private string[]? _cachedWidgetTitleIconModeDisplayNames;
     private string[]? _cachedManagedDropActionDisplayNames;
     private string[]? _cachedMusicDisplayModeDisplayNames;
@@ -131,25 +126,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     public partial bool ShowImageFilesAsIcons { get; set; }
 
     [ObservableProperty]
-    public partial bool ShowHoverButtons { get; set; } = true;
-
-    [ObservableProperty]
     public partial bool ResizeSnapEnabled { get; set; } = true;
-
-    [ObservableProperty]
-    public partial bool ShowHoverActionLockPosition { get; set; }
-
-    [ObservableProperty]
-    public partial bool ShowHoverActionLockSize { get; set; }
-
-    [ObservableProperty]
-    public partial bool ShowHoverActionAdd { get; set; }
-
-    [ObservableProperty]
-    public partial bool ShowHoverActionMore { get; set; } = true;
-
-    [ObservableProperty]
-    public partial bool ShowHoverActionDelete { get; set; } = true;
 
     [ObservableProperty]
     public partial bool ShowListItemDetails { get; set; }
@@ -243,9 +220,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
             DefaultHeight = settings.DefaultWidgetHeight;
             HideShortcutArrowOverlay = settings.HideShortcutArrowOverlay;
             ShowImageFilesAsIcons = settings.ShowImageFilesAsIcons;
-            ShowHoverButtons = settings.ShowHoverButtons;
             ResizeSnapEnabled = settings.ResizeSnapEnabled;
-            ApplyHoverButtonActionSelection(settings.WidgetHoverButtonActions);
             ShowListItemDetails = settings.ShowListItemDetails;
             ShowFileItemPathTooltips = settings.ShowFileItemPathTooltips;
             InitializeFileStackSettings(settings);
@@ -292,8 +267,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
             _selectedWidgetAnimationSlideDirection = NormalizeWidgetAnimationSlideDirection(settings.WidgetAnimationSlideDirection);
             _selectedWidgetAnimationEasingIntensity = NormalizeWidgetAnimationEasingIntensity(settings.WidgetAnimationEasingIntensity);
             _selectedAnimationPreset = ResolveAnimationPreset();
-            _selectedDisplayWidgetChromeMode = NormalizeWidgetChromeModeSetting(settings.DisplayWidgetChromeMode, WidgetChromeMode.Overlay);
-            _selectedInteractiveWidgetChromeMode = NormalizeWidgetChromeModeSetting(settings.InteractiveWidgetChromeMode, WidgetChromeMode.Standard);
             _selectedWidgetTitleIconMode = NormalizeWidgetTitleIconModeSetting(settings.WidgetTitleIconMode);
             IconSize = settings.IconSize;
             TextSize = settings.TextSize;

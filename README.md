@@ -51,7 +51,7 @@ The project is intentionally built around native Windows behavior. I like the te
 - **Tray controls**: create widgets, map folders, show or hide all widgets, temporarily raise widgets, open managed storage, open Settings, toggle startup launch, and exit.
 - **Global hotkey**: enable a keyboard shortcut for quickly showing, hiding, or raising widgets.
 - **Native file operations**: drag in, drag out, paste, cut, rename, delete, open, reveal in Explorer, use keyboard shortcuts, and preview through a running QuickLook instance with Space.
-- **Appearance controls**: tune native material, intensity, opacity, border color/style, DWM corners, display density, icon/text size, title style and cover ambience.
+- **Appearance controls**: tune native material, intensity, opacity, border color/style, DWM corners, display density, icon/text size, title icons and cover ambience.
 - **Data and storage maintenance**: export or restore backups, inspect automatic snapshots and attachment health, change the managed storage root, pin it to Quick Access, and recover orphan folders.
 
 ## Screenshots

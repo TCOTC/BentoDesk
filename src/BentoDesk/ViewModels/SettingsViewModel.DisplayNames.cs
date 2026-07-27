@@ -114,17 +114,6 @@ public partial class SettingsViewModel
             : _localizationService.T("Settings.Animation.Effect.Fade");
     }
 
-    public string GetWidgetChromeModeDisplayName(string mode)
-    {
-        return NormalizeWidgetChromeModeSetting(mode, WidgetChromeMode.Standard) switch
-        {
-            SettingsService.WidgetChromeModeCompact => _localizationService.T("Settings.WidgetChrome.Compact"),
-            SettingsService.WidgetChromeModeOverlay => _localizationService.T("Settings.WidgetChrome.Overlay"),
-            SettingsService.WidgetChromeModeHidden => _localizationService.T("Settings.WidgetChrome.Hidden"),
-            _ => _localizationService.T("Settings.WidgetChrome.Standard")
-        };
-    }
-
     public string GetWidgetTitleIconModeDisplayName(string mode)
     {
         return NormalizeWidgetTitleIconModeSetting(mode) switch
@@ -134,19 +123,6 @@ public partial class SettingsViewModel
             SettingsService.WidgetTitleIconModeHidden => _localizationService.T("Settings.WidgetTitleIcon.Hidden"),
             SettingsService.WidgetTitleIconModeTextLabel => _localizationService.T("Settings.WidgetTitleIcon.TextLabel"),
             _ => _localizationService.T("Settings.WidgetTitleIcon.FilledMono")
-        };
-    }
-
-    public string GetHoverButtonActionDisplayName(string action)
-    {
-        return action switch
-        {
-            SettingsService.WidgetHoverActionLockPosition => _localizationService.T("Settings.HoverButtonActions.LockPosition"),
-            SettingsService.WidgetHoverActionLockSize => _localizationService.T("Settings.HoverButtonActions.LockSize"),
-            SettingsService.WidgetHoverActionAdd => _localizationService.T("Settings.HoverButtonActions.Add"),
-            SettingsService.WidgetHoverActionMore => _localizationService.T("Settings.HoverButtonActions.More"),
-            SettingsService.WidgetHoverActionDelete => _localizationService.T("Settings.HoverButtonActions.Delete"),
-            _ => action
         };
     }
 

@@ -43,7 +43,7 @@ Package policy:
 | Content widget host | `src/BentoDesk/Views/ContentWidgetWindow.xaml`, `ContentWidgetWindow.xaml.cs` | Shared window host for Todo, Music, and future content widgets. |
 | Todo content | `src/BentoDesk/Controls/WidgetContents/TodoWidgetContent.xaml`, `.xaml.cs` | Task input, filters, color markers, due dates, sorting, edit overlay, undo. |
 | Music content | `src/BentoDesk/Controls/WidgetContents/MusicWidgetContent.xaml`, `.xaml.cs` | Windows media session display/control, artwork, progress, rhythm visuals, backdrop. |
-| Shared menus | `src/BentoDesk/Services/WidgetChromeMenuBuilder.cs`, menu builders in widget windows | Title style menu, per-widget more menus, item context menus, confirmation flyouts. |
+| Shared menus | Menu builders in widget windows | Per-widget more menus, item context menus, confirmation flyouts. |
 | Shared animation | `src/BentoDesk/Services/WidgetTrayAnimationController.cs` | Tray show/hide animation for widget windows. |
 
 ## Audit Matrix

@@ -484,15 +484,27 @@ public partial class WidgetViewModel
         _settingsService.UpdateWidget(Config);
     }
 
-    [RelayCommand]
-    public void TogglePositionLock()
+    public void SetWidgetLocked(bool value)
     {
-        SetPositionLocked(!IsPositionLocked);
+        bool positionChanged = IsPositionLocked != value;
+        bool sizeChanged = IsSizeLocked != value;
+        if (!positionChanged && !sizeChanged)
+        {
+            return;
+        }
+
+        IsPositionLocked = value;
+        IsSizeLocked = value;
+        Config.IsPositionLocked = value;
+        Config.IsSizeLocked = value;
+        _settingsService.UpdateWidget(Config);
     }
 
+    public bool IsWidgetLocked => IsPositionLocked && IsSizeLocked;
+
     [RelayCommand]
-    public void ToggleSizeLock()
+    public void ToggleWidgetLock()
     {
-        SetSizeLocked(!IsSizeLocked);
+        SetWidgetLocked(!IsWidgetLocked);
     }
 }

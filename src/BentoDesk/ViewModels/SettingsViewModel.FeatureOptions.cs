@@ -387,25 +387,6 @@ set => WidgetOpacity = Math.Clamp(1.0 - value / 100d, SettingsService.MinWidgetO
     public string[] AvailableAnimationPresetDisplayNames =>
         _cachedAnimationPresetDisplayNames ??= AvailableAnimationPresets.Select(GetAnimationPresetDisplayName).ToArray();
 
-    public string[] AvailableDisplayWidgetChromeModes { get; } =
-    [
-        SettingsService.WidgetChromeModeStandard,
-        SettingsService.WidgetChromeModeCompact,
-        SettingsService.WidgetChromeModeOverlay,
-        SettingsService.WidgetChromeModeHidden
-    ];
-
-    public string[] AvailableInteractiveWidgetChromeModes { get; } =
-    [
-        SettingsService.WidgetChromeModeStandard,
-        SettingsService.WidgetChromeModeCompact,
-        SettingsService.WidgetChromeModeOverlay,
-        SettingsService.WidgetChromeModeHidden
-    ];
-
-    public string[] AvailableDisplayWidgetChromeModeDisplayNames => _cachedDisplayWidgetChromeModeDisplayNames ??= AvailableDisplayWidgetChromeModes.Select(GetWidgetChromeModeDisplayName).ToArray();
-    public string[] AvailableInteractiveWidgetChromeModeDisplayNames => _cachedInteractiveWidgetChromeModeDisplayNames ??= AvailableInteractiveWidgetChromeModes.Select(GetWidgetChromeModeDisplayName).ToArray();
-
     public string[] AvailableWidgetTitleIconModes { get; } =
     [
         SettingsService.WidgetTitleIconModeFilledMono,

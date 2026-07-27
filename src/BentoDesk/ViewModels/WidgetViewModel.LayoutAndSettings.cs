@@ -19,7 +19,6 @@ public partial class WidgetViewModel
 
         IconGlyph = isManagedStorage ? "\uE8B7" : "\uE71B";
         TitleIconKind = WidgetTitleIconKindNames.FromFileWidget(isManagedStorage);
-        TopAddButtonVisibility = Visibility.Visible;
         IconViewVisibility = ViewMode == ViewMode.Icon ? Visibility.Visible : Visibility.Collapsed;
         ListViewVisibility = ViewMode == ViewMode.List ? Visibility.Visible : Visibility.Collapsed;
         IsIconMode = ViewMode == ViewMode.Icon;

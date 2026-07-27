@@ -81,10 +81,6 @@ public sealed class SettingsService
 
     public static bool SupportsMaterialIntensity(string? materialType) =>
         IsMicaMaterial(materialType) || IsAcrylicMaterial(materialType);
-    public const string WidgetChromeModeStandard = WidgetChromeModeNames.Standard;
-    public const string WidgetChromeModeCompact = WidgetChromeModeNames.Compact;
-    public const string WidgetChromeModeOverlay = WidgetChromeModeNames.Overlay;
-    public const string WidgetChromeModeHidden = WidgetChromeModeNames.Hidden;
     public const string WidgetCollapseBehaviorExpanded = WidgetCollapseBehaviorNames.Expanded;
     public const string WidgetCollapseBehaviorClick = WidgetCollapseBehaviorNames.Click;
     public const string WidgetCollapseBehaviorSmart = WidgetCollapseBehaviorNames.Smart;
@@ -139,13 +135,6 @@ public sealed class SettingsService
     public const string WidgetTitleIconModeColor = WidgetTitleIconModeNames.Color;
     public const string WidgetTitleIconModeHidden = WidgetTitleIconModeNames.Hidden;
     public const string WidgetTitleIconModeTextLabel = WidgetTitleIconModeNames.TextLabel;
-    public const string WidgetHoverActionLockPosition = "LockPosition";
-    public const string WidgetHoverActionLockSize = "LockSize";
-    public const string WidgetHoverActionAdd = "Add";
-    public const string WidgetHoverActionMore = "More";
-    public const string WidgetHoverActionDelete = "Delete";
-    public const string DefaultWidgetHoverButtonActions =
-        WidgetHoverActionMore;
     public const string ManagedDropActionMove = "Move";
     public const string ManagedDropActionCopy = "Copy";
 
@@ -250,8 +239,6 @@ public sealed class SettingsService
         settings.WidgetAnimationSpeed = WidgetAnimationSpeedStandard;
         settings.WidgetAnimationSlideDirection = WidgetAnimationSlideDirectionNone;
         settings.WidgetAnimationEasingIntensity = WidgetAnimationEasingStandard;
-        settings.DisplayWidgetChromeMode = WidgetChromeModeOverlay;
-        settings.InteractiveWidgetChromeMode = WidgetChromeModeStandard;
         settings.WidgetCollapseBehavior = WidgetCollapseBehaviorSmart;
         settings.WidgetCapsuleModeEnabled = true;
         settings.WidgetCompactWidthMode = WidgetCompactWidthModeAligned;
@@ -284,8 +271,6 @@ public sealed class SettingsService
         settings.FileStackCustomRules = [];
         settings.FileStackUnmatchedBehavior = FileStackUnmatchedKeepLoose;
         settings.HideShortcutExtensionWhenShowingFileExtensions = true;
-        settings.ShowHoverButtons = true;
-        settings.WidgetHoverButtonActions = DefaultWidgetHoverButtonActions;
         settings.AutoCheckForUpdates = true;
         settings.MusicUseArtworkBackdrop = true;
         settings.MusicEnableCoverHoverMotion = true;
@@ -697,24 +682,6 @@ settings.FocusClickedWidgetOnRaise = false;
             changed = true;
         }
 
-        string normalizedDisplayChrome = NormalizeWidgetChromeModeSetting(
-            settings.DisplayWidgetChromeMode,
-            WidgetChromeMode.Overlay);
-        if (!string.Equals(settings.DisplayWidgetChromeMode, normalizedDisplayChrome, StringComparison.Ordinal))
-        {
-            settings.DisplayWidgetChromeMode = normalizedDisplayChrome;
-            changed = true;
-        }
-
-        string normalizedInteractiveChrome = NormalizeWidgetChromeModeSetting(
-            settings.InteractiveWidgetChromeMode,
-            WidgetChromeMode.Standard);
-        if (!string.Equals(settings.InteractiveWidgetChromeMode, normalizedInteractiveChrome, StringComparison.Ordinal))
-        {
-            settings.InteractiveWidgetChromeMode = normalizedInteractiveChrome;
-            changed = true;
-        }
-
         string normalizedCollapseBehavior = NormalizeWidgetCollapseBehavior(settings.WidgetCollapseBehavior);
         if (normalizedCollapseBehavior == WidgetCollapseBehaviorExpanded)
         {
@@ -865,13 +832,6 @@ settings.FocusClickedWidgetOnRaise = false;
         if (!string.Equals(settings.WidgetTitleIconMode, normalizedTitleIconMode, StringComparison.Ordinal))
         {
             settings.WidgetTitleIconMode = normalizedTitleIconMode;
-            changed = true;
-        }
-
-        string normalizedHoverActions = NormalizeWidgetHoverButtonActions(settings.WidgetHoverButtonActions);
-        if (!string.Equals(settings.WidgetHoverButtonActions, normalizedHoverActions, StringComparison.Ordinal))
-        {
-            settings.WidgetHoverButtonActions = normalizedHoverActions;
             changed = true;
         }
 
@@ -1079,11 +1039,6 @@ settings.FocusClickedWidgetOnRaise = false;
     private static bool NearlyEqual(double left, double right) =>
         Math.Abs(left - right) <= 0.0001;
 
-    public static string NormalizeWidgetChromeModeSetting(string? value, WidgetChromeMode fallback)
-    {
-        return WidgetChromeModeNames.NormalizeSettingValue(value, fallback);
-    }
-
     public static string NormalizeWidgetCollapseBehavior(string? value)
     {
         return WidgetCollapseBehaviorNames.ToSettingValue(
@@ -1238,52 +1193,6 @@ settings.FocusClickedWidgetOnRaise = false;
         return WidgetTitleIconModeNames.NormalizeSettingValue(value);
     }
 
-    public static string NormalizeWidgetHoverButtonActions(string? value)
-    {
-        var normalized = ParseWidgetHoverButtonActions(value);
-        return normalized.Count == 0
-            ? DefaultWidgetHoverButtonActions
-            : string.Join(",", normalized);
-    }
-
-    public static IReadOnlyList<string> ParseWidgetHoverButtonActions(string? value)
-    {
-        string[] allowed =
-        [
-            WidgetHoverActionLockPosition,
-            WidgetHoverActionLockSize,
-            WidgetHoverActionAdd,
-            WidgetHoverActionMore,
-            WidgetHoverActionDelete
-        ];
-
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return [WidgetHoverActionMore];
-        }
-
-        var selected = new List<string>();
-        foreach (string rawPart in value.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
-        {
-            string? normalized = allowed.FirstOrDefault(action =>
-                string.Equals(action, rawPart, StringComparison.OrdinalIgnoreCase));
-            if (normalized is null || selected.Contains(normalized))
-            {
-                continue;
-            }
-
-            selected.Add(normalized);
-            if (selected.Count == 3)
-            {
-                break;
-            }
-        }
-
-        return selected.Count == 0
-            ? [WidgetHoverActionMore]
-            : selected;
-    }
-
     private static bool NormalizeAppearanceSettings(AppSettings settings)
     {
         bool changed = false;
@@ -1333,26 +1242,9 @@ settings.FocusClickedWidgetOnRaise = false;
                 }
             }
 
-            if (widget.Metadata.TryGetValue(WidgetChromeModeNames.MetadataKey, out string? chromeModeValue))
+            if (widget.Metadata.Remove(WidgetChromeModeNames.MetadataKey))
             {
-                var normalizedChromeMode = WidgetChromeModeNames.NormalizeMode(
-                    chromeModeValue,
-                    WidgetChromeMode.System,
-                    allowSystem: true);
-                if (normalizedChromeMode == WidgetChromeMode.System)
-                {
-                    widget.Metadata.Remove(WidgetChromeModeNames.MetadataKey);
-                    changed = true;
-                }
-                else
-                {
-                    string normalizedChromeModeValue = WidgetChromeModeNames.ToSettingValue(normalizedChromeMode);
-                    if (!string.Equals(chromeModeValue, normalizedChromeModeValue, StringComparison.Ordinal))
-                    {
-                        widget.Metadata[WidgetChromeModeNames.MetadataKey] = normalizedChromeModeValue;
-                        changed = true;
-                    }
-                }
+                changed = true;
             }
 
             if (widget.Metadata.TryGetValue(WidgetCollapseBehaviorNames.MetadataKey, out string? collapseBehaviorValue))

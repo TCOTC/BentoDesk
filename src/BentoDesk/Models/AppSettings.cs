@@ -130,18 +130,6 @@ public class AppSettings
     public string WidgetAnimationEasingIntensity { get; set; } = "Standard";
 
     /// <summary>
-    /// Default chrome/title mode for display widgets such as Music and System Monitor.
-    /// Valid values: <c>"Standard"</c>, <c>"Compact"</c>, <c>"Overlay"</c>, <c>"Hidden"</c>.
-    /// </summary>
-    public string DisplayWidgetChromeMode { get; set; } = "Overlay";
-
-    /// <summary>
-    /// Default chrome/title mode for interactive widgets such as file widgets.
-    /// Valid values: <c>"Standard"</c>, <c>"Compact"</c>, <c>"Overlay"</c>, <c>"Hidden"</c>.
-    /// </summary>
-    public string InteractiveWidgetChromeMode { get; set; } = "Standard";
-
-    /// <summary>
     /// How widgets enter and leave their compact state.
     /// Valid values: <c>"Expanded"</c>, <c>"Click"</c>, <c>"Smart"</c>.
     /// </summary>
@@ -238,17 +226,6 @@ public class AppSettings
     /// Whether image files in file widgets should use the system file icon instead of image thumbnails.
     /// </summary>
     public bool ShowImageFilesAsIcons { get; set; }
-
-    /// <summary>
-    /// Whether to show action buttons on widget hover.
-    /// </summary>
-    public bool ShowHoverButtons { get; set; } = true;
-
-    /// <summary>
-    /// Comma-separated widget title hover actions. Valid values: <c>"LockPosition"</c>,
-    /// <c>"LockSize"</c>, <c>"Add"</c>, <c>"More"</c>, <c>"Delete"</c>.
-    /// </summary>
-    public string WidgetHoverButtonActions { get; set; } = "More";
 
     /// <summary>
     /// Whether resize snap-to-edge alignment guides are enabled during

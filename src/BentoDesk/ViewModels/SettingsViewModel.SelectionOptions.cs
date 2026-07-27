@@ -60,12 +60,6 @@ public partial class SettingsViewModel
     public IReadOnlyList<SettingsOption> AvailableAnimationPresetOptions =>
         CreateSelectionOptions(AvailableAnimationPresets, AvailableAnimationPresetDisplayNames);
 
-    public IReadOnlyList<SettingsOption> AvailableDisplayWidgetChromeModeOptions =>
-        CreateSelectionOptions(AvailableDisplayWidgetChromeModes, AvailableDisplayWidgetChromeModeDisplayNames);
-
-    public IReadOnlyList<SettingsOption> AvailableInteractiveWidgetChromeModeOptions =>
-        CreateSelectionOptions(AvailableInteractiveWidgetChromeModes, AvailableInteractiveWidgetChromeModeDisplayNames);
-
     public IReadOnlyList<SettingsOption> AvailableWidgetTitleIconModeOptions =>
         CreateSelectionOptions(AvailableWidgetTitleIconModes, AvailableWidgetTitleIconModeDisplayNames);
 
@@ -123,8 +117,6 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(AvailableWidgetCompactMediaCornerOptions));
         OnPropertyChanged(nameof(AvailableLayoutDensityOptions));
         OnPropertyChanged(nameof(AvailableAnimationPresetOptions));
-        OnPropertyChanged(nameof(AvailableDisplayWidgetChromeModeOptions));
-        OnPropertyChanged(nameof(AvailableInteractiveWidgetChromeModeOptions));
         OnPropertyChanged(nameof(AvailableWidgetTitleIconModeOptions));
         OnPropertyChanged(nameof(AvailableManagedDropActionOptions));
         OnPropertyChanged(nameof(AvailableMusicDisplayModeOptions));

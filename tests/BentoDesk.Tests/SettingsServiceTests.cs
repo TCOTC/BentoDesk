@@ -84,7 +84,7 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task LoadAsync_NormalizesWidgetChromeSettingsAndMetadata()
+    public async Task LoadAsync_RemovesLegacyWidgetChromeModeMetadata()
     {
         await File.WriteAllTextAsync(
             Path.Combine(_settingsRoot, "settings.json"),
@@ -116,9 +116,7 @@ public sealed class SettingsServiceTests : IDisposable
         var service = new SettingsService(_settingsRoot);
         await service.LoadAsync();
 
-        Assert.Equal(SettingsService.WidgetChromeModeOverlay, service.Settings.DisplayWidgetChromeMode);
-        Assert.Equal(SettingsService.WidgetChromeModeHidden, service.Settings.InteractiveWidgetChromeMode);
-        Assert.Equal(SettingsService.WidgetChromeModeCompact, service.Settings.Widgets[0].Metadata[WidgetChromeModeNames.MetadataKey]);
+        Assert.False(service.Settings.Widgets[0].Metadata.ContainsKey(WidgetChromeModeNames.MetadataKey));
         Assert.False(service.Settings.Widgets[1].Metadata.ContainsKey(WidgetChromeModeNames.MetadataKey));
     }
 
@@ -269,8 +267,7 @@ public sealed class SettingsServiceTests : IDisposable
             GlobalHotkeyEnabled = false,
             GlobalHotkeyModifiers = (int)HotkeyModifierKeys.Control,
             GlobalHotkeyKey = (int)Windows.System.VirtualKey.A,
-            ShowFileItemPathTooltips = false,
-            WidgetHoverButtonActions = SettingsService.WidgetHoverActionAdd
+            ShowFileItemPathTooltips = false
         };
 
         SettingsService.ApplyDefaultPreferences(restoredDefaults);
@@ -313,8 +310,6 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Equal(newUserDefaults.GlobalHotkeyModifiers, restoredDefaults.GlobalHotkeyModifiers);
         Assert.Equal(newUserDefaults.GlobalHotkeyKey, restoredDefaults.GlobalHotkeyKey);
         Assert.Equal(newUserDefaults.ShowFileItemPathTooltips, restoredDefaults.ShowFileItemPathTooltips);
-        Assert.Equal(SettingsService.DefaultWidgetHoverButtonActions, newUserDefaults.WidgetHoverButtonActions);
-        Assert.Equal(newUserDefaults.WidgetHoverButtonActions, restoredDefaults.WidgetHoverButtonActions);
     }
 
     [Fact]
@@ -374,7 +369,6 @@ public sealed class SettingsServiceTests : IDisposable
             CompactPlacement = new WidgetCompactPlacement { X = 40, Y = 72 },
             Metadata = new Dictionary<string, string>
             {
-                [WidgetChromeModeNames.MetadataKey] = "Hidden",
                 [WidgetCollapseBehaviorNames.MetadataKey] = "Smart",
                 [WidgetFileStackSettings.GroupByOverrideMetadataKey] =
                     SettingsService.FileStackGroupByCustom
@@ -388,7 +382,6 @@ public sealed class SettingsServiceTests : IDisposable
         Assert.Same(widget, preserved);
         Assert.Equal(212, preserved.CompactWidth);
         Assert.Equal(40, preserved.CompactPlacement?.X);
-        Assert.Equal("Hidden", preserved.Metadata[WidgetChromeModeNames.MetadataKey]);
         Assert.Equal("Smart", preserved.Metadata[WidgetCollapseBehaviorNames.MetadataKey]);
         Assert.Equal(
             SettingsService.FileStackGroupByCustom,
@@ -423,17 +416,6 @@ public sealed class SettingsServiceTests : IDisposable
         settings.VerticalSpacingScale += 0.02;
 
         Assert.Equal(SettingsService.LayoutDensityCustom, SettingsService.ResolveLayoutDensityPreset(settings));
-    }
-
-    [Theory]
-        [InlineData(null, "More")]
-    [InlineData("", "More")]
-    [InlineData("Unknown", "More")]
-    [InlineData("add,More,delete,LockSize", "Add,More,Delete")]
-    [InlineData("Add,Add,LockSize", "Add,LockSize")]
-    public void NormalizeWidgetHoverButtonActions_ConstrainsSelection(string? value, string expected)
-    {
-        Assert.Equal(expected, SettingsService.NormalizeWidgetHoverButtonActions(value));
     }
 
     [Theory]

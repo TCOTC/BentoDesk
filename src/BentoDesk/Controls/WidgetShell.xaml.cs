@@ -80,20 +80,6 @@ public sealed partial class WidgetShell : UserControl
             typeof(WidgetShell),
             new PropertyMetadata(null, OnTitleBarContentChanged));
 
-    public static readonly DependencyProperty ShowHoverButtonsProperty =
-        DependencyProperty.Register(
-            nameof(ShowHoverButtons),
-            typeof(bool),
-            typeof(WidgetShell),
-            new PropertyMetadata(true, OnShowHoverButtonsChanged));
-
-    public static readonly DependencyProperty ShowAddButtonProperty =
-        DependencyProperty.Register(
-            nameof(ShowAddButton),
-            typeof(bool),
-            typeof(WidgetShell),
-            new PropertyMetadata(false, OnShowAddButtonChanged));
-
     public static readonly DependencyProperty ChromeModeProperty =
         DependencyProperty.Register(
             nameof(ChromeMode),
@@ -176,11 +162,7 @@ public sealed partial class WidgetShell : UserControl
         Collapse
     }
 
-    public event EventHandler<RoutedEventArgs>? AddRequested;
-    public event EventHandler<RoutedEventArgs>? PositionLockRequested;
-    public event EventHandler<RoutedEventArgs>? SizeLockRequested;
-    public event EventHandler<RoutedEventArgs>? MoreRequested;
-    public event EventHandler<RoutedEventArgs>? CloseRequested;
+    public event EventHandler<RoutedEventArgs>? LockRequested;
     public event EventHandler<RoutedEventArgs>? CollapseRequested;
     public event EventHandler<RoutedEventArgs>? ExpandRequested;
     public event EventHandler<RoutedEventArgs>? CompactBodyExpandRequested;
@@ -238,12 +220,6 @@ public sealed partial class WidgetShell : UserControl
         };
     }
 
-    public bool ShowHoverButtons
-    {
-        get => (bool)GetValue(ShowHoverButtonsProperty);
-        set => SetValue(ShowHoverButtonsProperty, value);
-    }
-
     public object? ShellContent
     {
         get => GetValue(ShellContentProperty);
@@ -280,12 +256,6 @@ public sealed partial class WidgetShell : UserControl
         set => SetValue(OverlayTitleProperty, value);
     }
 
-    public bool ShowAddButton
-    {
-        get => (bool)GetValue(ShowAddButtonProperty);
-        set => SetValue(ShowAddButtonProperty, value);
-    }
-
     public WidgetChromeMode ChromeMode
     {
         get => (WidgetChromeMode)GetValue(ChromeModeProperty);
@@ -303,8 +273,6 @@ public sealed partial class WidgetShell : UserControl
         get => GetValue(TitleEditorContentProperty);
         set => SetValue(TitleEditorContentProperty, value);
     }
-
-    public Visibility AddButtonVisibility => ShowAddButton ? Visibility.Visible : Visibility.Collapsed;
 
     /// <summary>
     /// Custom title bar content for migrated legacy widgets that still own title interactions.
@@ -325,9 +293,7 @@ public sealed partial class WidgetShell : UserControl
     public StackPanel RightActionButtonHost => RightActionButtons;
     public StackPanel TitleIdentityHostElement => TitleIdentityHost;
     public ContentPresenter ShellContentPresenterElement => ShellContentPresenter;
-    public Button PositionLockActionButton => PositionLockButton;
-    public Button SizeLockActionButton => SizeLockButton;
-    public Button AddActionButton => AddButton;
+    public Button LockActionButton => LockButton;
     public Button CollapseActionButton => CollapseButton;
     public Button CompactExpandActionButton => CompactExpandButton;
     public FrameworkElement OverlayDragHandleElement => OverlayDragHandle;
@@ -344,15 +310,8 @@ public sealed partial class WidgetShell : UserControl
 
     public bool UsesCapsuleCollapseChrome =>
         _collapseChromeMode == WidgetCollapseChromeMode.CapsulePresentation;
-    public Button MoreActionButton => MoreButton;
-    public Button CloseActionButton => CloseButton;
-    public FrameworkElement PositionLockActionIcon => PositionLockButtonIcon;
-    public FrameworkElement PositionLockFilledActionIcon => PositionLockButtonFilledIcon;
-    public FrameworkElement SizeLockActionIcon => SizeLockButtonIcon;
-    public FrameworkElement SizeLockFilledActionIcon => SizeLockButtonFilledIcon;
-    public FrameworkElement AddActionIcon => AddButtonIcon;
-    public FrameworkElement MoreActionIcon => MoreButtonIcon;
-    public FrameworkElement CloseActionIcon => CloseButtonIcon;
+    public FrameworkElement LockActionIcon => LockButtonIcon;
+    public FrameworkElement LockFilledActionIcon => LockButtonFilledIcon;
     public FrameworkElement DragHandleElement =>
         _isCollapsed
             ? (UsesTitleBarOnlyCollapse ? TitleBarGrid : CollapsedChromeLayer)
@@ -2103,22 +2062,6 @@ public sealed partial class WidgetShell : UserControl
         }
     }
 
-    private static void OnShowAddButtonChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is WidgetShell shell)
-        {
-            shell.Bindings.Update();
-        }
-    }
-
-    private static void OnShowHoverButtonsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is WidgetShell shell)
-        {
-            shell.ApplyChromeMode();
-        }
-    }
-
     private static void OnChromeModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is WidgetShell shell)
@@ -2238,9 +2181,8 @@ public sealed partial class WidgetShell : UserControl
     {
         _showButtonsStoryboard?.Stop();
         _hideButtonsStoryboard?.Stop();
-        HoverActionButtons.Visibility = ShowHoverButtons ? Visibility.Visible : Visibility.Collapsed;
         RightActionButtons.Opacity = 1;
-        RightActionButtons.IsHitTestVisible = ShowHoverButtons || _isCollapseActionAvailable;
+        RightActionButtons.IsHitTestVisible = true;
         if (_rightButtonsTransform is not null)
         {
             _rightButtonsTransform.X = 0;
@@ -2272,7 +2214,7 @@ public sealed partial class WidgetShell : UserControl
         var border = isOverlay ? CreateOpaqueOverlayButtonBorder() : new SolidColorBrush(Colors.Transparent);
         var thickness = isOverlay ? new Thickness(0.8) : new Thickness(0);
 
-        foreach (var button in new[] { PositionLockButton, SizeLockButton, AddButton, CollapseButton, MoreButton, CloseButton })
+        foreach (var button in new[] { LockButton, CollapseButton })
         {
             button.Background = background;
             button.BorderBrush = border;
@@ -2674,6 +2616,11 @@ public sealed partial class WidgetShell : UserControl
 
     private void CollapsedChromeLayer_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
+        if (e.Handled)
+        {
+            return;
+        }
+
         // Forward to the same event as title bar right-click → widget windows show their context menu
         TitleRightTapped?.Invoke(this, e);
     }
@@ -2731,29 +2678,9 @@ public sealed partial class WidgetShell : UserControl
         ApplyChromeMode();
     }
 
-    private void AddButton_Click(object sender, RoutedEventArgs e)
+    private void LockButton_Click(object sender, RoutedEventArgs e)
     {
-        AddRequested?.Invoke(this, e);
-    }
-
-    private void PositionLockButton_Click(object sender, RoutedEventArgs e)
-    {
-        PositionLockRequested?.Invoke(this, e);
-    }
-
-    private void SizeLockButton_Click(object sender, RoutedEventArgs e)
-    {
-        SizeLockRequested?.Invoke(this, e);
-    }
-
-    private void MoreButton_Click(object sender, RoutedEventArgs e)
-    {
-        MoreRequested?.Invoke(this, e);
-    }
-
-    private void CloseButton_Click(object sender, RoutedEventArgs e)
-    {
-        CloseRequested?.Invoke(this, e);
+        LockRequested?.Invoke(this, e);
     }
 
     private void TitleText_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
@@ -2763,6 +2690,11 @@ public sealed partial class WidgetShell : UserControl
 
     private void TitleBarGrid_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
+        if (e.Handled)
+        {
+            return;
+        }
+
         TitleRightTapped?.Invoke(this, e);
     }
 

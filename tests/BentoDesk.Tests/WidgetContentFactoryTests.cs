@@ -44,21 +44,17 @@ public sealed class WidgetContentFactoryTests
     }
 
     [Theory]
-    [InlineData(WidgetKind.File, WidgetChromeCategory.Interactive, WidgetChromeMode.Standard)]
-    [InlineData(WidgetKind.Music, WidgetChromeCategory.Display, WidgetChromeMode.Overlay)]
+    [InlineData(WidgetKind.File, WidgetChromeMode.Standard)]
+    [InlineData(WidgetKind.Music, WidgetChromeMode.Overlay)]
     public void GetDescriptor_ReturnsChromeDefaults(
         WidgetKind widgetKind,
-        WidgetChromeCategory expectedCategory,
         WidgetChromeMode expectedDefaultMode)
     {
         var factory = TestServices.CreateWidgetContentFactory();
 
         var descriptor = factory.GetDescriptor(widgetKind);
 
-        Assert.Equal(expectedCategory, descriptor.ChromeCategory);
         Assert.Equal(expectedDefaultMode, descriptor.DefaultChromeMode);
-        Assert.True(descriptor.CanUseOverlayChrome);
-        Assert.True(descriptor.CanHideChrome);
     }
 
     [Fact]

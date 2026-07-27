@@ -1,20 +1,15 @@
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 
 namespace BentoDesk.Services;
 
 public static class WidgetActionIconHelper
 {
     public static void ApplyLockState(
-        FrameworkElement positionRegularIcon,
-        FrameworkElement positionFilledIcon,
-        bool isPositionLocked,
-        FrameworkElement sizeRegularIcon,
-        FrameworkElement sizeFilledIcon,
-        bool isSizeLocked)
+        FrameworkElement regularIcon,
+        FrameworkElement filledIcon,
+        bool isLocked)
     {
-        ApplyPairState(positionRegularIcon, positionFilledIcon, isPositionLocked);
-        ApplyPairState(sizeRegularIcon, sizeFilledIcon, isSizeLocked);
+        ApplyPairState(regularIcon, filledIcon, isLocked);
     }
 
     public static void ApplyPairSize(FrameworkElement regularIcon, FrameworkElement filledIcon, WidgetTitleBarMetrics metrics)

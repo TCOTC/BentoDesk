@@ -76,11 +76,8 @@ public sealed partial class ContentWidgetWindow
             return true;
         }
 
-        return !IsWithin(source, ContentWidgetShell.PositionLockActionButton) &&
-               !IsWithin(source, ContentWidgetShell.SizeLockActionButton) &&
-               !IsWithin(source, ContentWidgetShell.AddActionButton) &&
-               !IsWithin(source, ContentWidgetShell.MoreActionButton) &&
-               !IsWithin(source, ContentWidgetShell.CloseActionButton) &&
+        return !IsWithin(source, ContentWidgetShell.LockActionButton) &&
+               !IsWithin(source, ContentWidgetShell.CollapseActionButton) &&
                !HasAncestorOfType<TextBox>(source);
     }
 

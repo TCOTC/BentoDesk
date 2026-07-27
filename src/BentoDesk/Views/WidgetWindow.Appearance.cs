@@ -158,7 +158,6 @@ public sealed partial class WidgetWindow
             chromeMode);
 
         FileWidgetShell.ChromeMode = chromeMode;
-        FileWidgetShell.ShowHoverButtons = _settingsService.Settings.ShowHoverButtons;
         FileWidgetShell.TitleGlyph = ViewModel.IconGlyph;
         FileWidgetShell.TitleIconKind = ViewModel.TitleIconKind;
         FileWidgetShell.TitleIconMode = _settingsService.Settings.WidgetTitleIconMode;
@@ -178,86 +177,35 @@ public sealed partial class WidgetWindow
         TitleText.FontSize = metrics.TitleTextSize;
         TitleEditBox.FontSize = metrics.TitleTextSize;
 
-        ApplyTitleActionButtonConfiguration(chromeMode);
-
-        WidgetTitleBarMetricsCalculator.ApplyActionButton(PositionLockButton, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionButton(SizeLockButton, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionButton(AddButton, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionButton(MoreButton, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionButton(CloseButton, metrics);
-
-        WidgetTitleBarMetricsCalculator.ApplyActionButton(FileWidgetShell.PositionLockActionButton, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionButton(FileWidgetShell.SizeLockActionButton, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionButton(FileWidgetShell.AddActionButton, metrics);
+        WidgetTitleBarMetricsCalculator.ApplyActionButton(LockButton, metrics);
+        WidgetTitleBarMetricsCalculator.ApplyActionButton(FileWidgetShell.LockActionButton, metrics);
         WidgetTitleBarMetricsCalculator.ApplyActionButton(CollapseWidgetButton, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionButton(FileWidgetShell.MoreActionButton, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionButton(FileWidgetShell.CloseActionButton, metrics);
+        WidgetTitleBarMetricsCalculator.ApplyActionButton(FileWidgetShell.CollapseActionButton, metrics);
 
-        WidgetTitleBarMetricsCalculator.ApplyActionIcon(PositionLockButtonIcon, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionIcon(PositionLockButtonFilledIcon, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionIcon(SizeLockButtonIcon, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionIcon(SizeLockButtonFilledIcon, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionIcon(AddButtonIcon, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionIcon(MoreButtonIcon, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionIcon(CloseButtonIcon, metrics);
-
+        WidgetTitleBarMetricsCalculator.ApplyActionIcon(LockButtonIcon, metrics);
+        WidgetTitleBarMetricsCalculator.ApplyActionIcon(LockButtonFilledIcon, metrics);
         WidgetActionIconHelper.ApplyPairSize(
-            FileWidgetShell.PositionLockActionIcon,
-            FileWidgetShell.PositionLockFilledActionIcon,
+            FileWidgetShell.LockActionIcon,
+            FileWidgetShell.LockFilledActionIcon,
             metrics);
-        WidgetActionIconHelper.ApplyPairSize(
-            FileWidgetShell.SizeLockActionIcon,
-            FileWidgetShell.SizeLockFilledActionIcon,
-            metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionIcon(FileWidgetShell.AddActionIcon, metrics);
         WidgetTitleBarMetricsCalculator.ApplyActionIcon(CollapseWidgetButtonIcon, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionIcon(FileWidgetShell.MoreActionIcon, metrics);
-        WidgetTitleBarMetricsCalculator.ApplyActionIcon(FileWidgetShell.CloseActionIcon, metrics);
 
         RootGrid.RowDefinitions[0].Height = metrics.RowHeight;
         FileWidgetShell.SetTitleBarRowHeight(metrics.RowHeight);
         TitleBarGrid.Padding = metrics.InnerTitlePadding;
     }
 
-    private void ApplyTitleActionButtonConfiguration(WidgetChromeMode chromeMode)
-    {
-        var actions = SettingsService.ParseWidgetHoverButtonActions(_settingsService.Settings.WidgetHoverButtonActions);
-        bool showPositionLock = actions.Contains(SettingsService.WidgetHoverActionLockPosition);
-        bool showSizeLock = actions.Contains(SettingsService.WidgetHoverActionLockSize);
-        bool showAdd = actions.Contains(SettingsService.WidgetHoverActionAdd) &&
-            ViewModel.TopAddButtonVisibility == Visibility.Visible;
-        bool showMore = actions.Contains(SettingsService.WidgetHoverActionMore);
-        bool showDelete = actions.Contains(SettingsService.WidgetHoverActionDelete);
-
-        PositionLockButton.Visibility = showPositionLock ? Visibility.Visible : Visibility.Collapsed;
-        SizeLockButton.Visibility = showSizeLock ? Visibility.Visible : Visibility.Collapsed;
-        AddButton.Visibility = showAdd ? Visibility.Visible : Visibility.Collapsed;
-        MoreButton.Visibility = showMore ? Visibility.Visible : Visibility.Collapsed;
-        CloseButton.Visibility = showDelete ? Visibility.Visible : Visibility.Collapsed;
-
-        FileWidgetShell.PositionLockActionButton.Visibility = showPositionLock ? Visibility.Visible : Visibility.Collapsed;
-        FileWidgetShell.SizeLockActionButton.Visibility = showSizeLock ? Visibility.Visible : Visibility.Collapsed;
-        FileWidgetShell.ShowAddButton = showAdd;
-        FileWidgetShell.MoreActionButton.Visibility = showMore ? Visibility.Visible : Visibility.Collapsed;
-        FileWidgetShell.CloseActionButton.Visibility = showDelete ? Visibility.Visible : Visibility.Collapsed;
-    }
-
     private void ApplyLockActionIconState()
     {
+        bool isLocked = ViewModel.IsWidgetLocked;
         WidgetActionIconHelper.ApplyLockState(
-            PositionLockButtonIcon,
-            PositionLockButtonFilledIcon,
-            ViewModel.IsPositionLocked,
-            SizeLockButtonIcon,
-            SizeLockButtonFilledIcon,
-            ViewModel.IsSizeLocked);
+            LockButtonIcon,
+            LockButtonFilledIcon,
+            isLocked);
         WidgetActionIconHelper.ApplyLockState(
-            FileWidgetShell.PositionLockActionIcon,
-            FileWidgetShell.PositionLockFilledActionIcon,
-            ViewModel.IsPositionLocked,
-            FileWidgetShell.SizeLockActionIcon,
-            FileWidgetShell.SizeLockFilledActionIcon,
-            ViewModel.IsSizeLocked);
+            FileWidgetShell.LockActionIcon,
+            FileWidgetShell.LockFilledActionIcon,
+            isLocked);
     }
 
     private void ApplyTitleActionButtonPanelVisibility(WidgetChromeMode chromeMode)
@@ -265,8 +213,7 @@ public sealed partial class WidgetWindow
         _showButtonsStoryboard?.Stop();
         _hideButtonsStoryboard?.Stop();
 
-        bool showButtons = _settingsService.Settings.ShowHoverButtons &&
-            chromeMode is not (WidgetChromeMode.Overlay or WidgetChromeMode.Hidden);
+        bool showButtons = chromeMode is not (WidgetChromeMode.Overlay or WidgetChromeMode.Hidden);
         RightActionButtons.Opacity = showButtons ? 1 : 0;
         RightActionButtons.IsHitTestVisible = showButtons;
         RightButtonsTransform.X = showButtons ? 0 : 12;

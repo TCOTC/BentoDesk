@@ -55,11 +55,9 @@ public partial class SettingsViewModel
             DefaultHeight = settings.DefaultWidgetHeight;
             HideShortcutArrowOverlay = settings.HideShortcutArrowOverlay;
             ShowImageFilesAsIcons = settings.ShowImageFilesAsIcons;
-            ShowHoverButtons = settings.ShowHoverButtons;
             ResizeSnapEnabled = settings.ResizeSnapEnabled;
             ShowListItemDetails = settings.ShowListItemDetails;
             ShowFileItemPathTooltips = settings.ShowFileItemPathTooltips;
-            ApplyHoverButtonActionSelection(settings.WidgetHoverButtonActions);
 
             WidgetOpacity = settings.WidgetOpacity;
             WidgetMaterialIntensity = settings.WidgetMaterialIntensity;
@@ -104,12 +102,6 @@ public partial class SettingsViewModel
             SelectedWidgetAnimationSlideDirection = NormalizeWidgetAnimationSlideDirection(settings.WidgetAnimationSlideDirection);
             SelectedWidgetAnimationEasingIntensity = NormalizeWidgetAnimationEasingIntensity(settings.WidgetAnimationEasingIntensity);
             SelectedAnimationPreset = ResolveAnimationPreset();
-            SelectedDisplayWidgetChromeMode = NormalizeWidgetChromeModeSetting(
-                settings.DisplayWidgetChromeMode,
-                WidgetChromeMode.Overlay);
-            SelectedInteractiveWidgetChromeMode = NormalizeWidgetChromeModeSetting(
-                settings.InteractiveWidgetChromeMode,
-                WidgetChromeMode.Standard);
             SelectedWidgetTitleIconMode = NormalizeWidgetTitleIconModeSetting(settings.WidgetTitleIconMode);
 
             IconSize = settings.IconSize;
@@ -207,8 +199,6 @@ public partial class SettingsViewModel
             _cachedWidgetCompactMediaCornerDisplayNames = null;
             _cachedLayoutDensityDisplayNames = null;
             _cachedAnimationPresetDisplayNames = null;
-            _cachedDisplayWidgetChromeModeDisplayNames = null;
-            _cachedInteractiveWidgetChromeModeDisplayNames = null;
             _cachedWidgetTitleIconModeDisplayNames = null;
             _cachedMusicDisplayModeDisplayNames = null;
             _cachedManagedDropActionDisplayNames = null;
@@ -228,8 +218,6 @@ public partial class SettingsViewModel
             OnPropertyChanged(nameof(AvailableWidgetCompactMediaCornerDisplayNames));
             OnPropertyChanged(nameof(AvailableLayoutDensityDisplayNames));
             OnPropertyChanged(nameof(AvailableAnimationPresetDisplayNames));
-            OnPropertyChanged(nameof(AvailableDisplayWidgetChromeModeDisplayNames));
-            OnPropertyChanged(nameof(AvailableInteractiveWidgetChromeModeDisplayNames));
             OnPropertyChanged(nameof(AvailableWidgetTitleIconModeDisplayNames));
             OnPropertyChanged(nameof(AvailableManagedDropActionDisplayNames));
             OnPropertyChanged(nameof(AvailableMusicDisplayModeDisplayNames));
@@ -272,11 +260,7 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(SelectedWidgetCompactMediaCornerText));
         OnPropertyChanged(nameof(SelectedLayoutDensityText));
         OnPropertyChanged(nameof(SelectedAnimationPresetText));
-        OnPropertyChanged(nameof(SelectedDisplayWidgetChromeModeText));
-        OnPropertyChanged(nameof(SelectedInteractiveWidgetChromeModeText));
         OnPropertyChanged(nameof(SelectedWidgetTitleIconModeText));
-        NotifyHoverButtonActionPropertiesChanged();
-        OnPropertyChanged(nameof(HoverButtonActionsSummaryText));
         OnPropertyChanged(nameof(SelectedMusicDisplayModeText));
     }
 }

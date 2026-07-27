@@ -2,6 +2,8 @@
 
 日期：2026-06-30
 
+> **状态（2026-07-27）**：可配置的标题样式已下线。现行行为由 `WidgetContentDescriptor.DefaultChromeMode` 固定——文件盒子为 `Standard`，音乐盒子为 `Overlay`；设置项、更多菜单中的「标题样式」，以及 `Metadata["ChromeMode"]` 覆盖均已移除。下文保留为当时的设计过程记录，不再作为产品或实现规格。
+
 本文档用于梳理“标准 / 紧凑 / 悬浮 / 隐藏”标题样式的设计边界和开发关联点。目标不是推翻现有组件化，而是在现有 `WidgetShell`、`ContentWidgetWindow`、`WidgetWindow`、`QuickCaptureWidgetWindow` 基础上，把“窗口公共能力”和“标题栏表现形式”进一步拆开。
 
 ## 背景结论

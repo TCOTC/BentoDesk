@@ -20,14 +20,10 @@
         KeyDown="RootGrid_KeyDown">
         <controls:WidgetShell
             x:Name="ContentWidgetShell"
-            CloseRequested="CloseButton_Click"
             DragHandlePointerMoved="DragHandle_PointerMoved"
             DragHandlePointerPressed="DragHandle_PointerPressed"
             DragHandlePointerReleased="DragHandle_PointerReleased"
-            AddRequested="AddButton_Click"
-            MoreRequested="MoreButton_Click"
-            PositionLockRequested="PositionLockButton_Click"
-            SizeLockRequested="SizeLockButton_Click"
+            LockRequested="LockButton_Click"
             OverlayTitle="{Binding DisplayName}"
             TitleDoubleTapped="ContentWidgetShell_TitleDoubleTapped"
             TitlePointerMoved="TitleBarGrid_PointerMoved"

@@ -189,7 +189,7 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
         _localizationSvc = localizationService ?? new LocalizationService(settingsService);
         _fileDropSubclassProc = FileDropSubclassProc;
         _chromeDescriptor = new WidgetContentFactory(_localizationSvc).GetDescriptor(WidgetKind.File);
-        _chromeModeResolver = new WidgetChromeModeResolver(settingsService);
+        _chromeModeResolver = new WidgetChromeModeResolver();
         InitializeComponent();
         
         // ✅ Set localized title
@@ -302,13 +302,8 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
     private void ApplyLocalizedText()
     {
         TitleEditBox.PlaceholderText = _localizationService.T("Widget.TitlePlaceholder");
-        ToolTipService.SetToolTip(PositionLockButton, _localizationService.T("Widget.LockPosition"));
-        ToolTipService.SetToolTip(SizeLockButton, _localizationService.T("Widget.LockSize"));
-        ToolTipService.SetToolTip(FileWidgetShell.PositionLockActionButton, _localizationService.T("Widget.LockPosition"));
-        ToolTipService.SetToolTip(FileWidgetShell.SizeLockActionButton, _localizationService.T("Widget.LockSize"));
-        ToolTipService.SetToolTip(AddButton, _localizationService.T("Widget.Tooltip.Add"));
-        ToolTipService.SetToolTip(MoreButton, _localizationService.T("Widget.Tooltip.More"));
-        ToolTipService.SetToolTip(CloseButton, _localizationService.T("Widget.Tooltip.DeleteWidget"));
+        ToolTipService.SetToolTip(LockButton, _localizationService.T("Widget.Lock"));
+        ToolTipService.SetToolTip(FileWidgetShell.LockActionButton, _localizationService.T("Widget.Lock"));
         UpdateCollapseWidgetButtonVisual();
         MigrationTitleText.Text = _localizationService.T("Widget.Migration.Title");
         MigrationDescriptionText.Text = _localizationService.T("Widget.Migration.Description");
@@ -548,12 +543,10 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
             return true;
         }
 
-        return !IsWithin(source, PositionLockButton) &&
-               !IsWithin(source, SizeLockButton) &&
-               !IsWithin(source, AddButton) &&
-               !IsWithin(source, MoreButton) &&
-               !IsWithin(source, CloseButton) &&
+        return !IsWithin(source, LockButton) &&
                !IsWithin(source, CollapseWidgetButton) &&
+               !IsWithin(source, FileWidgetShell.LockActionButton) &&
+               !IsWithin(source, FileWidgetShell.CollapseActionButton) &&
                !IsWithin(source, TitleEditBox);
     }
 
@@ -604,12 +597,10 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
             return true;
         }
 
-        return !IsWithin(source, PositionLockButton) &&
-               !IsWithin(source, SizeLockButton) &&
-               !IsWithin(source, AddButton) &&
-               !IsWithin(source, MoreButton) &&
-               !IsWithin(source, CloseButton) &&
+        return !IsWithin(source, LockButton) &&
                !IsWithin(source, CollapseWidgetButton) &&
+               !IsWithin(source, FileWidgetShell.LockActionButton) &&
+               !IsWithin(source, FileWidgetShell.CollapseActionButton) &&
                !IsWithin(source, TitleEditBox) &&
                !HasAncestorOfType<TextBox>(source);
     }

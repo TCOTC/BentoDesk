@@ -42,7 +42,6 @@ public sealed class WidgetContentFactory
             "WidgetContent.Music.StatusDescription",
             HasSettingsPage: true,
             SettingsSectionTag: "MusicSettings",
-            ChromeCategory: WidgetChromeCategory.Display,
             DefaultChromeMode: WidgetChromeMode.Overlay)
     ];
 

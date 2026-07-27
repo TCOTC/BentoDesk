@@ -60,7 +60,7 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
     {
         _config = config;
         _descriptor = descriptor;
-        _chromeModeResolver = new WidgetChromeModeResolver(settingsService);
+        _chromeModeResolver = new WidgetChromeModeResolver();
 
         InitializeComponent();
 
@@ -80,7 +80,6 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
         ContentWidgetShell.DataContext = _titleViewModel;
         ContentWidgetShell.TitleGlyph = descriptor.DefaultGlyph;
         ContentWidgetShell.TitleIconKind = WidgetTitleIconKindNames.FromWidgetKind(_config.WidgetKind);
-        ContentWidgetShell.ShowHoverButtons = settingsService.Settings.ShowHoverButtons;
         ContentWidgetShell.IsTitleEditable = true;
         ContentWidgetShell.SetCollapseChromeMode(WidgetCollapseChromeMode.CapsulePresentation);
         ApplyLocalizedTitleActionTooltips();
@@ -384,7 +383,6 @@ public sealed partial class ContentWidgetWindow : WidgetWindowBase, IDesktopWidg
 
         ApplyWindowCornerPreference();
         ApplyBackdropPreference();
-        ContentWidgetShell.ShowHoverButtons = SettingsService.Settings.ShowHoverButtons;
         ApplyTitleBarLayout();
         _contentHost.ApplyAppearance();
     }
@@ -625,7 +623,6 @@ IsHideAnimationRunning = true;
         await _contentHost.SetContentAsync(content);
         AttachCompactPresentationSource(content);
         RefreshCompactPresentation();
-        ApplyTitleActionButtonConfiguration();
     }
 
     private void AttachCompactPresentationSource(IWidgetContent content)
@@ -701,11 +698,7 @@ IsHideAnimationRunning = true;
     private void ApplyLocalizedTitleActionTooltips()
     {
         var localization = App.Current.LocalizationService;
-        ToolTipService.SetToolTip(ContentWidgetShell.PositionLockActionButton, localization.T("Widget.LockPosition"));
-        ToolTipService.SetToolTip(ContentWidgetShell.SizeLockActionButton, localization.T("Widget.LockSize"));
-        ToolTipService.SetToolTip(ContentWidgetShell.AddActionButton, localization.T("Widget.Tooltip.Add"));
-        ToolTipService.SetToolTip(ContentWidgetShell.MoreActionButton, localization.T("Widget.Tooltip.More"));
-        ToolTipService.SetToolTip(ContentWidgetShell.CloseActionButton, localization.T("Widget.FeatureWidget.Disable"));
+        ToolTipService.SetToolTip(ContentWidgetShell.LockActionButton, localization.T("Widget.Lock"));
     }
 
     private void SetupEventHandlers()
@@ -770,7 +763,6 @@ IsHideAnimationRunning = true;
             return;
         }
 
-        ContentWidgetShell.ShowHoverButtons = SettingsService.Settings.ShowHoverButtons;
         _titleViewModel.RefreshMetrics();
         ApplyAppearancePreview();
     }

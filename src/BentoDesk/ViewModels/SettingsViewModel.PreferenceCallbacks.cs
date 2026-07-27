@@ -163,42 +163,6 @@ public partial class SettingsViewModel
         _settingsService.SaveDebounced();
     }
 
-    partial void OnShowHoverButtonsChanged(bool value)
-    {
-        if (_isRestoringDefaults)
-        {
-            return;
-        }
-
-        _settingsService.Settings.ShowHoverButtons = value;
-        _settingsService.SaveDebounced();
-    }
-
-    partial void OnShowHoverActionLockPositionChanged(bool value)
-    {
-        OnHoverButtonActionSelectionChanged(SettingsService.WidgetHoverActionLockPosition, value);
-    }
-
-    partial void OnShowHoverActionLockSizeChanged(bool value)
-    {
-        OnHoverButtonActionSelectionChanged(SettingsService.WidgetHoverActionLockSize, value);
-    }
-
-    partial void OnShowHoverActionAddChanged(bool value)
-    {
-        OnHoverButtonActionSelectionChanged(SettingsService.WidgetHoverActionAdd, value);
-    }
-
-    partial void OnShowHoverActionMoreChanged(bool value)
-    {
-        OnHoverButtonActionSelectionChanged(SettingsService.WidgetHoverActionMore, value);
-    }
-
-    partial void OnShowHoverActionDeleteChanged(bool value)
-    {
-        OnHoverButtonActionSelectionChanged(SettingsService.WidgetHoverActionDelete, value);
-    }
-
     partial void OnShowListItemDetailsChanged(bool value)
     {
         if (_isRestoringDefaults)
