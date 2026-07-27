@@ -102,6 +102,30 @@ public abstract partial class WidgetWindowBase
             ApplyBackdropPreference();
             OnRootElementThemeChanged();
         };
+
+        // Title bar already calls BringAbovePeerWidgets; content clicks did not.
+        // Handle both on the tunneling preview so activation cannot leave the
+        // widget covering other apps for a frame (or permanently).
+        RootElement.AddHandler(
+            UIElement.PointerPressedEvent,
+            new PointerEventHandler(DesktopWidgetRoot_PointerPressed),
+            handledEventsToo: true);
+    }
+
+    private void DesktopWidgetRoot_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(RootElement).Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        if (HWnd == IntPtr.Zero || !Win32Helper.IsWindow(HWnd))
+        {
+            return;
+        }
+
+        IsAtDesktopLayer = true;
+        WidgetLayerService.ReassertDesktopLayer(HWnd);
     }
 
     // ── Bounds management ──────────────────────────────────────

@@ -219,6 +219,16 @@ public sealed partial class ContentWidgetWindow
         }
 
         _contentHost.OnActivated();
+
+        // WinUI activation can lift the HWND above normal apps. Re-pin now; one
+        // delayed settle is generation-gated so a later click on another widget
+        // cancels this pass (avoids overlap flicker).
+        if (Visible)
+        {
+            IsAtDesktopLayer = true;
+            WidgetLayerService.ReassertDesktopLayer(HWnd);
+            WidgetLayerService.ScheduleReassertDesktopLayer(HWnd);
+        }
     }
 
     private void QueueRestoreDesktopLayerIfForegroundLeavesBentoDesk()

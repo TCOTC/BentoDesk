@@ -49,6 +49,22 @@ public static partial class Win32Helper
     public const int SW_SHOWNORMAL = 1;
     public const int SW_SHOWNOACTIVATE = 4;
 
+    public const uint WM_WINDOWPOSCHANGING = 0x0046;
+    public const uint WM_MOUSEACTIVATE = 0x0021;
+    public const int MA_NOACTIVATE = 3;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct WINDOWPOS
+    {
+        public IntPtr hwnd;
+        public IntPtr hwndInsertAfter;
+        public int x;
+        public int y;
+        public int cx;
+        public int cy;
+        public uint flags;
+    }
+
     [LibraryImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool SetWindowPos(
@@ -755,9 +771,16 @@ public static partial class Win32Helper
 
     /// <summary>
     /// Remove topmost state from a window without changing its size or position.
+    /// Only touches Z-order when the window is actually topmost — bare
+    /// <c>HWND_NOTOPMOST</c> would raise a normal window above all peers/apps.
     /// </summary>
     public static void ClearWindowTopMost(IntPtr hWnd)
     {
+        if (hWnd == IntPtr.Zero || !IsWindow(hWnd) || !IsWindowTopMost(hWnd))
+        {
+            return;
+        }
+
         SetWindowPos(hWnd, HWND_NOTOPMOST, 0, 0, 0, 0,
             SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }

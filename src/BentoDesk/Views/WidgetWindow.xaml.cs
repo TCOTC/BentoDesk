@@ -462,8 +462,15 @@ public sealed partial class WidgetWindow : WidgetWindowBase, IDesktopWidgetWindo
             return;
         }
 
-        // Desktop-fixed layer: pointer activation must not lift widgets above other apps.
-        App.LogVerbose($"[ZOrder] Widget PointerActivated BLOCKED hwnd=0x{_hWnd.ToInt64():X} visible={Visible} atDesktop={_isAtDesktopLayer}");
+        // WinUI activation can lift the HWND above normal apps. Re-pin now; one
+        // delayed settle is generation-gated so a later click on another widget
+        // cancels this pass (avoids overlap flicker).
+        if (Visible)
+        {
+            _isAtDesktopLayer = true;
+            WidgetLayerService.ReassertDesktopLayer(_hWnd);
+            WidgetLayerService.ScheduleReassertDesktopLayer(_hWnd);
+        }
     }
 
     private void QueueRestoreDesktopLayerIfForegroundLeavesBentoDesk()
