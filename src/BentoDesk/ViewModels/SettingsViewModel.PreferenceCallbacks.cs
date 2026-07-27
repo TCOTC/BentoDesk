@@ -37,17 +37,6 @@ public partial class SettingsViewModel
         _settingsService.SaveDebounced();
     }
 
-    partial void OnDoubleClickToOpenChanged(bool value)
-    {
-        if (_isRestoringDefaults)
-        {
-            return;
-        }
-
-        _settingsService.Settings.DoubleClickToOpen = value;
-        _settingsService.SaveDebounced();
-    }
-
     partial void OnDoubleClickDesktopToHideAllChanged(bool value)
     {
         if (_isRestoringDefaults)

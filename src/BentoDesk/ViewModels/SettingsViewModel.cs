@@ -105,9 +105,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     public partial bool AutoCheckForUpdates { get; set; } = true;
 
     [ObservableProperty]
-    public partial bool DoubleClickToOpen { get; set; }
-
-    [ObservableProperty]
     public partial bool DoubleClickDesktopToHideAll { get; set; }
 
     [ObservableProperty]
@@ -211,7 +208,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
             _useSystemAccentColor = !string.Equals(settings.AccentColorMode, ThemeService.AccentModeCustom, StringComparison.OrdinalIgnoreCase);
             AutoStart = StartupService.IsEnabled();
             AutoCheckForUpdates = settings.AutoCheckForUpdates;
-            DoubleClickToOpen = settings.DoubleClickToOpen;
             DoubleClickDesktopToHideAll = settings.DoubleClickDesktopToHideAll;
             DefaultWidth = settings.DefaultWidgetWidth;
             DefaultHeight = settings.DefaultWidgetHeight;

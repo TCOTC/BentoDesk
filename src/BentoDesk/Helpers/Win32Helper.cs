@@ -254,6 +254,29 @@ public static partial class Win32Helper
         uint action,
         IntPtr changeFilterStruct);
 
+    private const uint SsfDoubleClickInWebView = 0x00000080;
+    private const uint ShellFlagDoubleClickInWebView = 0x00000020;
+
+    [DllImport("shell32.dll")]
+    private static extern void SHGetSettings(out uint shellFlagState, uint mask);
+
+    /// <summary>
+    /// 读取资源管理器「文件夹选项」中的单击/双击打开设置。
+    /// 为 true 时需双击打开；为 false 时单击即可打开。
+    /// </summary>
+    public static bool IsDoubleClickToOpenEnabled()
+    {
+        try
+        {
+            SHGetSettings(out uint flags, SsfDoubleClickInWebView);
+            return (flags & ShellFlagDoubleClickInWebView) != 0;
+        }
+        catch
+        {
+            return true;
+        }
+    }
+
     [LibraryImport("shell32.dll")]
     public static partial void DragAcceptFiles(IntPtr hWnd, [MarshalAs(UnmanagedType.Bool)] bool accept);
 

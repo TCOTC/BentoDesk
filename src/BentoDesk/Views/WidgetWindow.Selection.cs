@@ -314,7 +314,7 @@ public sealed partial class WidgetWindow
         }
 
         var properties = e.GetCurrentPoint(listView).Properties;
-        if (!_settingsService.Settings.DoubleClickToOpen &&
+        if (!Win32Helper.IsDoubleClickToOpenEnabled() &&
             !_isBoxSelecting &&
             properties.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.LeftButtonReleased &&
             e.OriginalSource is FrameworkElement element &&

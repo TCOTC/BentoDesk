@@ -133,7 +133,7 @@ public sealed partial class WidgetWindow
             return;
         }
 
-        if (!_settingsService.Settings.DoubleClickToOpen)
+        if (!Win32Helper.IsDoubleClickToOpenEnabled())
         {
             OpenItem(item);
         }
@@ -141,8 +141,9 @@ public sealed partial class WidgetWindow
 
     private void ItemsView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
+        var doubleClickToOpen = Win32Helper.IsDoubleClickToOpenEnabled();
         var diagSrc = e.OriginalSource as FrameworkElement;
-        App.Log($"[DIAG] ItemsView_DoubleTapped srcType={e.OriginalSource?.GetType().Name} dcType={diagSrc?.DataContext?.GetType().Name ?? "null"} doubleClickToOpen={_settingsService.Settings.DoubleClickToOpen}");
+        App.Log($"[DIAG] ItemsView_DoubleTapped srcType={e.OriginalSource?.GetType().Name} dcType={diagSrc?.DataContext?.GetType().Name ?? "null"} doubleClickToOpen={doubleClickToOpen}");
 
         if (e.OriginalSource is FrameworkElement { DataContext: WidgetStackItem })
         {
@@ -151,7 +152,7 @@ public sealed partial class WidgetWindow
             return;
         }
 
-        if (_settingsService.Settings.DoubleClickToOpen &&
+        if (doubleClickToOpen &&
             e.OriginalSource is FrameworkElement element &&
             element.DataContext is WidgetItem item)
         {

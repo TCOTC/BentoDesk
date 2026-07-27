@@ -209,9 +209,6 @@ public class AppSettings
     /// </summary>
     public string WidgetTitleIconMode { get; set; } = "Color";
 
-    /// <summary>Whether to double click to open files.</summary>
-    public bool DoubleClickToOpen { get; set; } = true;
-
     /// <summary>
     /// Whether double-clicking empty desktop space toggles hiding all desktop icons and widgets.
     /// </summary>

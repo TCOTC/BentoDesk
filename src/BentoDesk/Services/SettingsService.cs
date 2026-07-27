@@ -279,7 +279,6 @@ public sealed class SettingsService
         settings.GlobalHotkeyEnabled = DefaultGlobalHotkeyEnabled;
         settings.GlobalHotkeyModifiers = DefaultGlobalHotkeyModifiers;
         settings.GlobalHotkeyKey = DefaultGlobalHotkeyKey;
-        settings.DoubleClickToOpen = true;
         settings.DoubleClickDesktopToHideAll = false;
         settings.HideShortcutArrowOverlay = true;
         settings.ResizeSnapEnabled = true;

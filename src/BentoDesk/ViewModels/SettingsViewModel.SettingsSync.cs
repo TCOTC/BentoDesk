@@ -49,7 +49,6 @@ public partial class SettingsViewModel
                 StringComparison.OrdinalIgnoreCase);
 
             AutoCheckForUpdates = settings.AutoCheckForUpdates;
-            DoubleClickToOpen = settings.DoubleClickToOpen;
             DoubleClickDesktopToHideAll = settings.DoubleClickDesktopToHideAll;
             DefaultWidth = settings.DefaultWidgetWidth;
             DefaultHeight = settings.DefaultWidgetHeight;
