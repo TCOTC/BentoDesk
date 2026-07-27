@@ -1,13 +1,18 @@
 # Agent 约定
 
-## 禁止通过 build 验证
+## 改完代码后自动重启应用
 
-AI **不得**使用 `dotnet build`、`msbuild` 或其他编译命令来验证改动是否可用。
+AI 在完成会影响运行时行为的代码改动后，**必须主动**结束当前正在运行的 BentoDesk，重新 build，再启动新实例；**不要**等开发者手动操作。
 
-开发时由开发者自行运行与检查：
+统一使用仓库脚本（会先停掉 `BentoDesk` 进程，再构建并启动）：
 
 ```powershell
-dotnet watch run --project .\src\BentoDesk\BentoDesk.csproj -c Debug -property:Platform=x64
+.\scripts\start-debug.ps1 -Build
 ```
 
-AI 也不应主动执行上述 `dotnet watch run`；该命令仅供开发者本地使用。
+注意：
+
+- 该脚本默认会 `Stop-Process` 现有 `BentoDesk` 进程；无需再单独杀进程，也无需让用户确认。
+- 后台启动即可（不要用会阻塞会话的前台挂起方式占满终端）。
+- 若 build 失败，修复后再次执行上述命令，直到启动成功或明确说明阻塞原因。
+- 纯文档 / 注释 / 不影响运行产物的改动，可跳过重启。
