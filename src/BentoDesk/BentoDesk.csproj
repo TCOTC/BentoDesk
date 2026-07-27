@@ -59,15 +59,6 @@
     <Content Include="Assets\bentodesk-tray-dark.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Assets\wechat-qrcode.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\donation-wechat.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\donation-alipay.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Assets\SettingsNavIcons\*.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

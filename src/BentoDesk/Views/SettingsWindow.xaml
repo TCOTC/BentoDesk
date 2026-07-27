@@ -1475,16 +1475,6 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                                         </StackPanel>
                                     </Button>
                                     <Button
-                                        x:Name="AboutWebsiteButton"
-                                        Click="OpenWebsiteButton_Click"
-                                        Style="{StaticResource ActionButtonStyle}"
-                                        ToolTipService.ToolTip="{Binding OfficialWebsiteLink}">
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <FontIcon FontSize="14" Glyph="&#xE774;" />
-                                            <TextBlock svc:Localized.Key="Settings.About.Website" />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button
                                         x:Name="AboutRepositoryButton"
                                         Click="OpenRepositoryButton_Click"
                                         Style="{StaticResource ActionButtonStyle}"
@@ -1615,60 +1605,6 @@ svc:Localized.DescriptionKey="Settings.DefaultWidth.Description"
                                 </toolkit:SettingsCard>
                             </toolkit:SettingsExpander.Items>
                         </toolkit:SettingsExpander>
-
-                        <toolkit:SettingsCard
-                            HorizontalContentAlignment="Right"
-                            svc:Localized.DescriptionKey="Settings.About.DonationDescription"
-                            svc:Localized.HeaderKey="Settings.About.DonationTitle"
-                            Visibility="{Binding DonationCardVisibility}">
-                            <toolkit:SettingsCard.HeaderIcon>
-                                <FontIcon Glyph="&#xE8F2;" />
-                            </toolkit:SettingsCard.HeaderIcon>
-                            <StackPanel
-                                HorizontalAlignment="Right"
-                                Orientation="Horizontal"
-                                Spacing="14">
-                                <StackPanel Spacing="6">
-                                    <Image
-                                        Width="100"
-                                        Height="100"
-                                        Source="{Binding DonationWechatImageSource}"
-                                        Stretch="Uniform"
-                                        VerticalAlignment="Center" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        Style="{StaticResource SettingDescriptionTextStyle}"
-                                        svc:Localized.Key="Settings.About.DonationWechat" />
-                                </StackPanel>
-                                <StackPanel Spacing="6">
-                                    <Image
-                                        Width="100"
-                                        Height="100"
-                                        Source="{Binding DonationAlipayImageSource}"
-                                        Stretch="Uniform"
-                                        VerticalAlignment="Center" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        Style="{StaticResource SettingDescriptionTextStyle}"
-                                        svc:Localized.Key="Settings.About.DonationAlipay" />
-                                </StackPanel>
-                            </StackPanel>
-                        </toolkit:SettingsCard>
-
-                        <toolkit:SettingsCard
-                            HorizontalContentAlignment="Right"
-                            svc:Localized.DescriptionKey="Settings.About.WechatDescription"
-                            svc:Localized.HeaderKey="Settings.About.WechatTitle">
-                            <toolkit:SettingsCard.HeaderIcon>
-                                <FontIcon Glyph="&#xE8BD;" />
-                            </toolkit:SettingsCard.HeaderIcon>
-                            <Image
-                                Source="ms-appx:///Assets/wechat-qrcode.jpg"
-                                Width="100"
-                                Height="100"
-                                Stretch="Uniform"
-                                VerticalAlignment="Center" />
-                        </toolkit:SettingsCard>
                     </StackPanel>
                 </StackPanel>
                 </StackPanel>

@@ -148,12 +148,7 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(AboutVersionText));
         OnPropertyChanged(nameof(DistributionChannelText));
         OnPropertyChanged(nameof(AboutDeveloperText));
-        OnPropertyChanged(nameof(OfficialWebsiteDisplayText));
-        OnPropertyChanged(nameof(OpenSourceRepositoryDisplayText));
         OnPropertyChanged(nameof(UpdateDownloadActionText));
-        OnPropertyChanged(nameof(DonationCardVisibility));
-        OnPropertyChanged(nameof(DonationWechatImageSource));
-        OnPropertyChanged(nameof(DonationAlipayImageSource));
         if (!IsCheckingForUpdates && !IsDownloadingUpdate)
         {
             if (_appUpdateService.LastCheckResult is not null)

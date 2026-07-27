@@ -25,11 +25,6 @@ public sealed partial class SettingsWindow
         Win32Helper.OpenFile(ViewModel.OpenSourceRepositoryUrl);
     }
 
-    private void OpenWebsiteButton_Click(object sender, RoutedEventArgs e)
-    {
-        Win32Helper.OpenFile(ViewModel.OfficialWebsiteLink);
-    }
-
     private async void OneClickUpdateButton_Click(object sender, RoutedEventArgs e)
     {
         // If update is already downloaded, show install confirmation dialog.

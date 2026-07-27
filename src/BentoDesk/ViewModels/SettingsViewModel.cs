@@ -42,7 +42,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private const string AnimationPresetNone = "None";
     private const string AnimationPresetFade = "Fade";
     private const string RepositoryUrl = "https://github.com/TCOTC/BentoDesk";
-    private const string OfficialWebsiteUrl = "https://github.com/TCOTC/BentoDesk";
 
     private readonly SettingsService _settingsService;
     private readonly ThemeService _themeService;
@@ -55,8 +54,6 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     private AppUpdateManifest? _availableUpdateManifest;
     private string? _downloadedUpdateInstallerPath;
     private bool _showManualUpdateFallback;
-    private ImageSource? _donationWechatImageSource;
-    private ImageSource? _donationAlipayImageSource;
     private Color _currentAccentColor;
     private string _selectedTheme = ThemeSystem;
     private string _selectedTrayIconStyle = TrayIconStyleSystem;

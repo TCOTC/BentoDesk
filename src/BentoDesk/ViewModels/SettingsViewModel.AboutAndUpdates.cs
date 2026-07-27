@@ -2,8 +2,6 @@ using System.Reflection;
 using BentoDesk.Models;
 using BentoDesk.Services;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace BentoDesk.ViewModels;
 
@@ -19,19 +17,7 @@ public partial class SettingsViewModel
     public string AboutVersionText => _localizationService.Format("Settings.About.VersionWithChannel", AppVersion, DistributionChannelText);
     public string DistributionChannelText => _localizationService.T("Settings.About.Channel.Direct");
     public string OpenSourceRepositoryUrl => RepositoryUrl;
-    public string OfficialWebsiteDisplayText => OfficialWebsiteUrl.Replace("https://", string.Empty).TrimEnd('/');
-    public string OfficialWebsiteLink => OfficialWebsiteUrl;
-    public string DomesticMirrorDownloadUrl => AppUpdateService.DefaultManualDownloadUrl;
     public string AboutDeveloperText => _localizationService.T("Settings.About.DeveloperName");
-    public Visibility DonationCardVisibility => Visibility.Visible;
-    public ImageSource? DonationWechatImageSource =>
-        _donationWechatImageSource ??= new BitmapImage(new Uri("ms-appx:///Assets/donation-wechat.png"));
-    public ImageSource? DonationAlipayImageSource =>
-        _donationAlipayImageSource ??= new BitmapImage(new Uri("ms-appx:///Assets/donation-alipay.png"));
-    public string OpenSourceRepositoryDisplayText =>
-        _localizationService.Format(
-            "Settings.About.Developer",
-            RepositoryUrl.Replace("https://", string.Empty).Replace("http://", string.Empty).TrimEnd('/'));
     public string AvailableUpdateReleaseNotesUrl => _availableUpdateManifest?.ReleaseNotesUrl ?? string.Empty;
     public string UpdateFallbackUrl => RepositoryUrl + "/releases";
 
